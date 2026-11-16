@@ -505,7 +505,7 @@ describe("absolute directory-path configuration", () => {
     outsideDir = realpathSync.native(outsideDir);
 
     mkdirSync(path.join(homeDir, "projects", "zentic"), { recursive: true });
-    mkdirSync(path.join(homeDir, "projects", "playground"), { recursive: true });
+    mkdirSync(path.join(homeDir, "projects", "zeppelin"), { recursive: true });
     mkdirSync(path.join(homeDir, "documents", "plans"), { recursive: true });
     mkdirSync(path.join(homeDir, ".hidden", "cache"), { recursive: true });
     writeFileSync(path.join(homeDir, "projects", "README.md"), "not a directory\n");
@@ -644,13 +644,13 @@ describe("absolute directory-path configuration", () => {
   it("supports home-relative path query syntax", async () => {
     const result = await searchAbsoluteDirectoryPaths({
       homeDir,
-      query: "~/projects/pa",
+      query: "~/projects/ze",
       limit: 10,
     });
 
     expect(result.map((entry) => realpathSync.native(entry))).toEqual([
       realpathSync.native(path.join(homeDir, "projects", "zentic")),
-      realpathSync.native(path.join(homeDir, "projects", "playground")),
+      realpathSync.native(path.join(homeDir, "projects", "zeppelin")),
     ]);
   });
 

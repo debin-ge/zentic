@@ -42,7 +42,7 @@ describe("buildWorkingDirectorySuggestions", () => {
         "/Users/me/projects/zentic-desktop",
       ],
       serverPaths: [],
-      query: "projects/pso",
+      query: "projects/zni",
     });
 
     expect(results).toEqual([

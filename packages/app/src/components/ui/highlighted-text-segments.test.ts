@@ -66,8 +66,8 @@ describe("findHighlightRanges", () => {
     expect(
       marked("billing", findHighlightRanges("bulling", "billing", { typoTolerant: true })),
     ).toBe("[billing]");
-    expect(marked("zentic-babysit", findHighlightRanges("pasbab", "zentic-babysit"))).toBe(
-      "[pas]eo-[bab]ysit",
+    expect(marked("zentic-babysit", findHighlightRanges("zenbab", "zentic-babysit"))).toBe(
+      "[zen]tic-[bab]ysit",
     );
   });
   it("does not highlight a query assembled across separate words", () => {
