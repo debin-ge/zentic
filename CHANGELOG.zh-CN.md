@@ -312,7 +312,7 @@ worktree 初始化支持复制被忽略的文件，并在 Agent 启动前使用�
 - 语音模式默认关闭，可在语音设置中启用
 - 如果通过环境变量选择 OpenAI 语音，请将仅保存在旧版 `providers.openai` 中的密钥和服务地址移至语音设置
 - 降级至 0.13.2 前，请恢复备份的 `config.json` 或转换 0.14.0 保存的语音凭据和空闲清理设置
-- 安装可选的 [Claude Code entrypoint 插件](https://zentic.sh/plugins/getzentic/claude-code-entrypoint-env)，即可使用 `CLAUDE_CODE_ENTRYPOINT=Zentic` 启动 Claude 会话；这是针对订阅额度消耗过快问题的社区变通方案 ([#7976](https://github.com/getpaseo/paseo/pull/7976), [#8164](https://github.com/getpaseo/paseo/pull/8164) by [@david828019-oss](https://github.com/david828019-oss))
+- 安装可选的 [Claude Code entrypoint 插件](https://zentic.sh/plugins/debin-ge/claude-code-entrypoint-env)，即可使用 `CLAUDE_CODE_ENTRYPOINT=Zentic` 启动 Claude 会话；这是针对订阅额度消耗过快问题的社区变通方案 ([#7976](https://github.com/getpaseo/paseo/pull/7976), [#8164](https://github.com/getpaseo/paseo/pull/8164) by [@david828019-oss](https://github.com/david828019-oss))
 
 ## 0.13.2 - 2026-10-26
 

@@ -312,7 +312,7 @@ Voice settings now let you configure speech providers and download local models 
 - Voice mode now defaults to off; enable it in Voice settings
 - If environment variables select OpenAI speech, move keys and endpoints stored only in legacy `providers.openai` into Voice settings
 - Before downgrading to 0.13.2, restore a backed-up `config.json` or convert speech credentials and idle-cleanup settings saved by 0.14.0
-- Install the optional [Claude Code entrypoint plugin](https://zentic.sh/plugins/getzentic/claude-code-entrypoint-env) to launch Claude sessions with `CLAUDE_CODE_ENTRYPOINT=Zentic`, a community workaround for subscription limits draining faster ([#7976](https://github.com/getpaseo/paseo/pull/7976), [#8164](https://github.com/getpaseo/paseo/pull/8164) by [@david828019-oss](https://github.com/david828019-oss))
+- Install the optional [Claude Code entrypoint plugin](https://zentic.sh/plugins/debin-ge/claude-code-entrypoint-env) to launch Claude sessions with `CLAUDE_CODE_ENTRYPOINT=Zentic`, a community workaround for subscription limits draining faster ([#7976](https://github.com/getpaseo/paseo/pull/7976), [#8164](https://github.com/getpaseo/paseo/pull/8164) by [@david828019-oss](https://github.com/david828019-oss))
 
 ## 0.13.2 - 2026-10-26
 

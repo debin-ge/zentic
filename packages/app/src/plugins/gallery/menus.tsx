@@ -45,7 +45,7 @@ import { InstallPluginSheet } from "./install-sheet";
 import { pluginErrorText } from "./error-text";
 
 const SUBMIT_PLUGIN_URL =
-  "https://github.com/getzentic/plugins/issues/new?template=submit-plugin.yml";
+  "https://github.com/debin-ge/plugins/issues/new?template=submit-plugin.yml";
 const ThemedMore = withUnistyles(MoreHorizontal);
 const dangerIconMapping = (theme: Theme) => ({ color: theme.colors.statusDanger });
 const ThemedPackagePlus = withUnistyles(PackagePlus);

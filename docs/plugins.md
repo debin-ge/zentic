@@ -153,7 +153,7 @@ Private registry credentials live in daemon config under
 Restart your daemon after changing these startup settings. Credentials go only to the registry,
 never artifact hosts or redirects. Git/npm use their own host authentication.
 
-The [open registry protocol](https://github.com/getzentic/plugins/blob/main/PROTOCOL.md)
+The [open registry protocol](https://github.com/debin-ge/plugins/blob/main/PROTOCOL.md)
 owns static hosting, record shapes, pins, and advisory install counts.
 
 ## Install a Git source

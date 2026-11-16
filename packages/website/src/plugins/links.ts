@@ -3,7 +3,7 @@ import type { InstallWindow } from "./installs";
 
 export const DOCS_URL = "/docs/plugins";
 export const SUBMIT_URL =
-  "https://github.com/getzentic/plugins/issues/new?template=submit-plugin.yml";
+  "https://github.com/debin-ge/plugins/issues/new?template=submit-plugin.yml";
 
 export type BrowseSort = "installs" | "new" | "updated";
 export interface BrowseQuery {

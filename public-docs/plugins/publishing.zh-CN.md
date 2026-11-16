@@ -163,13 +163,13 @@ zentic plugin add git:acme/monorepo:plugins/review
 
 ## 插件注册表 {#plugin-registry}
 
-打开[提交表单](https://github.com/getzentic/plugins/issues/new?template=submit-plugin.yml)。请使用该表单，这样 issue 才会获得启动收录流程的提交标签。
+打开[提交表单](https://github.com/debin-ge/plugins/issues/new?template=submit-plugin.yml)。请使用该表单，这样 issue 才会获得启动收录流程的提交标签。
 
 1. 用插件的名称作为标题。
 2. 在 **Source** 中填写公开的 npm 包名或页面，或 GitHub 仓库/文件夹的 URL。如果你希望审查某个特定版本，请附上版本号或 Git 引用。npm 默认使用 `latest`。注册表 ID 和本地目录不能作为提交来源。
 3. 选择合适的分类。把所有界面图片的 URL 写在 issue 描述中。
 
-机器人会打开一个审查 PR。审查者在不运行插件代码的情况下检查制品和依赖，完善展示页，并记录被批准的确切版本或提交。发布需要符合[审查政策](https://github.com/getzentic/plugins/blob/main/REVIEW.md)，包括锁定的安装输入和恰当的数据访问，即使自动校验已经通过。
+机器人会打开一个审查 PR。审查者在不运行插件代码的情况下检查制品和依赖，完善展示页，并记录被批准的确切版本或提交。发布需要符合[审查政策](https://github.com/debin-ge/plugins/blob/main/REVIEW.md)，包括锁定的安装输入和恰当的数据访问，即使自动校验已经通过。
 
 如果被要求修改，请在审查 PR 中回复修正后的版本或修订，或所要求的图片 URL。审查者会更新固定的版本和展示页。收录服务的错误会自动重试；缺少图片或概览不会妨碍打开审查 PR。
 

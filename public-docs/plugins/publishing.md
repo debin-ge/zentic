@@ -223,7 +223,7 @@ GitHub sources and public npm packages.
 
 ## Plugin registry
 
-Open the [submission form](https://github.com/getzentic/plugins/issues/new?template=submit-plugin.yml).
+Open the [submission form](https://github.com/debin-ge/plugins/issues/new?template=submit-plugin.yml).
 Use the form so the issue receives the submission label that starts intake.
 
 1. Use your plugin's name as the title.
@@ -234,7 +234,7 @@ Use the form so the issue receives the submission label that starts intake.
 
 The bot opens a review PR. The reviewer inspects the artifact and dependencies without running
 plugin code, completes the listing and records the exact approved version or commit. Publication
-requires the [review policy](https://github.com/getzentic/plugins/blob/main/REVIEW.md), including
+requires the [review policy](https://github.com/debin-ge/plugins/blob/main/REVIEW.md), including
 locked installation inputs and appropriate data access, even when automated validation passes.
 
 If a change is requested, reply on the review PR with the corrected version/revision or requested
