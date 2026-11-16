@@ -195,6 +195,25 @@ See [SECURITY.md](../SECURITY.md) for the daemon trust model.
 docker build -f docker/base/Dockerfile -t zentic:local .
 ```
 
+The source-build stage defaults to one Metro worker and a 6144 MiB Node old-space
+limit. Generated protocol validators need substantial memory during web export;
+parallel transforms multiply that cost. Give the Docker builder memory beyond
+the heap limit for native allocations and other build processes. With Docker
+Desktop, adjust the VM's memory under Settings → Resources → Memory.
+
+Override the build settings when needed:
+
+```bash
+docker build -f docker/base/Dockerfile -t zentic:local \
+  --build-arg NODE_OPTIONS="--max-old-space-size=8192" \
+  --build-arg ZENTIC_METRO_MAX_WORKERS=1 .
+```
+
+These settings apply only to the source-build stage. Setting `NODE_OPTIONS` in
+the host shell or on `docker run` does not configure the image build. If Metro
+reports `Jest worker ran out of memory`, keep one worker and increase the heap
+limit together with the builder's available memory.
+
 To assert the source tree version while building:
 
 ```bash

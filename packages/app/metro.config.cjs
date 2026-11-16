@@ -25,6 +25,16 @@ const defaultResolveRequest = config.resolver.resolveRequest ?? resolve;
 // node crawler is the path used when Watchman is absent.
 config.resolver.useWatchman = false;
 
+// Docker exports need a bounded worker count when transforming generated validators.
+// An empty value means "not set": Docker expands an undeclared build arg to "".
+if (process.env.ZENTIC_METRO_MAX_WORKERS?.trim()) {
+  const maxWorkers = Number(process.env.ZENTIC_METRO_MAX_WORKERS);
+  if (!Number.isSafeInteger(maxWorkers) || maxWorkers < 1) {
+    throw new Error("ZENTIC_METRO_MAX_WORKERS must be a positive integer");
+  }
+  config.maxWorkers = maxWorkers;
+}
+
 const escapedAppSrcRoot = appSrcRoot
   .split(path.sep)
   .map((segment) => segment.replace(/[|\\{}()[\]^$+*?.]/g, "\\$&"))
