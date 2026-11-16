@@ -46,7 +46,7 @@ describe("Hub init planning", () => {
 
 describe("Hub init scaffold", () => {
   it.each([
-    ["github", { connection: "github-getzentic", repo: "getzentic/zentic", user: "boudra" }],
+    ["github", { connection: "github-debin-ge", repo: "debin-ge/zentic", user: "boudra" }],
     ["slack", { connection: "slack-zentic", user: "U123456" }],
     ["discord", { connection: "discord-zentic", user: "987654321" }],
   ] satisfies readonly [HubInitProvider, Record<string, string>][])(
@@ -89,7 +89,7 @@ describe("Hub init scaffold", () => {
       ]);
       const event = Object.values(parsed.on)[0]!;
       expect(event.filters.from_users).toEqual([providerFilters.user]);
-      if (provider === "github") expect(event.connection).toBe("github-getzentic");
+      if (provider === "github") expect(event.connection).toBe("github-debin-ge");
       if (provider === "slack") expect(event.connection).toBe("slack-zentic");
       if (provider === "discord") expect(event.connection).toBe("discord-zentic");
       expect(event.filters.channels).toBeUndefined();
@@ -111,10 +111,10 @@ describe("Hub init scaffold", () => {
 
 describe("GitHub origin detection", () => {
   it.each([
-    ["git@github.com:getzentic/zentic.git", "getzentic/zentic"],
-    ["ssh://git@github.com/getzentic/zentic.git", "getzentic/zentic"],
-    ["https://github.com/getzentic/zentic.git", "getzentic/zentic"],
-    ["https://gitlab.com/getzentic/zentic.git", undefined],
+    ["git@github.com:debin-ge/zentic.git", "debin-ge/zentic"],
+    ["ssh://git@github.com/debin-ge/zentic.git", "debin-ge/zentic"],
+    ["https://github.com/debin-ge/zentic.git", "debin-ge/zentic"],
+    ["https://gitlab.com/debin-ge/zentic.git", undefined],
   ])("resolves %s", (remote, expected) => {
     expect(githubRepositoryFromRemote(remote)).toBe(expected);
   });

@@ -430,7 +430,7 @@ function pullRequestCheckoutTargetJson(): string {
 
 function repoViewJson(): string {
   return JSON.stringify({
-    owner: { login: "getzentic" },
+    owner: { login: "debin-ge" },
     name: "zentic",
     parent: null,
   });
@@ -866,7 +866,7 @@ describe("ForgeService", () => {
     });
     expect(runner.calls[1]?.cwd).toBe("/repo");
     expect(runner.calls[1]?.args.slice(0, 3)).toEqual(["api", "graphql", "-f"]);
-    expect(runner.calls[1]?.args).toContain("owner=getzentic");
+    expect(runner.calls[1]?.args).toContain("owner=debin-ge");
     expect(runner.calls[1]?.args).toContain("name=zentic");
     expect(runner.calls[1]?.args).toContain("number=526");
   });
@@ -2112,7 +2112,7 @@ describe("ForgeService", () => {
           nodes: [
             {
               id: "IC_badge",
-              body: "![build](https://img.shields.io/github/actions/workflow/status/getzentic/zentic/ci.yml)",
+              body: "![build](https://img.shields.io/github/actions/workflow/status/debin-ge/zentic/ci.yml)",
               bodyHTML:
                 '<p><img alt="build" src="https://camo.githubusercontent.com/badge-signature" /></p>',
               url: "https://github.com/parentOwner/parentRepo/pull/42#issuecomment-5",
@@ -2140,7 +2140,7 @@ describe("ForgeService", () => {
     expect(timeline.items[0]).toMatchObject({
       kind: "comment",
       id: "IC_badge",
-      body: "![build](https://img.shields.io/github/actions/workflow/status/getzentic/zentic/ci.yml)",
+      body: "![build](https://img.shields.io/github/actions/workflow/status/debin-ge/zentic/ci.yml)",
     });
   });
 
@@ -3215,7 +3215,7 @@ describe("ForgeService", () => {
     const runner = createScriptedRunner([
       currentPullRequestJson({
         number: 993,
-        url: "https://github.com/getzentic/zentic/pull/993",
+        url: "https://github.com/debin-ge/zentic/pull/993",
         title: "Auto-merge UX",
         headRefName: "github-pr-auto-merge-ux",
         mergeable: "MERGEABLE",
@@ -3227,7 +3227,7 @@ describe("ForgeService", () => {
             workflowName: "CI",
             status: "IN_PROGRESS",
             conclusion: null,
-            detailsUrl: "https://github.com/getzentic/zentic/actions/runs/993",
+            detailsUrl: "https://github.com/debin-ge/zentic/actions/runs/993",
           },
         ],
       }),
@@ -3252,7 +3252,7 @@ describe("ForgeService", () => {
         {
           name: "server tests",
           status: "pending",
-          url: "https://github.com/getzentic/zentic/actions/runs/993",
+          url: "https://github.com/debin-ge/zentic/actions/runs/993",
           workflow: "CI",
         },
       ],
@@ -4472,7 +4472,7 @@ describe("ForgeService", () => {
 
     await service.searchIssuesAndPrs({
       cwd: "/repo",
-      query: "https://github.com/getzentic/zentic/pull/793",
+      query: "https://github.com/debin-ge/zentic/pull/793",
       limit: 5,
     });
 
@@ -4511,7 +4511,7 @@ describe("ForgeService", () => {
 
     await service.searchIssuesAndPrs({
       cwd: "/repo",
-      query: "https://gitlab.com/getzentic/zentic/issues/793",
+      query: "https://gitlab.com/debin-ge/zentic/issues/793",
       limit: 5,
     });
 
@@ -4520,7 +4520,7 @@ describe("ForgeService", () => {
         "issue",
         "list",
         "--search",
-        "https://gitlab.com/getzentic/zentic/issues/793",
+        "https://gitlab.com/debin-ge/zentic/issues/793",
         "--json",
         "number,title,url,state,body,labels,updatedAt",
         "--limit",
@@ -4530,7 +4530,7 @@ describe("ForgeService", () => {
         "pr",
         "list",
         "--search",
-        "https://gitlab.com/getzentic/zentic/issues/793",
+        "https://gitlab.com/debin-ge/zentic/issues/793",
         "--json",
         "number,title,url,state,body,labels,baseRefName,headRefName,updatedAt",
         "--limit",
@@ -4550,7 +4550,7 @@ describe("ForgeService", () => {
 
     await service.searchIssuesAndPrs({
       cwd: "/repo",
-      query: "https://github.acme.internal/getzentic/zentic/pull/793",
+      query: "https://github.acme.internal/debin-ge/zentic/pull/793",
       limit: 5,
     });
 

@@ -157,9 +157,9 @@ describe("resolveWorktreeCreationIntent", () => {
       number: 1790,
       baseRefName: "main",
       headRefName: "daemon-shutdown-diagnostics",
-      headOwnerLogin: "getzentic",
-      headRepositorySshUrl: "git@github.com:getzentic/zentic.git",
-      headRepositoryUrl: "https://github.com/getzentic/zentic",
+      headOwnerLogin: "debin-ge",
+      headRepositorySshUrl: "git@github.com:debin-ge/zentic.git",
+      headRepositoryUrl: "https://github.com/debin-ge/zentic",
       isCrossRepository: false,
     });
 

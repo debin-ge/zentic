@@ -147,7 +147,7 @@ buildNpmPackage rec {
 
   meta = {
     description = "Self-hosted daemon for Claude Code, Codex, and OpenCode";
-    homepage = "https://github.com/getzentic/zentic";
+    homepage = "https://github.com/debin-ge/zentic";
     license = lib.licenses.asl20;
     mainProgram = "zentic";
     platforms = lib.platforms.linux ++ lib.platforms.darwin;

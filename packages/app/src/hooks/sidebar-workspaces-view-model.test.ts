@@ -302,18 +302,18 @@ describe("shared sidebar workspace model", () => {
     const model = buildSidebarWorkspacePlacementModel({
       projects: [
         project({
-          projectKey: "getzentic/zentic",
-          projectName: "getzentic/zentic",
-          iconWorkingDir: "/repo/getzentic/zentic",
+          projectKey: "debin-ge/zentic",
+          projectName: "debin-ge/zentic",
+          iconWorkingDir: "/repo/debin-ge/zentic",
           hosts: [
             {
               serverId: "host-a",
-              iconWorkingDir: "/repo/getzentic/zentic",
+              iconWorkingDir: "/repo/debin-ge/zentic",
               worktreeSupport: "supported" as const,
             },
             {
               serverId: "host-b",
-              iconWorkingDir: "/repo/getzentic/zentic",
+              iconWorkingDir: "/repo/debin-ge/zentic",
               worktreeSupport: "supported" as const,
             },
           ],
@@ -333,8 +333,8 @@ describe("shared sidebar workspace model", () => {
               workspace({
                 id: "main",
                 name: "main",
-                projectId: "getzentic/zentic",
-                projectDisplayName: "getzentic/zentic",
+                projectId: "debin-ge/zentic",
+                projectDisplayName: "debin-ge/zentic",
                 status: "done",
               }),
             ],
@@ -349,8 +349,8 @@ describe("shared sidebar workspace model", () => {
               workspace({
                 id: "feature",
                 name: "feature/status-flow",
-                projectId: "getzentic/zentic",
-                projectDisplayName: "getzentic/zentic",
+                projectId: "debin-ge/zentic",
+                projectDisplayName: "debin-ge/zentic",
                 status: "running",
                 statusEnteredAt: new Date("2026-06-10T00:00:00.000Z"),
               }),
@@ -366,18 +366,18 @@ describe("shared sidebar workspace model", () => {
     ]);
     expect(model.projects).toEqual([
       expect.objectContaining({
-        viewKey: "getzentic/zentic",
+        viewKey: "debin-ge/zentic",
         hosts: [
           {
             serverId: "host-a",
-            projectId: "getzentic/zentic",
-            iconWorkingDir: "/repo/getzentic/zentic",
+            projectId: "debin-ge/zentic",
+            iconWorkingDir: "/repo/debin-ge/zentic",
             worktreeSupport: "supported" as const,
           },
           {
             serverId: "host-b",
-            projectId: "getzentic/zentic",
-            iconWorkingDir: "/repo/getzentic/zentic",
+            projectId: "debin-ge/zentic",
+            iconWorkingDir: "/repo/debin-ge/zentic",
             worktreeSupport: "supported" as const,
           },
         ],
@@ -405,9 +405,7 @@ describe("shared sidebar workspace model", () => {
       ["host-a:main", "done", "main"],
       ["host-b:feature", "running", "feature/status-flow"],
     ]);
-    expect(model.projectNamesByViewKey).toEqual(
-      new Map([["getzentic/zentic", "getzentic/zentic"]]),
-    );
+    expect(model.projectNamesByViewKey).toEqual(new Map([["debin-ge/zentic", "debin-ge/zentic"]]));
   });
 
   it("preserves the collection when a retained sidebar reconnects to unchanged entries", () => {
@@ -590,7 +588,7 @@ describe("shouldShowSidebarHostLabels", () => {
     const projects = buildSidebarProjectsFromStructure({
       projects: [
         project({
-          projectKey: "getzentic/zentic",
+          projectKey: "debin-ge/zentic",
           hosts: [
             {
               serverId: "host-a",

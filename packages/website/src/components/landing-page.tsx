@@ -875,7 +875,7 @@ function ExtensibleSection() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-white/45">{t("landing.plugins.license")}</p>
           <a
-            href="https://github.com/getzentic/zentic"
+            href="https://github.com/debin-ge/zentic"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex shrink-0 items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"

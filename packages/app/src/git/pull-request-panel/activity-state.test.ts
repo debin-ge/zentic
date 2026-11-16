@@ -18,7 +18,7 @@ function activity(id: string, overrides: Partial<PrPaneActivity> = {}): PrPaneAc
     avatarColor: "#0ea5e9",
     body: "Looks good.",
     age: "3d ago",
-    url: `https://github.com/getzentic/zentic/pull/42#${id}`,
+    url: `https://github.com/debin-ge/zentic/pull/42#${id}`,
     ...overrides,
   };
 }

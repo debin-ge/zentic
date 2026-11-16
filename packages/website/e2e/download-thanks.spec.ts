@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "./fixtures";
 
 const APPLE_SILICON_DMG =
-  /\/getzentic\/zentic\/releases\/download\/v[^/]+\/Zentic-[^/]+-arm64\.dmg$/;
+  /\/debin-ge\/zentic\/releases\/download\/v[^/]+\/Zentic-[^/]+-arm64\.dmg$/;
 
 async function openDownloadPage(page: Page) {
   // Serve a stand-in file so the test never downloads a real release.

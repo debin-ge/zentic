@@ -12,11 +12,11 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/getzentic/zentic/stargazers">
-    <img src="https://img.shields.io/github/stars/getzentic/zentic?style=flat&logo=github" alt="GitHub stars">
+  <a href="https://github.com/debin-ge/zentic/stargazers">
+    <img src="https://img.shields.io/github/stars/debin-ge/zentic?style=flat&logo=github" alt="GitHub stars">
   </a>
-  <a href="https://github.com/getzentic/zentic/releases">
-    <img src="https://img.shields.io/github/v/release/getzentic/zentic?style=flat&logo=github" alt="GitHub release">
+  <a href="https://github.com/debin-ge/zentic/releases">
+    <img src="https://img.shields.io/github/v/release/debin-ge/zentic?style=flat&logo=github" alt="GitHub release">
   </a>
   <a href="https://x.com/moboudra">
     <img src="https://img.shields.io/badge/%40moboudra-555?logo=x" alt="X">
@@ -80,7 +80,7 @@ Zentic 会运行一个名为 daemon 的本地服务，用来管理你的 coding 
 
 ### 桌面 app（推荐）
 
-从 [zentic.sh/download](https://zentic.sh/zh-CN/download) 或 [GitHub releases 页面](https://github.com/getzentic/zentic/releases)下载。打开 app 后 daemon 会自动启动，不需要再安装其他东西。
+从 [zentic.sh/download](https://zentic.sh/zh-CN/download) 或 [GitHub releases 页面](https://github.com/debin-ge/zentic/releases)下载。打开 app 后 daemon 会自动启动，不需要再安装其他东西。
 
 如果要从手机连接，在 Settings 中扫描显示的二维码。
 
@@ -123,7 +123,7 @@ zentic --host workstation.local:6767 run "run the full test suite"
 Skills 会教你的 agent 使用 Zentic 来编排其他 agents。
 
 ```bash
-npx skills add getzentic/zentic
+npx skills add debin-ge/zentic
 ```
 
 然后在任意 agent 对话中使用：
@@ -168,7 +168,7 @@ Zentic 由一个人开发，靠使用它的人来资助。你可以通过 [GitHu
 
 ## 相关项目
 
-- [getzentic/zentic-relay](https://github.com/getzentic/zentic-relay) — 官方分布式 relay，使用 Elixir 编写
+- [debin-ge/zentic-relay](https://github.com/debin-ge/zentic-relay) — 官方分布式 relay，使用 Elixir 编写
 - [zentic-vscode](https://marketplace.visualstudio.com/items?itemName=hinnes.zentic-vscode) — VS Code 扩展
 
 ### 自托管 relay TLS

@@ -32,7 +32,7 @@ docker run -d --name zentic \
   -e ZENTIC_PASSWORD=change-me \
   -v "$PWD/zentic-home:/home/zentic" \
   -v "$PWD:/workspace" \
-  ghcr.io/getzentic/zentic:latest
+  ghcr.io/debin-ge/zentic:latest
 ```
 
 Then open:
@@ -59,7 +59,7 @@ Minimal example:
 ```yaml
 services:
   zentic:
-    image: ghcr.io/getzentic/zentic:latest
+    image: ghcr.io/debin-ge/zentic:latest
     restart: unless-stopped
     ports:
       - "6767:6767"
@@ -79,7 +79,7 @@ releases to third-party agent release cycles.
 Create a child image for the agents you use:
 
 ```Dockerfile
-FROM ghcr.io/getzentic/zentic:latest
+FROM ghcr.io/debin-ge/zentic:latest
 
 USER root
 RUN npm install -g @openai/codex @anthropic-ai/claude-code opencode-ai
@@ -178,7 +178,7 @@ IPs and `localhost` are allowed by default.
 
 - Set `ZENTIC_PASSWORD` for any published port or network-reachable deployment.
 - Prefer HTTPS at the reverse proxy for direct browser access.
-- Use the [official Zentic relay](https://github.com/getzentic/zentic-relay) for
+- Use the [official Zentic relay](https://github.com/debin-ge/zentic-relay) for
   untrusted networks or mobile access when you do not want to expose the daemon
   port directly.
 - The container is the isolation boundary for agents. Agents can read and write
@@ -207,9 +207,9 @@ docker build \
 
 The Docker workflow builds the image on pull requests and on `main` as a
 non-publishing check. Stable `vX.Y.Z` tag pushes publish
-`ghcr.io/getzentic/zentic:X.Y.Z` and `ghcr.io/getzentic/zentic:latest`. Beta tags
+`ghcr.io/debin-ge/zentic:X.Y.Z` and `ghcr.io/debin-ge/zentic:latest`. Beta tags
 publish only the exact prerelease tag, such as
-`ghcr.io/getzentic/zentic:0.1.102-beta.1`, and do not update `latest`.
+`ghcr.io/debin-ge/zentic:0.1.102-beta.1`, and do not update `latest`.
 
 To replace a Docker image in place without rebuilding desktop, APK, or EAS
 mobile release artifacts, dispatch the Docker workflow manually instead of

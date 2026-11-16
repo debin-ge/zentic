@@ -28,12 +28,12 @@ describe("GitHub repository search", () => {
         {
           id: " R_recent ",
           name: " zentic ",
-          nameWithOwner: " getzentic/zentic ",
+          nameWithOwner: " debin-ge/zentic ",
           description: null,
           isPrivate: false,
           updatedAt: "2026-07-15T12:00:00Z",
-          sshUrl: " git@github.com:getzentic/zentic.git ",
-          url: "https://github.com/getzentic/zentic",
+          sshUrl: " git@github.com:debin-ge/zentic.git ",
+          url: "https://github.com/debin-ge/zentic",
         },
       ]),
       "ssh\n",
@@ -49,11 +49,11 @@ describe("GitHub repository search", () => {
       {
         id: "R_recent",
         name: "zentic",
-        nameWithOwner: "getzentic/zentic",
+        nameWithOwner: "debin-ge/zentic",
         description: null,
         visibility: "public",
         updatedAt: "2026-07-15T12:00:00Z",
-        cloneUrl: "git@github.com:getzentic/zentic.git",
+        cloneUrl: "git@github.com:debin-ge/zentic.git",
       },
     ]);
     expect(runner.calls).toEqual([

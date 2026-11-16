@@ -20,7 +20,7 @@ on:
           - "false"
           - "true"
       publish_latest:
-        description: "Also publish ghcr.io/getzentic/zentic:latest. Ignored for prereleases."
+        description: "Also publish ghcr.io/debin-ge/zentic:latest. Ignored for prereleases."
         required: false
         default: "false"
         type: choice

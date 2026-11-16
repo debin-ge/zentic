@@ -55,7 +55,7 @@ function contextAttachment(id: string): WorkspaceComposerAttachment {
     id,
     title: "Comment · octocat",
     text: "GitHub pull request comment\n\nLooks good.",
-    url: `https://github.com/getzentic/zentic/pull/42#${id}`,
+    url: `https://github.com/debin-ge/zentic/pull/42#${id}`,
   };
 }
 

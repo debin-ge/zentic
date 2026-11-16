@@ -158,7 +158,7 @@ function ShipPanel() {
             <GitPullRequest size={12} />
             {t("landing.mockup.app.prOpen")}
           </span>
-          <span className="text-mock-fg-muted">getzentic/zentic</span>
+          <span className="text-mock-fg-muted">debin-ge/zentic</span>
         </div>
       </div>
 

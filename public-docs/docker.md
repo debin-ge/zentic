@@ -10,7 +10,7 @@ category: Getting started
 
 The official Zentic Docker image runs the daemon and serves the bundled browser UI from the same HTTP origin. It is meant for servers, dev boxes, NAS devices, homelab hosts, and other places where you want Zentic running without the desktop app.
 
-Docker images follow the stable Zentic release cadence. `ghcr.io/getzentic/zentic:latest` points at the latest stable release, not an arbitrary `main` build.
+Docker images follow the stable Zentic release cadence. `ghcr.io/debin-ge/zentic:latest` points at the latest stable release, not an arbitrary `main` build.
 
 ```bash
 docker run -d --name zentic \
@@ -18,7 +18,7 @@ docker run -d --name zentic \
   -e ZENTIC_PASSWORD=change-me \
   -v "$PWD/zentic-home:/home/zentic" \
   -v "$PWD:/workspace" \
-  ghcr.io/getzentic/zentic:latest
+  ghcr.io/debin-ge/zentic:latest
 ```
 
 Then open:
@@ -48,7 +48,7 @@ Host-side CLI commands select the container explicitly, for example `zentic proj
 ```yaml
 services:
   zentic:
-    image: ghcr.io/getzentic/zentic:latest
+    image: ghcr.io/debin-ge/zentic:latest
     container_name: zentic
     restart: unless-stopped
     ports:
@@ -72,7 +72,7 @@ docker compose up -d
 Create a child image for the providers you want available:
 
 ```Dockerfile
-FROM ghcr.io/getzentic/zentic:latest
+FROM ghcr.io/debin-ge/zentic:latest
 
 USER root
 RUN npm install -g @openai/codex @anthropic-ai/claude-code opencode-ai

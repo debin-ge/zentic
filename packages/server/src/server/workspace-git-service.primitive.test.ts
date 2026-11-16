@@ -1158,7 +1158,7 @@ describe("WorkspaceGitServiceImpl primitive refresh entrypoint", () => {
     const getCheckoutStatus = vi.fn(async (cwd: string) =>
       createCheckoutStatus(cwd, {
         currentBranch: "fork-owner/open-button-targets-active-file",
-        remoteUrl: "git@github.com:getzentic/zentic.git",
+        remoteUrl: "git@github.com:debin-ge/zentic.git",
       }),
     );
     const service = createService({
@@ -1972,7 +1972,7 @@ describe("WorkspaceGitServiceImpl D2 read methods", () => {
     let nowMs = 0;
     const getCheckoutStatus = vi.fn(async (cwd: string) =>
       createCheckoutStatus(cwd, {
-        remoteUrl: "https://github.com/getzentic/zentic.git",
+        remoteUrl: "https://github.com/debin-ge/zentic.git",
       }),
     );
     const service = createService({
@@ -1981,11 +1981,11 @@ describe("WorkspaceGitServiceImpl D2 read methods", () => {
     });
 
     await expect(service.resolveRepoRemoteUrl(REPO_CWD)).resolves.toBe(
-      "https://github.com/getzentic/zentic.git",
+      "https://github.com/debin-ge/zentic.git",
     );
     nowMs = 1_000;
     await expect(service.resolveRepoRemoteUrl(join(REPO_CWD, "."))).resolves.toBe(
-      "https://github.com/getzentic/zentic.git",
+      "https://github.com/debin-ge/zentic.git",
     );
 
     expect(getCheckoutStatus).toHaveBeenCalledTimes(1);
@@ -1998,7 +1998,7 @@ describe("WorkspaceGitServiceImpl D2 read methods", () => {
     const getCheckoutStatus = vi.fn(async (cwd: string) =>
       createCheckoutStatus(cwd, {
         currentBranch: "feature/service-metadata",
-        remoteUrl: "https://github.com/getzentic/zentic.git",
+        remoteUrl: "https://github.com/debin-ge/zentic.git",
         repoRoot: REPO_CWD,
       }),
     );

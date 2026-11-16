@@ -31,7 +31,7 @@ Orca 默认在其桌面应用内运行，并通过两种方式访问其他机器
 
 两者都有 iOS 和 Android 应用。
 
-Zentic 的移动应用就是完整的应用，在 iOS 和 Android 上原生运行，功能与桌面端完全一致。它们已在 App Store 和 Google Play 上架。要从手机连接，请开启中继并扫描二维码。daemon 主动向外连接到中继，你的手机在中继处与它会合，因此你不需要 VPN、端口转发、SSH 或账号。通信是端到端加密的，[中继服务器](https://github.com/getzentic/zentic-relay)也是开源的。你也可以通过 Tailscale 直接连接。
+Zentic 的移动应用就是完整的应用，在 iOS 和 Android 上原生运行，功能与桌面端完全一致。它们已在 App Store 和 Google Play 上架。要从手机连接，请开启中继并扫描二维码。daemon 主动向外连接到中继，你的手机在中继处与它会合，因此你不需要 VPN、端口转发、SSH 或账号。通信是端到端加密的，[中继服务器](https://github.com/debin-ge/zentic-relay)也是开源的。你也可以通过 Tailscale 直接连接。
 
 Orca 的移动伴侣应用处于 beta 阶段，iOS 版在 App Store 上提供，Android 版以 APK 下载提供。它可以回复 Agent、以终端或 Chat UI 打开会话、提交更改，以及在配对的桌面端上创建工作区。Orca Relay 同样处于 beta 阶段，用于在手机与桌面不在同一网络时连接手机，并且需要登录 Orca 账号。没有 Orca Relay 时，手机需要通过局域网或 Tailscale 访问桌面端。
 

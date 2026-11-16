@@ -117,7 +117,7 @@ export function AgentTranscript() {
       <UserBubble>Create a PR</UserBubble>
       <Para>PR opened: Rebuild the homepage around live Zentic workflows.</Para>
       <span className="block text-[13.5px] text-mock-accent-bright">
-        https://github.com/getzentic/zentic/pull/3981
+        https://github.com/debin-ge/zentic/pull/3981
       </span>
       <div>
         <Bullet>Ships the new product-led hero and interactive desktop mockup.</Bullet>

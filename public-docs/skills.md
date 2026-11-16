@@ -20,7 +20,7 @@ Skills give your agents reusable instructions for delegation, handoffs, and revi
 ## Installation
 
 - **In Zentic:** Open **Settings → your host → Agents → Orchestration skills** and choose which skills to install on that host.
-- **From the terminal:** Run `npx skills add getzentic/zentic` on the machine where your agents run.
+- **From the terminal:** Run `npx skills add debin-ge/zentic` on the machine where your agents run.
 
 Use the same settings card to update or uninstall skills. The host also refreshes selected installed Zentic skills on startup.
 

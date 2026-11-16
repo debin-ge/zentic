@@ -1,6 +1,6 @@
 # 构建侧边栏视图 {#build-a-sidebar-view}
 
-侧边栏视图替换 Zentic 页眉与页脚之间的内容。插件接收主题令牌、当前实体引用和导航方法，使用 React Native 绘制自己的界面。安装[侧边栏视图示例](https://github.com/getzentic/zentic/tree/main/plugin-examples/sidebar-views)，体验项目列表、按任务分组的 Agent、嵌套 Agent 和标签文件夹。
+侧边栏视图替换 Zentic 页眉与页脚之间的内容。插件接收主题令牌、当前实体引用和导航方法，使用 React Native 绘制自己的界面。安装[侧边栏视图示例](https://github.com/debin-ge/zentic/tree/main/plugin-examples/sidebar-views)，体验项目列表、按任务分组的 Agent、嵌套 Agent 和标签文件夹。
 
 ## 注册视图 {#register-a-view}
 

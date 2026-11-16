@@ -12,11 +12,11 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/getzentic/zentic/stargazers">
-    <img src="https://img.shields.io/github/stars/getzentic/zentic?style=flat&logo=github" alt="GitHub stars">
+  <a href="https://github.com/debin-ge/zentic/stargazers">
+    <img src="https://img.shields.io/github/stars/debin-ge/zentic?style=flat&logo=github" alt="GitHub stars">
   </a>
-  <a href="https://github.com/getzentic/zentic/releases">
-    <img src="https://img.shields.io/github/v/release/getzentic/zentic?style=flat&logo=github" alt="GitHub release">
+  <a href="https://github.com/debin-ge/zentic/releases">
+    <img src="https://img.shields.io/github/v/release/debin-ge/zentic?style=flat&logo=github" alt="GitHub release">
   </a>
   <a href="https://x.com/moboudra">
     <img src="https://img.shields.io/badge/%40moboudra-555?logo=x" alt="X">
@@ -80,7 +80,7 @@ Zentic はコーディングエージェントを管理するローカルサー�
 
 ### デスクトップアプリ（推奨）
 
-[zentic.sh/download](https://zentic.sh/download) または [GitHub のリリースページ](https://github.com/getzentic/zentic/releases)からダウンロードしてください。アプリを開くとデーモンが自動的に起動します。追加のインストールは不要です。
+[zentic.sh/download](https://zentic.sh/download) または [GitHub のリリースページ](https://github.com/debin-ge/zentic/releases)からダウンロードしてください。アプリを開くとデーモンが自動的に起動します。追加のインストールは不要です。
 
 スマートフォンから接続するには、Settings 画面に表示される QR コードをスキャンしてください。
 
@@ -123,7 +123,7 @@ zentic --host workstation.local:6767 run "run the full test suite"
 スキルはエージェントに Zentic を使って他のエージェントをオーケストレーションする方法を教えます。
 
 ```bash
-npx skills add getzentic/zentic
+npx skills add debin-ge/zentic
 ```
 
 どのエージェントとの会話でも使用できます。
@@ -168,7 +168,7 @@ Zentic は一人で開発しており、使ってくれる人たちの支援で�
 
 ## 関連プロジェクト
 
-- [getzentic/zentic-relay](https://github.com/getzentic/zentic-relay) — Elixir 製の公式分散リレー
+- [debin-ge/zentic-relay](https://github.com/debin-ge/zentic-relay) — Elixir 製の公式分散リレー
 - [zentic-vscode](https://marketplace.visualstudio.com/items?itemName=hinnes.zentic-vscode) — VS Code 拡張機能
 
 ## ライセンス

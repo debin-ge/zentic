@@ -49,7 +49,7 @@ export const Route = createFileRoute("/{-$locale}/download")({
 const ALL_RELEASES_COMPONENTS = {
   github: (
     <a
-      href="https://github.com/getzentic/zentic/releases"
+      href="https://github.com/debin-ge/zentic/releases"
       target="_blank"
       rel="noopener noreferrer"
       className="underline hover:text-foreground transition-colors"
@@ -215,8 +215,8 @@ function Download() {
           <PlatformRow icon={TerminalIcon} label="Nix">
             <CodeBlock size="sm">
               {onBeta
-                ? `nix run github:getzentic/zentic/v${version}`
-                : "nix run github:getzentic/zentic"}
+                ? `nix run github:debin-ge/zentic/v${version}`
+                : "nix run github:debin-ge/zentic"}
             </CodeBlock>
           </PlatformRow>
         </div>

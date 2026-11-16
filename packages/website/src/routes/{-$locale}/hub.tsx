@@ -576,7 +576,7 @@ function FaqSection() {
   const links = React.useMemo(
     () => ({
       code: <code />,
-      github: <a href="https://github.com/getzentic/hub" className={LINK_CLASS} />,
+      github: <a href="https://github.com/debin-ge/zentic-hub" className={LINK_CLASS} />,
       guide: <a href={localize("/docs/hub/self-hosting")} className={LINK_CLASS} />,
       hosted: <a href={HOSTED_HUB_URL} className={LINK_CLASS} />,
     }),

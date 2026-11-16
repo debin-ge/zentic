@@ -50,7 +50,7 @@ export function SiteHeader() {
           <DiscordIcon width="18" height="18" />
         </a>
         <a
-          href="https://github.com/getzentic/zentic"
+          href="https://github.com/debin-ge/zentic"
           target="_blank"
           rel="noopener noreferrer"
           aria-label={stars ? t("nav.githubStars", { stars }) : "GitHub"}

@@ -29,7 +29,7 @@ interface StartupSplashScreenProps {
   };
 }
 
-const GITHUB_ISSUE_URL = "https://github.com/getzentic/zentic/issues/new";
+const GITHUB_ISSUE_URL = "https://github.com/debin-ge/zentic/issues/new";
 const DOCS_URL = "https://zentic.sh/docs";
 
 const LOGO_SIZE = 96;

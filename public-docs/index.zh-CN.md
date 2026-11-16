@@ -10,7 +10,7 @@ Zentic 是一个 Agent 开发环境，用于运行编程 Agent、编辑文件、
 
 ## 桌面应用（推荐） {#desktop-app-recommended}
 
-从 [zentic.sh/download](https://zentic.sh/download) 或 [GitHub releases 页面](https://github.com/getzentic/zentic/releases)下载。打开即可使用。
+从 [zentic.sh/download](https://zentic.sh/download) 或 [GitHub releases 页面](https://github.com/debin-ge/zentic/releases)下载。打开即可使用。
 
 桌面应用自带 daemon 并会自动启动它，无需单独安装。首次启动时你会看到一个简短的启动画面，之后在手机上通过 **设置 → 你的主机 → 配对设备** 连接。
 
@@ -39,7 +39,7 @@ docker run -d --name zentic \
   -e ZENTIC_PASSWORD=change-me \
   -v "$PWD/zentic-home:/home/zentic" \
   -v "$PWD:/workspace" \
-  ghcr.io/getzentic/zentic:latest
+  ghcr.io/debin-ge/zentic:latest
 ```
 
 然后打开 `http://localhost:6767`。
@@ -57,8 +57,8 @@ docker run -d --name zentic \
 - [插件](/docs/plugins)：添加受信任的本地界面、侧边栏操作、daemon 行为和 Composer 附件。
 - [CLI 参考](/docs/cli)：所有命令。
 - [自托管网页界面](/docs/web-ui)：从你自己的 daemon 提供浏览器应用。
-- [GitHub 仓库](https://github.com/getzentic/zentic)
-- [报告问题](https://github.com/getzentic/zentic/issues)
+- [GitHub 仓库](https://github.com/debin-ge/zentic)
+- [报告问题](https://github.com/debin-ge/zentic/issues)
 
 ## 前置条件 {#prerequisites}
 

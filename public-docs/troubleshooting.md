@@ -113,5 +113,5 @@ Run `zentic daemon restart` only when reload requests it. In the app, open **Set
 
 - [Custom providers](/docs/custom-providers) — endpoints, profiles, binaries, ACP agents.
 - [Configuration](/docs/configuration) — `config.json`, environment variables, logging.
-- [How Zentic resolves your login shell](https://github.com/getzentic/zentic/blob/main/packages/desktop/src/login-shell-env.ts) — the exact code that loads your shell environment.
-- [Report an issue](https://github.com/getzentic/zentic/issues).
+- [How Zentic resolves your login shell](https://github.com/debin-ge/zentic/blob/main/packages/desktop/src/login-shell-env.ts) — the exact code that loads your shell environment.
+- [Report an issue](https://github.com/debin-ge/zentic/issues).

@@ -21,7 +21,7 @@ Zentic daemon 可以运行在任何你想运行 Agent 的地方：你的笔记�
 
 ## 中继连接（推荐） {#relay-connections-recommended}
 
-中继是从手机连接最简单的方式。它不需要设置 VPN、端口转发或防火墙。daemon 可以保持绑定在 localhost 或套接字文件上，它向中继发起*出站*连接，你的手机在那里与它会合。官方中继服务器是开源的 Elixir 服务 [getzentic/zentic-relay](https://github.com/getzentic/zentic-relay)。
+中继是从手机连接最简单的方式。它不需要设置 VPN、端口转发或防火墙。daemon 可以保持绑定在 localhost 或套接字文件上，它向中继发起*出站*连接，你的手机在那里与它会合。官方中继服务器是开源的 Elixir 服务 [debin-ge/zentic-relay](https://github.com/debin-ge/zentic-relay)。
 
 新安装默认关闭中继。当你通过 `zentic`、`zentic daemon pair` 或 Zentic 桌面应用配对设备时，Zentic 会先询问再启用它。选择不启用中继时，daemon 仍可通过直接 TCP、Tailscale 或其他 VPN 连接访问，并且不会生成配对二维码。在 CLI 的配对或启动命令中使用 `--relay`，可以不经交互提示直接启用。
 

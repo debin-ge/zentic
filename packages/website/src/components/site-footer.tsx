@@ -82,7 +82,7 @@ export function SiteFooter({ width = "default", sponsors = true }: SiteFooterPro
           <div className="space-y-2">
             <ExternalLink href="https://discord.gg/jz8T2uahpH">Discord</ExternalLink>
             <ExternalLink href="https://www.reddit.com/r/ZenticAI/">Reddit</ExternalLink>
-            <ExternalLink href="https://github.com/getzentic/zentic">GitHub</ExternalLink>
+            <ExternalLink href="https://github.com/debin-ge/zentic">GitHub</ExternalLink>
           </div>
         </div>
         <div className="space-y-3">
@@ -90,7 +90,7 @@ export function SiteFooter({ width = "default", sponsors = true }: SiteFooterPro
           <div className="space-y-2">
             <ExternalLink href={appStoreUrl}>App Store</ExternalLink>
             <ExternalLink href={playStoreUrl}>Google Play</ExternalLink>
-            <ExternalLink href="https://github.com/getzentic/zentic/releases">
+            <ExternalLink href="https://github.com/debin-ge/zentic/releases">
               {t("footer.desktop")}
             </ExternalLink>
             <ExternalLink href={webAppUrl}>{t("footer.webApp")}</ExternalLink>

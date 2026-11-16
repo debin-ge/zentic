@@ -35,7 +35,7 @@ With a custom root, Zentic keeps the same hashed layout under that directory:
 }
 ```
 
-Plugins can choose a location anywhere on disk with [`worktree.create.before`](/docs/plugins/hooks#worktreecreatebefore). The [worktree-placement example](https://github.com/getzentic/zentic/tree/main/plugin-examples/worktree-placement) places worktrees next to the source checkout. Zentic validates the path, refuses an existing destination, and manages listing, archive, and deletion there. Recovery uses the recorded path without running creation hooks.
+Plugins can choose a location anywhere on disk with [`worktree.create.before`](/docs/plugins/hooks#worktreecreatebefore). The [worktree-placement example](https://github.com/debin-ge/zentic/tree/main/plugin-examples/worktree-placement) places worktrees next to the source checkout. Zentic validates the path, refuses an existing destination, and manages listing, archive, and deletion there. Recovery uses the recorded path without running creation hooks.
 
 1. Create a workspace with worktree isolation, Zentic creates the worktree and runs your setup hooks
 2. Launch one or more agents in that workspace

@@ -109,7 +109,7 @@ The password must be at least 12 characters. Sign in once, replace it in the das
 The repository contains Hub and PostgreSQL as one Compose stack:
 
 ```sh
-git clone https://github.com/getzentic/hub.git
+git clone https://github.com/debin-ge/zentic-hub.git
 cd hub
 cp .env.example .env
 docker compose up -d
@@ -117,7 +117,7 @@ docker compose up -d
 
 Open <http://localhost:3000> and complete browser setup. For a public deployment, set `ZENTIC_HUB_APP_URL` and any reverse-proxy settings in `.env` before starting the stack.
 
-The stack publishes Hub on port `3000` and stores PostgreSQL data in a named volume. The Hub image is `ghcr.io/getzentic/hub:latest`.
+The stack publishes Hub on port `3000` and stores PostgreSQL data in a named volume. The Hub image is `ghcr.io/debin-ge/zentic-hub:latest`.
 
 ### HTTPS with Caddy
 
@@ -145,7 +145,7 @@ To keep port `3000` off the public interface, change the `hub` port in `compose.
 Clone the repository and create an app and database under names you control:
 
 ```sh
-git clone https://github.com/getzentic/hub.git
+git clone https://github.com/debin-ge/zentic-hub.git
 cd hub
 fly apps create your-hub
 fly postgres create --name your-hub-db

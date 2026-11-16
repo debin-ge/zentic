@@ -89,8 +89,8 @@ describe("Add Project navigation", () => {
   it("restores the GitHub destination query and active parent when reopening a repository", () => {
     const repository = {
       id: "repo-1",
-      nameWithOwner: "getzentic/zentic",
-      cloneUrl: "git@github.com:getzentic/zentic.git",
+      nameWithOwner: "debin-ge/zentic",
+      cloneUrl: "git@github.com:debin-ge/zentic.git",
       description: null,
       visibility: "public",
       updatedAt: null,
@@ -149,16 +149,16 @@ describe("Add Project options", () => {
   });
 
   it("offers manual URL and protocol-specific owner/repo clone choices", () => {
-    expect(buildManualGithubRepositoryChoices("git@github.com:getzentic/zentic.git")).toEqual([
+    expect(buildManualGithubRepositoryChoices("git@github.com:debin-ge/zentic.git")).toEqual([
       expect.objectContaining({
-        id: "manual:git@github.com:getzentic/zentic.git",
-        nameWithOwner: "getzentic/zentic",
-        cloneUrl: "git@github.com:getzentic/zentic.git",
+        id: "manual:git@github.com:debin-ge/zentic.git",
+        nameWithOwner: "debin-ge/zentic",
+        cloneUrl: "git@github.com:debin-ge/zentic.git",
       }),
     ]);
-    expect(buildManualGithubRepositoryChoices("getzentic/zentic")).toEqual([
-      expect.objectContaining({ cloneProtocol: "https", cloneUrl: "getzentic/zentic" }),
-      expect.objectContaining({ cloneProtocol: "ssh", cloneUrl: "getzentic/zentic" }),
+    expect(buildManualGithubRepositoryChoices("debin-ge/zentic")).toEqual([
+      expect.objectContaining({ cloneProtocol: "https", cloneUrl: "debin-ge/zentic" }),
+      expect.objectContaining({ cloneProtocol: "ssh", cloneUrl: "debin-ge/zentic" }),
     ]);
     expect(buildManualGithubRepositoryChoices("zentic")).toEqual([]);
   });

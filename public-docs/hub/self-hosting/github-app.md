@@ -39,7 +39,7 @@ After Hub verifies the App, choose **Connect GitHub**. Select the account or org
 
 Start from Hub rather than GitHub's own install button. The round trip binds the installation to the active Hub organization.
 
-The connection appears with a slug derived from the account. An installation on `getzentic`, for example, becomes `getzentic-github`. Connect as many installations as the Hub organization needs.
+The connection appears with a slug derived from the account. An installation on `debin-ge`, for example, becomes `debin-ge-github`. Connect as many installations as the Hub organization needs.
 
 ## What the connection provides
 

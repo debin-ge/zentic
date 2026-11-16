@@ -1424,7 +1424,7 @@ describe("OpenCode adapter normalization", () => {
         mimeType: "application/github-issue",
         number: 55,
         title: "Improve startup error details",
-        url: "https://github.com/getzentic/zentic/issues/55",
+        url: "https://github.com/debin-ge/zentic/issues/55",
         body: "Issue body",
       },
     ]);

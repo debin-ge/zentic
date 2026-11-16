@@ -606,7 +606,7 @@
       "showIssues": "<mention/> 给我看看最新的 P0 issue",
       "issuesOpen": "目前有三个未关闭的 P0 issue：",
       "createPr": "<mention/> 为第一个创建一个拉取请求",
-      "ranOn": "已在 <host>macbook-pro</host> 上运行。已创建 <pr>getzentic/zentic#1234</pr>，修复了终端写入问题。",
+      "ranOn": "已在 <host>macbook-pro</host> 上运行。已创建 <pr>debin-ge/zentic#1234</pr>，修复了终端写入问题。",
       "filesChanged": "3 个文件已更改",
       "testsPassed": "测试通过",
       "bot": "机器人",

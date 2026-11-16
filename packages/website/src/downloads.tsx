@@ -3,7 +3,7 @@ import { type Locale, localizePath } from "~/i18n";
 import type { DesktopPlatform, MobilePlatform } from "~/platform";
 
 export function releaseBase(version: string) {
-  return `https://github.com/getzentic/zentic/releases/download/v${version}`;
+  return `https://github.com/debin-ge/zentic/releases/download/v${version}`;
 }
 
 export interface ReleaseAssetInfo {
@@ -29,7 +29,7 @@ export function downloadUrls(release: ReleaseAssetInfo) {
 }
 
 const RELEASE_ASSETS_ORIGIN = "https://github.com";
-const RELEASE_ASSETS_PATH = "/getzentic/zentic/releases/download/";
+const RELEASE_ASSETS_PATH = "/debin-ge/zentic/releases/download/";
 
 /**
  * The release file a thanks-page link asks for, or null when it is not one of

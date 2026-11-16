@@ -118,7 +118,7 @@ function printNextSteps(pairingUrl: string | null, zenticHome: string, richUi: b
       ? "1. Open Zentic and scan the QR code above, or paste the pairing link."
       : "1. Open Zentic and connect to your daemon.",
     "2. Web app: https://app.zentic.sh",
-    "3. Desktop app: https://github.com/getzentic/zentic/releases/latest",
+    "3. Desktop app: https://github.com/debin-ge/zentic/releases/latest",
     "4. Docs: https://zentic.sh/docs",
     `5. Example: zentic run --home ${JSON.stringify(zenticHome)} --output-schema schema.json "extract fields"`,
   ];

@@ -1005,11 +1005,11 @@ describe("project command-center RPCs", () => {
       {
         id: "R_zentic",
         name: "zentic",
-        nameWithOwner: "getzentic/zentic",
+        nameWithOwner: "debin-ge/zentic",
         description: "Development environment in your pocket",
         visibility: "public",
         updatedAt: "2026-07-15T10:00:00Z",
-        cloneUrl: "git@github.com:getzentic/zentic.git",
+        cloneUrl: "git@github.com:debin-ge/zentic.git",
       },
     ]);
     const session = createSessionForTest({ messages, github: { searchRepositories } });
@@ -1036,11 +1036,11 @@ describe("project command-center RPCs", () => {
             {
               id: "R_zentic",
               name: "zentic",
-              nameWithOwner: "getzentic/zentic",
+              nameWithOwner: "debin-ge/zentic",
               description: "Development environment in your pocket",
               visibility: "public",
               updatedAt: "2026-07-15T10:00:00Z",
-              cloneUrl: "git@github.com:getzentic/zentic.git",
+              cloneUrl: "git@github.com:debin-ge/zentic.git",
             },
           ],
           available: true,
@@ -2341,7 +2341,7 @@ function createWorkspaceGitSnapshot(
       repoRoot: cwd,
       mainRepoRoot: null,
       currentBranch: "feature/service",
-      remoteUrl: "https://github.com/getzentic/zentic.git",
+      remoteUrl: "https://github.com/debin-ge/zentic.git",
       isZenticOwnedWorktree: false,
       isDirty: true,
       baseRef: "main",
@@ -3102,7 +3102,7 @@ diff --git a/file.txt b/file.txt
       body: "Updates file.",
     });
     checkoutGitMocks.createPullRequest.mockResolvedValue({
-      url: "https://github.com/getzentic/zentic/pull/1",
+      url: "https://github.com/debin-ge/zentic/pull/1",
       number: 1,
     });
     const session = createSessionForTest({ workspaceGitService });
@@ -3147,7 +3147,7 @@ diff --git a/file.txt b/file.txt
       body: "Updates file.",
     });
     checkoutGitMocks.createPullRequest.mockResolvedValue({
-      url: "https://github.com/getzentic/zentic/pull/1",
+      url: "https://github.com/debin-ge/zentic/pull/1",
       number: 1,
     });
     const session = createSessionForTest({ workspaceGitService, messages });
@@ -3190,7 +3190,7 @@ diff --git a/file.txt b/file.txt
       type: "checkout_pr_create_response",
       payload: {
         cwd: "/tmp/request-worktree",
-        url: "https://github.com/getzentic/zentic/pull/1",
+        url: "https://github.com/debin-ge/zentic/pull/1",
         number: 1,
         error: null,
         requestId: "request-generated-pr",
@@ -3287,7 +3287,7 @@ diff --git a/file.txt b/file.txt
       new StructuredAgentFallbackError([]),
     );
     checkoutGitMocks.createPullRequest.mockResolvedValue({
-      url: "https://github.com/getzentic/zentic/pull/9",
+      url: "https://github.com/debin-ge/zentic/pull/9",
       number: 9,
     });
     const session = createSessionForTest({ workspaceGitService, messages });
@@ -3315,7 +3315,7 @@ diff --git a/file.txt b/file.txt
       type: "checkout_pr_create_response",
       payload: {
         cwd: "/tmp/request-worktree",
-        url: "https://github.com/getzentic/zentic/pull/9",
+        url: "https://github.com/debin-ge/zentic/pull/9",
         number: 9,
         error: null,
         requestId: "request-generated-pr-fallback",
@@ -3330,7 +3330,7 @@ diff --git a/file.txt b/file.txt
       getSnapshot: vi.fn().mockResolvedValue({}),
     };
     checkoutGitMocks.createPullRequest.mockResolvedValue({
-      url: "https://github.com/getzentic/zentic/pull/2",
+      url: "https://github.com/debin-ge/zentic/pull/2",
       number: 2,
     });
     const session = createSessionForTest({ github, workspaceGitService, messages });
@@ -3353,7 +3353,7 @@ diff --git a/file.txt b/file.txt
       type: "checkout_pr_create_response",
       payload: {
         cwd: "/tmp/request-worktree",
-        url: "https://github.com/getzentic/zentic/pull/2",
+        url: "https://github.com/debin-ge/zentic/pull/2",
         number: 2,
         error: null,
         requestId: "request-pr-create",
@@ -4185,7 +4185,7 @@ describe("session checkout status handling", () => {
         behindOfOrigin: 1,
         upstreamRef: null,
         hasRemote: true,
-        remoteUrl: "https://github.com/getzentic/zentic.git",
+        remoteUrl: "https://github.com/debin-ge/zentic.git",
         isZenticOwnedWorktree: false,
         error: null,
         requestId: "request-status",
@@ -5002,7 +5002,7 @@ describe("session workspace script handling", () => {
     const snapshot = createWorkspaceGitSnapshot("/tmp/repo", {
       git: {
         currentBranch: "feature/service-scripts",
-        remoteUrl: "https://github.com/getzentic/zentic.git",
+        remoteUrl: "https://github.com/debin-ge/zentic.git",
       },
     });
     const workspaceRuntimeStore = { ...createWorkspaceRuntimeStore(), get: vi.fn(() => snapshot) };
@@ -5078,7 +5078,7 @@ describe("session pull request timeline handling", () => {
             forge: "github",
             number: 42,
             title: "Ship search",
-            url: "https://github.com/getzentic/zentic/pull/42",
+            url: "https://github.com/debin-ge/zentic/pull/42",
             state: "OPEN",
             body: null,
             labels: [],
@@ -5126,7 +5126,7 @@ describe("session pull request timeline handling", () => {
             forge: "github",
             number: 42,
             title: "Ship search",
-            url: "https://github.com/getzentic/zentic/pull/42",
+            url: "https://github.com/debin-ge/zentic/pull/42",
             state: "OPEN",
             body: null,
             labels: [],
@@ -5183,7 +5183,7 @@ describe("session pull request timeline handling", () => {
       isAuthenticated: vi.fn().mockResolvedValue(true),
       getPullRequestTimeline: vi.fn().mockResolvedValue({
         prNumber: 42,
-        repoOwner: "getzentic",
+        repoOwner: "debin-ge",
         repoName: "zentic",
         items: [
           {
@@ -5194,7 +5194,7 @@ describe("session pull request timeline handling", () => {
             avatarUrl: "https://avatars.githubusercontent.com/u/1?v=4",
             body: "Looks good",
             createdAt: 1710000000000,
-            url: "https://github.com/getzentic/zentic/pull/42#pullrequestreview-1",
+            url: "https://github.com/debin-ge/zentic/pull/42#pullrequestreview-1",
             reviewState: "approved",
           },
         ],
@@ -5208,7 +5208,7 @@ describe("session pull request timeline handling", () => {
       type: "pull_request_timeline_request",
       cwd: "/tmp/repo",
       prNumber: 42,
-      repoOwner: "getzentic",
+      repoOwner: "debin-ge",
       repoName: "zentic",
       requestId: "request-1",
     });
@@ -5216,7 +5216,7 @@ describe("session pull request timeline handling", () => {
     expect(github.getPullRequestTimeline).toHaveBeenCalledWith({
       cwd: "/tmp/repo",
       prNumber: 42,
-      repoOwner: "getzentic",
+      repoOwner: "debin-ge",
       repoName: "zentic",
     });
     expect(messages).toContainEqual({
@@ -5233,7 +5233,7 @@ describe("session pull request timeline handling", () => {
             avatarUrl: "https://avatars.githubusercontent.com/u/1?v=4",
             body: "Looks good",
             createdAt: 1710000000000,
-            url: "https://github.com/getzentic/zentic/pull/42#pullrequestreview-1",
+            url: "https://github.com/debin-ge/zentic/pull/42#pullrequestreview-1",
             reviewState: "approved",
           },
         ],
@@ -5246,14 +5246,14 @@ describe("session pull request timeline handling", () => {
   });
 
   test.each([
-    { prNumber: 0, repoOwner: "getzentic", repoName: "zentic" },
-    { prNumber: -1, repoOwner: "getzentic", repoName: "zentic" },
+    { prNumber: 0, repoOwner: "debin-ge", repoName: "zentic" },
+    { prNumber: -1, repoOwner: "debin-ge", repoName: "zentic" },
     { prNumber: 42, repoOwner: "get zentic", repoName: "zentic" },
-    { prNumber: 42, repoOwner: "getzentic/cli", repoName: "zentic" },
+    { prNumber: 42, repoOwner: "debin-ge/cli", repoName: "zentic" },
     { prNumber: 42, repoOwner: "get$zentic", repoName: "zentic" },
-    { prNumber: 42, repoOwner: "getzentic", repoName: "pa seo" },
-    { prNumber: 42, repoOwner: "getzentic", repoName: "zentic/app" },
-    { prNumber: 42, repoOwner: "getzentic", repoName: "zentic!" },
+    { prNumber: 42, repoOwner: "debin-ge", repoName: "pa seo" },
+    { prNumber: 42, repoOwner: "debin-ge", repoName: "zentic/app" },
+    { prNumber: 42, repoOwner: "debin-ge", repoName: "zentic!" },
   ])("returns an unknown error when request identity is invalid: %j", async (identity) => {
     const messages: unknown[] = [];
     const github = {
@@ -5302,7 +5302,7 @@ describe("session pull request timeline handling", () => {
       type: "pull_request_timeline_request",
       cwd: "/tmp/repo",
       prNumber: 42,
-      repoOwner: "getzentic",
+      repoOwner: "debin-ge",
       repoName: "zentic",
       requestId: "request-3",
     });
@@ -5340,8 +5340,8 @@ describe("session pull request timeline handling", () => {
       name: "server-tests",
       status: "completed",
       conclusion: "failure",
-      url: "https://github.com/getzentic/zentic/actions/runs/456/job/789",
-      detailsUrl: "https://github.com/getzentic/zentic/actions/runs/456/job/789",
+      url: "https://github.com/debin-ge/zentic/actions/runs/456/job/789",
+      detailsUrl: "https://github.com/debin-ge/zentic/actions/runs/456/job/789",
       output: { title: "Tests failed", summary: "1 failure", text: "Assertion failed" },
       annotations: [],
       failedJobs: [],
@@ -5368,7 +5368,7 @@ describe("session pull request timeline handling", () => {
     await session.handleMessage({
       type: "checkout.forge.get_check_details.request",
       cwd: "/tmp/repo",
-      repoOwner: "getzentic",
+      repoOwner: "debin-ge",
       repoName: "zentic",
       checkRunId: 12345,
       workflowRunId: 456,
@@ -5378,7 +5378,7 @@ describe("session pull request timeline handling", () => {
     expect(checkDetailRequests).toEqual([
       {
         cwd: "/tmp/repo",
-        repoOwner: "getzentic",
+        repoOwner: "debin-ge",
         repoName: "zentic",
         checkRunId: 12345,
         workflowRunId: 456,
@@ -5396,8 +5396,8 @@ describe("session pull request timeline handling", () => {
           name: "server-tests",
           status: "completed",
           conclusion: "failure",
-          url: "https://github.com/getzentic/zentic/actions/runs/456/job/789",
-          detailsUrl: "https://github.com/getzentic/zentic/actions/runs/456/job/789",
+          url: "https://github.com/debin-ge/zentic/actions/runs/456/job/789",
+          detailsUrl: "https://github.com/debin-ge/zentic/actions/runs/456/job/789",
           output: { title: "Tests failed", summary: "1 failure", text: "Assertion failed" },
           annotations: [],
           failedJobs: [],

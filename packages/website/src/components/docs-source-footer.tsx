@@ -2,7 +2,7 @@ import { ExternalLink } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Doc } from "~/docs";
 
-const GITHUB_BASE_URL = "https://github.com/getzentic/zentic/blob/main";
+const GITHUB_BASE_URL = "https://github.com/debin-ge/zentic/blob/main";
 
 export function DocsSourceFooter({ doc }: { doc: Doc }) {
   const { t } = useTranslation();

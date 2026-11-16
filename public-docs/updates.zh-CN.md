@@ -53,7 +53,7 @@ v0.1.92-beta.3
 | 平台          | 获取测试版的方式                                                                                   |
 | ------------- | -------------------------------------------------------------------------------------------------- |
 | iOS 和 iPadOS | 加入 [Zentic TestFlight 测试版](https://testflight.apple.com/join/Y5HpSQjJ)。                      |
-| Android       | 从 [GitHub releases 页面](https://github.com/getzentic/zentic/releases)的预发布版本下载 APK。      |
+| Android       | 从 [GitHub releases 页面](https://github.com/debin-ge/zentic/releases)的预发布版本下载 APK。       |
 | 桌面端        | 打开 **设置 → 关于**，在 **发布通道** 下选择 **Beta**。                                            |
 | CLI           | 运行 `npm install -g @getzentic/cli@beta`。直接运行 `npm install -g @getzentic/cli` 仍使用稳定版。 |
 

@@ -88,7 +88,7 @@ Depending on applicable law, you may request access, correction, deletion, restr
 
 ## Security
 
-We use access controls, encrypted transport, and limited service permissions. No online service can guarantee absolute security. Read Zentic's [security model](https://github.com/getzentic/zentic/blob/main/SECURITY.md) or report a vulnerability privately to [hello@moboudra.com](mailto:hello@moboudra.com).
+We use access controls, encrypted transport, and limited service permissions. No online service can guarantee absolute security. Read Zentic's [security model](https://github.com/debin-ge/zentic/blob/main/SECURITY.md) or report a vulnerability privately to [hello@moboudra.com](mailto:hello@moboudra.com).
 
 ## Children
 

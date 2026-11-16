@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/getzentic/zentic.git"
+    "url": "https://github.com/debin-ge/zentic.git"
   },
   "main": "dist/main.js",
   "scripts": {

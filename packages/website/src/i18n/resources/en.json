@@ -606,7 +606,7 @@
       "showIssues": "<mention/> show me the latest P0 issues",
       "issuesOpen": "Three P0 issues are open:",
       "createPr": "<mention/> create a pull request for the first one",
-      "ranOn": "Ran on <host>macbook-pro</host>. Opened <pr>getzentic/zentic#1234</pr> with a fix for the terminal writes.",
+      "ranOn": "Ran on <host>macbook-pro</host>. Opened <pr>debin-ge/zentic#1234</pr> with a fix for the terminal writes.",
       "filesChanged": "3 files changed",
       "testsPassed": "tests passed",
       "bot": "Bot",

@@ -45,12 +45,12 @@ Pick the contribution that matches the request. Each row names the registration,
 | Creation and launch hooks | `server.before`                                             | `agent.create` edits saved config; `agent.session_open` contributes launch-only `env`, `tools`, `mcpServers` on every open; `workspace.create` chooses isolation | [Before hooks](https://zentic.sh/docs/plugins/reference.md#before-hooks)                                   |
 | Zentic SDK                | `useZentic()` / handler `{ zentic }`                        | Normal Zentic operations: workspaces, agents, providers, config                                                                                                  | reference.md → Use the Zentic SDK                                                                          |
 
-| Lifecycle task                                                         | Example                                                                                                  |
-| ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| Log all eleven hooks                                                   | [lifecycle-logger](https://github.com/getzentic/zentic/tree/main/plugin-examples/lifecycle-logger)       |
-| Follow-ups, permissions, environment, provider switching, worktrees    | [lifecycle-actions](https://github.com/getzentic/zentic/tree/main/plugin-examples/lifecycle-actions)     |
-| Inject launch-only MCP servers and save Codex sandbox/approval options | [agent-configuration](https://github.com/getzentic/zentic/tree/main/plugin-examples/agent-configuration) |
-| Attach a tool to selected agents                                       | [agent-tools](https://github.com/getzentic/zentic/tree/main/plugin-examples/agent-tools)                 |
+| Lifecycle task                                                         | Example                                                                                                 |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Log all eleven hooks                                                   | [lifecycle-logger](https://github.com/debin-ge/zentic/tree/main/plugin-examples/lifecycle-logger)       |
+| Follow-ups, permissions, environment, provider switching, worktrees    | [lifecycle-actions](https://github.com/debin-ge/zentic/tree/main/plugin-examples/lifecycle-actions)     |
+| Inject launch-only MCP servers and save Codex sandbox/approval options | [agent-configuration](https://github.com/debin-ge/zentic/tree/main/plugin-examples/agent-configuration) |
+| Attach a tool to selected agents                                       | [agent-tools](https://github.com/debin-ge/zentic/tree/main/plugin-examples/agent-tools)                 |
 
 ## Create the project
 

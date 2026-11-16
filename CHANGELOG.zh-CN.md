@@ -2864,7 +2864,7 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 
 ### 新增
 
-- Provider 配置档——在 Zentic 配置中定义自定义 Provider，它们会与内置 Provider 一起显示。可以覆盖内置 Provider 的二进制、环境变量或模型，也可以创建全新的 Provider。参见[配置指南](https://github.com/getzentic/zentic/blob/main/docs/custom-providers.md)
+- Provider 配置档——在 Zentic 配置中定义自定义 Provider，它们会与内置 Provider 一起显示。可以覆盖内置 Provider 的二进制、环境变量或模型，也可以创建全新的 Provider。参见[配置指南](https://github.com/debin-ge/zentic/blob/main/docs/custom-providers.md)
 - 支持 ACP Agent——在 Provider 配置中使用 `extends: "acp"` 即可把任何兼容 ACP 的 Agent 添加到 Zentic，无需修改代码
 - 创建定时任务 Agent 时可以选择 Provider 和模型
 - Opus 4.6 模型新增 Max 推理强度选项

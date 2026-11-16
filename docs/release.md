@@ -217,9 +217,9 @@ done
 Verify `latest` resolves to `ZENTIC_VERSION`, and `beta` resolves to `ZENTIC_VERSION` or the
 active newer beta, before considering the stable release complete.
 
-The Docker workflow builds images from the checked-out source tree on pull requests and on `main` as non-publishing checks. Stable `vX.Y.Z` tag pushes publish `ghcr.io/getzentic/zentic:X.Y.Z` and `ghcr.io/getzentic/zentic:latest`; beta `vX.Y.Z-beta.N` tag pushes publish only `ghcr.io/getzentic/zentic:X.Y.Z-beta.N` and never move `latest`.
+The Docker workflow builds images from the checked-out source tree on pull requests and on `main` as non-publishing checks. Stable `vX.Y.Z` tag pushes publish `ghcr.io/debin-ge/zentic:X.Y.Z` and `ghcr.io/debin-ge/zentic:latest`; beta `vX.Y.Z-beta.N` tag pushes publish only `ghcr.io/debin-ge/zentic:X.Y.Z-beta.N` and never move `latest`.
 
-The production relay is the Elixir service in [getzentic/zentic-relay](https://github.com/getzentic/zentic-relay), with its own deployment process. Zentic releases and pushes to this repository do not deploy it. The Cloudflare relay code and workflow in this repository are legacy and are not used in production.
+The production relay is the Elixir service in [debin-ge/zentic-relay](https://github.com/debin-ge/zentic-relay), with its own deployment process. Zentic releases and pushes to this repository do not deploy it. The Cloudflare relay code and workflow in this repository are legacy and are not used in production.
 
 **Stable means stable.** If the user says "stable" or "ship stable", do not ask whether they want a beta first. They picked stable; treat it as a direct stable release. Only run the beta flow when the user explicitly says "beta".
 
@@ -512,7 +512,7 @@ gh workflow run docker.yml \
   -f publish=true
 ```
 
-This replaces `ghcr.io/getzentic/zentic:X.Y.Z-beta.N` in place without touching
+This replaces `ghcr.io/debin-ge/zentic:X.Y.Z-beta.N` in place without touching
 desktop, APK, or EAS release builders. The Docker exception is safe because the
 dispatch runs from `--ref main` and uses the explicit `zentic_version`; it does
 not check out or move the `v*` release tag.
@@ -562,12 +562,12 @@ If you decide to publish a release without working desktop builds, inspect its
 assets first, then publish it manually:
 
 ```bash
-RELEASE_LOOKUP=$(node scripts/github-release.mjs --repo getzentic/zentic --tag vX.Y.Z)
+RELEASE_LOOKUP=$(node scripts/github-release.mjs --repo debin-ge/zentic --tag vX.Y.Z)
 gh release view "$RELEASE_LOOKUP" --json isDraft,isPrerelease,assets
 gh release edit "$RELEASE_LOOKUP" --tag vX.Y.Z --draft=false
 
 # Keep a beta marked as a prerelease:
-RELEASE_LOOKUP=$(node scripts/github-release.mjs --repo getzentic/zentic --tag vX.Y.Z-beta.N)
+RELEASE_LOOKUP=$(node scripts/github-release.mjs --repo debin-ge/zentic --tag vX.Y.Z-beta.N)
 gh release edit "$RELEASE_LOOKUP" --tag vX.Y.Z-beta.N --draft=false --prerelease
 ```
 
@@ -677,7 +677,7 @@ reader who stops after the highlights should have missed nothing they would ask 
 ```markdown
 ## 0.16.0 - 2026-11-20
 
-- **Undo workspace archive:** Archiving a workspace in the app now shows a "Workspace archived" toast for six seconds. Undo, or Cmd/Ctrl+Z, restores the workspace with its tabs and agents. ([#8904](https://github.com/getzentic/zentic/pull/8904))
+- **Undo workspace archive:** Archiving a workspace in the app now shows a "Workspace archived" toast for six seconds. Undo, or Cmd/Ctrl+Z, restores the workspace with its tabs and agents. ([#8904](https://github.com/debin-ge/zentic/pull/8904))
 
 ### Added
 ```
@@ -722,15 +722,15 @@ new?" without its description, and each must outrank the one below it.
 
 Every changelog bullet must credit contributors and link to the PR(s) that delivered the change. This is not one-PR-per-line — a single bullet describes a user-facing change and may reference multiple PRs.
 
-Format: append `([#123](https://github.com/getzentic/zentic/pull/123) by [@user](https://github.com/user))` at the end of each bullet. For changes spanning multiple PRs or contributors:
+Format: append `([#123](https://github.com/debin-ge/zentic/pull/123) by [@user](https://github.com/user))` at the end of each bullet. For changes spanning multiple PRs or contributors:
 
 ```markdown
-- Voice mode now works on tablets with proper microphone permissions. ([#210](https://github.com/getzentic/zentic/pull/210), [#215](https://github.com/getzentic/zentic/pull/215) by [@alice](https://github.com/alice), [@bob](https://github.com/bob))
+- Voice mode now works on tablets with proper microphone permissions. ([#210](https://github.com/debin-ge/zentic/pull/210), [#215](https://github.com/debin-ge/zentic/pull/215) by [@alice](https://github.com/alice), [@bob](https://github.com/bob))
 ```
 
 Rules:
 
-- **Always link the PR number** as `[#N](https://github.com/getzentic/zentic/pull/N)`.
+- **Always link the PR number** as `[#N](https://github.com/debin-ge/zentic/pull/N)`.
 - **Always link the contributor's GitHub profile** as `[@user](https://github.com/user)`.
 - **One bullet = one user-facing change**, regardless of how many PRs went into it. Group related PRs on the same bullet.
 - **De-duplicate contributors.** If the same person authored multiple PRs in one bullet, list them once.

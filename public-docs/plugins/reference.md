@@ -154,7 +154,7 @@ plugin root is a compile error.
 
 ## Runtime translations {#runtime-translations}
 
-**Unreleased API.** Set `requirements.zentic` to the release that introduces these APIs before publishing your plugin. The [translation example](https://github.com/getzentic/zentic/tree/main/plugin-examples/translations) uses `>=0.12.1` provisionally; the introducing release has not been assigned.
+**Unreleased API.** Set `requirements.zentic` to the release that introduces these APIs before publishing your plugin. The [translation example](https://github.com/debin-ge/zentic/tree/main/plugin-examples/translations) uses `>=0.12.1` provisionally; the introducing release has not been assigned.
 
 Ship JSON resources with your client bundle. English (`en`) is required; other keys use canonical language tags such as `zh-CN`. Resources contain nested objects with string leaves. Other languages may omit keys, which fall back to English. Unknown keys, malformed resources, noncanonical locale tags, and mismatched interpolation placeholders are rejected when defining translations.
 
@@ -906,7 +906,7 @@ client.addWorkspaceRowBadgeItem({
 
 Apps older than this API have no `addWorkspaceRowBadgeItem`; check for it before calling.
 
-See the [workspace row badges example](https://github.com/getzentic/zentic/tree/main/plugin-examples/workspace-row-badges).
+See the [workspace row badges example](https://github.com/debin-ge/zentic/tree/main/plugin-examples/workspace-row-badges).
 
 ## Host UI
 
@@ -1080,7 +1080,7 @@ Paste too, but does not register focus with the sheet; the keyboard can cover it
 API is needed for OS Paste. Avoid DOM clipboard code in native plugins and the deprecated
 `Clipboard` export from `react-native`.
 
-The runnable [modal UI example](https://github.com/getzentic/zentic/tree/main/plugin-examples/modal-ui)
+The runnable [modal UI example](https://github.com/debin-ge/zentic/tree/main/plugin-examples/modal-ui)
 contains a padded form, full-width rows, a virtualized list, horizontal tabs, and a copy/paste input.
 
 ### Toasts
@@ -1525,7 +1525,7 @@ versions produce `invalid` without silently resetting the file. Successful migra
 the new version once. These documents are ordinary host-side JSON, not a credential vault.
 Settings RPCs use the existing `daemon.manage` permission for plugin execution.
 
-See the complete [settings example](https://github.com/getzentic/zentic/tree/main/plugin-examples/settings)
+See the complete [settings example](https://github.com/debin-ge/zentic/tree/main/plugin-examples/settings)
 for immediate controls, a draft editor with validation, custom content, and Command Center navigation.
 
 ## Workspace panels
@@ -1810,7 +1810,7 @@ A panel that holds unsaved edits reads with `readText()` once, then handles `wat
 
 Write pending edits before the component unmounts: opening the tab with another panel or closing
 the tab unmounts it. Zentic asks before closing a tab whose panel reports unsaved changes. The
-[Markdown panel](https://github.com/getzentic/zentic/tree/main/plugin-examples/markdown-panel)
+[Markdown panel](https://github.com/debin-ge/zentic/tree/main/plugin-examples/markdown-panel)
 example implements these steps.
 
 ### Selection and Open with
@@ -1870,8 +1870,8 @@ Writing with `writeBytes` needs a daemon from Zentic 0.13.0 or later.
 
 Complete directory examples:
 
-- [PDF panel](https://github.com/getzentic/zentic/tree/main/plugin-examples/pdf-panel): `useFileUrl` with `Loading` and `DocumentFrame`.
-- [Markdown panel](https://github.com/getzentic/zentic/tree/main/plugin-examples/markdown-panel): a bundled CodeMirror editor that reads once, saves with `writeText`, and resolves conflicts, with read-only native text.
+- [PDF panel](https://github.com/debin-ge/zentic/tree/main/plugin-examples/pdf-panel): `useFileUrl` with `Loading` and `DocumentFrame`.
+- [Markdown panel](https://github.com/debin-ge/zentic/tree/main/plugin-examples/markdown-panel): a bundled CodeMirror editor that reads once, saves with `writeText`, and resolves conflicts, with read-only native text.
 
 ## Command Center items
 
@@ -1967,7 +1967,7 @@ order wins a collision between plugins. Commands do not run while the composer h
 
 ## Header buttons
 
-Try the [button example](https://github.com/getzentic/zentic/tree/main/plugin-examples/buttons) for
+Try the [button example](https://github.com/debin-ge/zentic/tree/main/plugin-examples/buttons) for
 actions, menus, custom icons and content, and visibility updates in both the header and composer.
 It switches one header button between modes; additional actions use a named Tools menu.
 
@@ -2089,7 +2089,7 @@ nothing takes no room and adds no overflow button. On wide composers the item st
 it is in the overflow, and the overflow sheet mounts a second instance while it is open, so keep
 effects safe to run twice. On a phone an item mounts only while the overflow sheet is open.
 
-The [composer controls example](https://github.com/getzentic/zentic/tree/main/plugin-examples/composer-controls)
+The [composer controls example](https://github.com/debin-ge/zentic/tree/main/plugin-examples/composer-controls)
 registers a `Select`, two `Toggle`s (one writes a provider option) and an `Action`, plus an
 Explorer panel and a Command Center item that reach a composer by reference.
 
@@ -2259,7 +2259,7 @@ and ignores a search that a newer one replaced, so `search` needs no cancellatio
 `Combobox` takes the same `title`, `icon` and `disabled` as the other controls, and draws as a row
 with a list in the composer's overflow sheet too.
 
-The [New workspace issues example](https://github.com/getzentic/zentic/tree/main/plugin-examples/new-workspace-issues)
+The [New workspace issues example](https://github.com/debin-ge/zentic/tree/main/plugin-examples/new-workspace-issues)
 searches a fixed issue list from a daemon handler and sets the branch and metadata from the choice.
 
 ## Composer pills
@@ -2317,7 +2317,7 @@ const pill = client.addComposerPill({
 ```
 
 For pills that follow the agent directory, use an explicit [owned list subscription](/docs/sdk/events#follow-one-agents-status).
-The [local plugin example](https://github.com/getzentic/zentic/blob/main/plugin-examples/local-plugin/client/main.tsx)
+The [local plugin example](https://github.com/debin-ge/zentic/blob/main/plugin-examples/local-plugin/client/main.tsx)
 replaces registrations on each snapshot and aborts the observation during entry cleanup, including pending bootstrap.
 
 ## Button descriptor
@@ -2552,7 +2552,7 @@ You can also release individual subscriptions through the normal SDK API.
 
 Plugins are trusted app code; cross-host access is intentional. Summaries contain no connection
 URLs or credentials, and borrowed APIs provide no connection lifecycle controls. See the
-[host agents example](https://github.com/getzentic/zentic/tree/main/plugin-examples/hosts).
+[host agents example](https://github.com/debin-ge/zentic/tree/main/plugin-examples/hosts).
 
 ## Add plugin-specific backend behavior
 

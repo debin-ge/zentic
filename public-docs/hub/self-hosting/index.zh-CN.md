@@ -107,7 +107,7 @@ ZENTIC_BOOTSTRAP_OWNER_PASSWORD=replace-with-a-temporary-password
 仓库中包含一个由 Hub 和 PostgreSQL 组成的 Compose 栈：
 
 ```sh
-git clone https://github.com/getzentic/hub.git
+git clone https://github.com/debin-ge/zentic-hub.git
 cd hub
 cp .env.example .env
 docker compose up -d
@@ -115,7 +115,7 @@ docker compose up -d
 
 打开 <http://localhost:3000> 并完成浏览器设置。对于公开部署，请在启动栈之前，在 `.env` 中设置 `ZENTIC_HUB_APP_URL` 以及任何反向代理设置。
 
-该栈在端口 `3000` 上发布 Hub，并把 PostgreSQL 数据保存在一个命名卷中。Hub 镜像是 `ghcr.io/getzentic/hub:latest`。
+该栈在端口 `3000` 上发布 Hub，并把 PostgreSQL 数据保存在一个命名卷中。Hub 镜像是 `ghcr.io/debin-ge/zentic-hub:latest`。
 
 ### 使用 Caddy 提供 HTTPS {#https-with-caddy}
 
@@ -143,7 +143,7 @@ ZENTIC_HUB_TRUSTED_CLIENT_IP_HEADER=x-forwarded-for
 克隆仓库，并用你自己控制的名称创建应用和数据库：
 
 ```sh
-git clone https://github.com/getzentic/hub.git
+git clone https://github.com/debin-ge/zentic-hub.git
 cd hub
 fly apps create your-hub
 fly postgres create --name your-hub-db

@@ -10,17 +10,15 @@ describe("deriveProjectKey", () => {
     deriveProjectKey({ rootPath, remoteUrl, worktreeRoot: rootPath, mainRepoRoot: null });
 
   test.each([
-    "https://github.com/getzentic/zentic.git",
-    "ssh://git@github.com/getzentic/zentic.git",
-    "git@github.com:getzentic/zentic.git",
+    "https://github.com/debin-ge/zentic.git",
+    "ssh://git@github.com/debin-ge/zentic.git",
+    "git@github.com:debin-ge/zentic.git",
   ])("normalizes common remote form %s", (remoteUrl) => {
-    expect(derive(remoteUrl)).toBe("remote:github.com/getzentic/zentic");
+    expect(derive(remoteUrl)).toBe("remote:github.com/debin-ge/zentic");
   });
 
   test("normalizes GitHub casing", () => {
-    expect(derive("git@github.com:GetZentic/Zentic.git")).toBe(
-      "remote:github.com/getzentic/zentic",
-    );
+    expect(derive("git@github.com:Debin-Ge/Zentic.git")).toBe("remote:github.com/debin-ge/zentic");
   });
 
   test("preserves self-hosted paths and explicit ports", () => {
@@ -30,8 +28,8 @@ describe("deriveProjectKey", () => {
   });
 
   test("groups an SSH remote whether or not its default port is spelled out", () => {
-    expect(derive("ssh://git@github.com:22/getzentic/zentic.git")).toBe(
-      derive("ssh://git@github.com/getzentic/zentic.git"),
+    expect(derive("ssh://git@github.com:22/debin-ge/zentic.git")).toBe(
+      derive("ssh://git@github.com/debin-ge/zentic.git"),
     );
   });
 
@@ -77,11 +75,11 @@ describe("deriveProjectKey", () => {
 
   test("keeps a repository root distinct from one of its subprojects", () => {
     const worktreeRoot = path.resolve("host-a", "repo");
-    const remoteUrl = "git@github.com:getzentic/zentic.git";
+    const remoteUrl = "git@github.com:debin-ge/zentic.git";
 
     expect(
       deriveProjectKey({ rootPath: worktreeRoot, remoteUrl, worktreeRoot, mainRepoRoot: null }),
-    ).toBe("remote:github.com/getzentic/zentic");
+    ).toBe("remote:github.com/debin-ge/zentic");
     expect(
       deriveProjectKey({
         rootPath: path.join(worktreeRoot, "packages", "app"),
@@ -89,11 +87,11 @@ describe("deriveProjectKey", () => {
         worktreeRoot,
         mainRepoRoot: null,
       }),
-    ).toBe("remote:github.com/getzentic/zentic#subdir:packages/app");
+    ).toBe("remote:github.com/debin-ge/zentic#subdir:packages/app");
   });
 
   test("groups the same subproject across different absolute checkout roots", () => {
-    const remoteUrl = "git@github.com:getzentic/zentic.git";
+    const remoteUrl = "git@github.com:debin-ge/zentic.git";
     const deriveSubproject = (worktreeRoot: string) =>
       deriveProjectKey({
         rootPath: path.join(worktreeRoot, "packages", "app"),
@@ -113,10 +111,10 @@ describe("deriveProjectGroupingDisplayName", () => {
     expect(
       deriveProjectGroupingDisplayName({
         rootPath: path.resolve("repo"),
-        remoteUrl: "git@github.com:getzentic/zentic.git",
+        remoteUrl: "git@github.com:debin-ge/zentic.git",
         worktreeRoot: path.resolve("repo"),
       }),
-    ).toBe("getzentic/zentic");
+    ).toBe("debin-ge/zentic");
   });
 
   test("uses the selected directory name without a remote", () => {

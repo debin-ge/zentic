@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { parseChangelog, type ChangelogRelease } from "./parse-changelog";
 
-const CHANGELOG_URL = "https://raw.githubusercontent.com/getzentic/zentic/main/CHANGELOG.md";
+const CHANGELOG_URL = "https://raw.githubusercontent.com/debin-ge/zentic/main/CHANGELOG.md";
 
 export type ChangelogState =
   | { status: "loading" }

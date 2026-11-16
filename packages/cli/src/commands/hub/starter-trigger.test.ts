@@ -8,10 +8,10 @@ describe("starter trigger connections", () => {
         {
           github: [
             {
-              slug: "github-getzentic",
-              accountLogin: "getzentic",
+              slug: "github-debin-ge",
+              accountLogin: "debin-ge",
               accountType: "Organization",
-              repositories: ["getzentic/zentic"],
+              repositories: ["debin-ge/zentic"],
             },
           ],
           slack: [{ slug: "zentic", teamName: "Zentic" }],
@@ -19,14 +19,14 @@ describe("starter trigger connections", () => {
           daemons: [],
           linear: [],
         },
-        "getzentic/zentic",
+        "debin-ge/zentic",
       ),
     ).toEqual([
       {
-        id: "github:getzentic/zentic",
-        label: "GitHub — getzentic/zentic",
+        id: "github:debin-ge/zentic",
+        label: "GitHub — debin-ge/zentic",
         provider: "github",
-        filters: { connection: "github-getzentic", repo: "getzentic/zentic" },
+        filters: { connection: "github-debin-ge", repo: "debin-ge/zentic" },
       },
       {
         id: "slack:zentic",
@@ -49,10 +49,10 @@ describe("starter trigger connections", () => {
         {
           github: [
             {
-              slug: "github-getzentic",
-              accountLogin: "getzentic",
+              slug: "github-debin-ge",
+              accountLogin: "debin-ge",
               accountType: "Organization",
-              repositories: ["getzentic/hub"],
+              repositories: ["debin-ge/zentic-hub"],
             },
           ],
           slack: [],
@@ -60,7 +60,7 @@ describe("starter trigger connections", () => {
           daemons: [],
           linear: [],
         },
-        "getzentic/zentic",
+        "debin-ge/zentic",
       ),
     ).toEqual([]);
   });

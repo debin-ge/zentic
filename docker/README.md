@@ -11,7 +11,7 @@ docker run -d --name zentic \
   -e ZENTIC_PASSWORD=change-me \
   -v "$PWD/zentic-home:/home/zentic" \
   -v "$PWD:/workspace" \
-  ghcr.io/getzentic/zentic:latest
+  ghcr.io/debin-ge/zentic:latest
 ```
 
 Then open `http://localhost:6767`.
@@ -20,7 +20,7 @@ The base image intentionally does not bundle agent CLIs. Extend it with the
 agents you use:
 
 ```Dockerfile
-FROM ghcr.io/getzentic/zentic:latest
+FROM ghcr.io/debin-ge/zentic:latest
 
 USER root
 RUN npm install -g @openai/codex @anthropic-ai/claude-code

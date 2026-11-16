@@ -42,7 +42,7 @@ const COMMUNITY = [
     name: "GitHub",
     icon: <GitHubIcon className="h-6 w-6" />,
     body: "github",
-    href: "https://github.com/getzentic/zentic",
+    href: "https://github.com/debin-ge/zentic",
   },
   {
     name: "Reddit",

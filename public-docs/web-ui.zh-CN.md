@@ -217,7 +217,7 @@ ZENTIC_TRUSTED_PROXIES=loopback,172.16.0.0/12 ZENTIC_WEB_UI_ENABLED=true zentic 
 - **尽可能让 daemon 保持在 localhost 上**，只让反向代理或隧道对外暴露。
 - **在自定义域名上提供服务时，检查你的主机白名单。**
 
-完整的威胁模型、中继加密和 DNS 重绑定细节，见[安全](/docs/security)和 [SECURITY.md](https://github.com/getzentic/zentic/blob/main/SECURITY.md)。
+完整的威胁模型、中继加密和 DNS 重绑定细节，见[安全](/docs/security)和 [SECURITY.md](https://github.com/debin-ge/zentic/blob/main/SECURITY.md)。
 
 ## 故障排查 {#troubleshooting}
 

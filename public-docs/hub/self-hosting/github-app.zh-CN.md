@@ -37,7 +37,7 @@ Hub 验证 App 之后，选择 **Connect GitHub**。选择 App 可以访问的�
 
 请从 Hub 发起安装，而不是使用 GitHub 自己的安装按钮。这一来一回会把安装绑定到当前的 Hub 组织。
 
-连接会以一个由账号派生的 slug 出现。例如，安装在 `getzentic` 上会成为 `getzentic-github`。Hub 组织需要多少安装就可以连接多少。
+连接会以一个由账号派生的 slug 出现。例如，安装在 `debin-ge` 上会成为 `debin-ge-github`。Hub 组织需要多少安装就可以连接多少。
 
 ## 连接提供什么 {#what-the-connection-provides}
 

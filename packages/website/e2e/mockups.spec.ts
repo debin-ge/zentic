@@ -66,7 +66,7 @@ const HERO_SCENES = [
   { pill: "Orchestration", shows: "Pi · GLM-5.2" },
   { pill: "Remote", shows: "Tailscale" },
   { pill: "Code review", shows: "Feedback sent to Codex" },
-  { pill: "Pull requests", shows: "https://github.com/getzentic/zentic/pull/3981" },
+  { pill: "Pull requests", shows: "https://github.com/debin-ge/zentic/pull/3981" },
   { pill: "Plugins", shows: "app-tests (macos)" },
 ];
 

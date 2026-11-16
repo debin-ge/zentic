@@ -41,12 +41,10 @@ test.describe("Add Project GitHub flow", () => {
       await openAddProjectFlow(page);
       await chooseAddProjectMethod(page, "github");
 
-      await addProjectFlowInput(page).fill("getzentic/zentic");
-      await expect(addProjectFlow(page).getByText("getzentic/zentic", { exact: true })).toBeVisible(
-        {
-          timeout: 30_000,
-        },
-      );
+      await addProjectFlowInput(page).fill("debin-ge/zentic");
+      await expect(addProjectFlow(page).getByText("debin-ge/zentic", { exact: true })).toBeVisible({
+        timeout: 30_000,
+      });
       await addProjectFlowInput(page).fill("");
 
       const repositoryRow = addProjectFlow(page).getByText(repository.fullName, { exact: true });

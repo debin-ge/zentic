@@ -227,7 +227,7 @@ describe("createBranchFromBase", () => {
     expect(snapshotCalls).toContainEqual({ cwd: dir, force: true, reason: "create-branch" });
   });
 
-  // https://github.com/getzentic/zentic/issues/5213 — a branch that tracks origin/main sends the
+  // https://github.com/debin-ge/zentic/issues/5213 — a branch that tracks origin/main sends the
   // next push to main: `git push` under push.default=tracking and Zentic's own push both read
   // branch.<name>.merge. A branch Zentic creates must carry no upstream, exactly as the worktree
   // path already guarantees with `git worktree add -b <branch> --no-track <base>`.

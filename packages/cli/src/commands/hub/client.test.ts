@@ -160,10 +160,10 @@ describe("Hub HTTP client", () => {
           daemons: [{ id: "a50e05af-4f20-4c8f-8dcc-58e5ea360663", slug: "macbook" }],
           github: [
             {
-              slug: "getzentic",
-              accountLogin: "getzentic",
+              slug: "debin-ge",
+              accountLogin: "debin-ge",
               accountType: "Organization",
-              repositories: ["getzentic/zentic"],
+              repositories: ["debin-ge/zentic"],
             },
           ],
           discord: [{ slug: "zentic", guildName: "Zentic" }],

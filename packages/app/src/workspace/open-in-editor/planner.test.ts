@@ -18,7 +18,7 @@ const desktopTargets = [
 
 const checkoutStatus = {
   isGit: true,
-  remoteUrl: "git@github.com:getzentic/zentic.git",
+  remoteUrl: "git@github.com:debin-ge/zentic.git",
   currentBranch: "main",
 };
 
@@ -170,7 +170,7 @@ describe("planWorkspaceOpenTargets", () => {
         forge: "github",
         id: "github",
         label: "GitHub",
-        url: "https://github.com/getzentic/zentic/blob/main/src/app.ts#L3-L5",
+        url: "https://github.com/debin-ge/zentic/blob/main/src/app.ts#L3-L5",
       },
     ]);
     expect(treeTargets).toEqual([
@@ -179,7 +179,7 @@ describe("planWorkspaceOpenTargets", () => {
         forge: "github",
         id: "github",
         label: "GitHub",
-        url: "https://github.com/getzentic/zentic/tree/main",
+        url: "https://github.com/debin-ge/zentic/tree/main",
       },
     ]);
   });

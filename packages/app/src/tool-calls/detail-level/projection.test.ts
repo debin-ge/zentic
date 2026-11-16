@@ -312,7 +312,7 @@ describe("tool call detail-level projection", () => {
         { name: "mcp__zentic__list_worktrees" },
       ),
       toolCall("3", { type: "fetch", url: "https://zentic.sh" }),
-      toolCall("4", { type: "fetch", url: "https://github.com/getzentic" }),
+      toolCall("4", { type: "fetch", url: "https://github.com/debin-ge" }),
     ];
 
     const result = project({ level: "overview", head: calls });

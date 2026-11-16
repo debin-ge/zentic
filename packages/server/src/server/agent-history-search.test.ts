@@ -20,7 +20,7 @@ function candidate(input: {
     },
     project: {
       projectKey: "key",
-      projectName: input.projectName ?? "getzentic/zentic",
+      projectName: input.projectName ?? "debin-ge/zentic",
       workspaceName: input.workspaceName ?? null,
       checkout: {
         cwd: "/tmp/repo",
@@ -71,7 +71,7 @@ describe("matchesAgentHistoryQuery", () => {
   });
 
   it("matches the project name", () => {
-    expect(matchesAgentHistoryQuery("zentic", candidate({ projectName: "getzentic/zentic" }))).toBe(
+    expect(matchesAgentHistoryQuery("zentic", candidate({ projectName: "debin-ge/zentic" }))).toBe(
       true,
     );
   });

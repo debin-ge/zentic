@@ -256,7 +256,7 @@ buildNpmPackage {
 
   meta = {
     description = "Zentic desktop app (Electron wrapper)";
-    homepage = "https://github.com/getzentic/zentic";
+    homepage = "https://github.com/debin-ge/zentic";
     license = lib.licenses.asl20;
     mainProgram = "zentic-desktop";
     platforms = lib.platforms.linux ++ lib.platforms.darwin;

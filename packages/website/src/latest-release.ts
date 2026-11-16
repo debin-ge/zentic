@@ -33,7 +33,7 @@ const REQUIRED_ASSET_PATTERNS = [
   /Zentic-Setup-.*\.exe$/,
 ];
 
-const GITHUB_RELEASES_URL = "https://api.github.com/repos/getzentic/zentic/releases?per_page=10";
+const GITHUB_RELEASES_URL = "https://api.github.com/repos/debin-ge/zentic/releases?per_page=10";
 const RELEASE_CACHE_KEY = "github-release:v2";
 const ANDROID_RELEASE_CACHE_KEY = "github-android-release:v1";
 

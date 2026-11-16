@@ -60,7 +60,7 @@ function fakeRuntimeStore() {
     isGit: true,
     repoRoot: "/tmp/repo",
     currentBranch: "feature/scripts",
-    remoteUrl: "https://github.com/getzentic/zentic.git",
+    remoteUrl: "https://github.com/debin-ge/zentic.git",
     hasRemote: true,
   };
 

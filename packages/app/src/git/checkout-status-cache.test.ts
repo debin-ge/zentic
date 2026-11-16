@@ -51,7 +51,7 @@ function checkoutStatus(overrides: Partial<CheckoutStatusPayload> = {}): Checkou
     aheadOfOrigin: 0,
     behindOfOrigin: 0,
     hasRemote: true,
-    remoteUrl: "git@github.com:getzentic/zentic.git",
+    remoteUrl: "git@github.com:debin-ge/zentic.git",
     ...overrides,
   } as CheckoutStatusPayload;
 }
@@ -61,7 +61,7 @@ function prStatus(overrides: Partial<CheckoutPrStatusPayload> = {}): CheckoutPrS
     cwd,
     status: {
       forge: "github",
-      url: "https://github.com/getzentic/zentic/pull/42",
+      url: "https://github.com/debin-ge/zentic/pull/42",
       title: "My PR",
       state: "open",
       baseRefName: "main",

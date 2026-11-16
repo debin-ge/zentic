@@ -52,12 +52,12 @@ Betas are the best way to get fixes and features early. If you hit a bug, report
 
 ### How to join the beta channel
 
-| Platform       | How to get betas                                                                                                |
-| -------------- | --------------------------------------------------------------------------------------------------------------- |
-| iOS and iPadOS | Join the [Zentic TestFlight beta](https://testflight.apple.com/join/Y5HpSQjJ).                                  |
-| Android        | Download the APK from a prerelease on the [GitHub releases page](https://github.com/getzentic/zentic/releases). |
-| Desktop        | Open **Settings → About** and select **Beta** under **Release channel**.                                        |
-| CLI            | Run `npm install -g @getzentic/cli@beta`. Plain `npm install -g @getzentic/cli` stays on stable.                |
+| Platform       | How to get betas                                                                                               |
+| -------------- | -------------------------------------------------------------------------------------------------------------- |
+| iOS and iPadOS | Join the [Zentic TestFlight beta](https://testflight.apple.com/join/Y5HpSQjJ).                                 |
+| Android        | Download the APK from a prerelease on the [GitHub releases page](https://github.com/debin-ge/zentic/releases). |
+| Desktop        | Open **Settings → About** and select **Beta** under **Release channel**.                                       |
+| CLI            | Run `npm install -g @getzentic/cli@beta`. Plain `npm install -g @getzentic/cli` stays on stable.               |
 
 The desktop app checks for beta updates from the moment you select **Beta**.
 

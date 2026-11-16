@@ -2,7 +2,7 @@
 
 A sidebar view replaces the content between Zentic's header and footer. You receive theme tokens,
 active entity refs and navigation methods, then render your own React Native UI. Install the
-[sidebar-views example](https://github.com/getzentic/zentic/tree/main/plugin-examples/sidebar-views)
+[sidebar-views example](https://github.com/debin-ge/zentic/tree/main/plugin-examples/sidebar-views)
 to try projects, task-based agents, nested agents and label folders.
 
 ## Register a view

@@ -46,10 +46,10 @@ describe("deriveProjectDisplayName", () => {
   it("shows owner/repo for GitHub remote keys", () => {
     expect(
       deriveProjectDisplayName({
-        projectKey: "remote:github.com/getzentic/zentic",
+        projectKey: "remote:github.com/debin-ge/zentic",
         projectName: "zentic",
       }),
-    ).toBe("getzentic/zentic");
+    ).toBe("debin-ge/zentic");
   });
 
   it("shows remote path for non-GitHub remote keys", () => {
@@ -114,7 +114,7 @@ describe("groupAgents", () => {
     ];
 
     const { activeGroups } = groupAgents(agents, {
-      getRemoteUrl: () => "git@github.com:getzentic/zentic.git",
+      getRemoteUrl: () => "git@github.com:debin-ge/zentic.git",
     });
 
     expect(activeGroups).toHaveLength(1);

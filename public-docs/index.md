@@ -12,7 +12,7 @@ Zentic is an agentic development environment for running coding agents, editing 
 
 ## Desktop app (recommended)
 
-Download from [zentic.sh/download](https://zentic.sh/download) or the [GitHub releases page](https://github.com/getzentic/zentic/releases). Open it and you're done.
+Download from [zentic.sh/download](https://zentic.sh/download) or the [GitHub releases page](https://github.com/debin-ge/zentic/releases). Open it and you're done.
 
 The desktop app bundles its own daemon and starts it automatically, no separate install required. On first launch you'll see a brief startup screen, then connect from your phone using **Settings → your host → Pair Device**.
 
@@ -41,7 +41,7 @@ docker run -d --name zentic \
   -e ZENTIC_PASSWORD=change-me \
   -v "$PWD/zentic-home:/home/zentic" \
   -v "$PWD:/workspace" \
-  ghcr.io/getzentic/zentic:latest
+  ghcr.io/debin-ge/zentic:latest
 ```
 
 Then open `http://localhost:6767`.
@@ -59,8 +59,8 @@ The image runs the daemon and serves the bundled web UI. It does not bundle agen
 - [Plugins](/docs/plugins), add trusted local surfaces, sidebar actions, daemon behavior, and composer attachments.
 - [CLI reference](/docs/cli), every command.
 - [Self-hosting the web UI](/docs/web-ui), serve the browser app from your own daemon.
-- [GitHub repo](https://github.com/getzentic/zentic)
-- [Report an issue](https://github.com/getzentic/zentic/issues)
+- [GitHub repo](https://github.com/debin-ge/zentic)
+- [Report an issue](https://github.com/debin-ge/zentic/issues)
 
 ## Prerequisites
 

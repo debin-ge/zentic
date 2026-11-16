@@ -12,11 +12,11 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/getzentic/zentic/stargazers">
-    <img src="https://img.shields.io/github/stars/getzentic/zentic?style=flat&logo=github" alt="GitHub stars">
+  <a href="https://github.com/debin-ge/zentic/stargazers">
+    <img src="https://img.shields.io/github/stars/debin-ge/zentic?style=flat&logo=github" alt="GitHub stars">
   </a>
-  <a href="https://github.com/getzentic/zentic/releases">
-    <img src="https://img.shields.io/github/v/release/getzentic/zentic?style=flat&logo=github" alt="GitHub release">
+  <a href="https://github.com/debin-ge/zentic/releases">
+    <img src="https://img.shields.io/github/v/release/debin-ge/zentic?style=flat&logo=github" alt="GitHub release">
   </a>
   <a href="https://x.com/moboudra">
     <img src="https://img.shields.io/badge/%40moboudra-555?logo=x" alt="X">
@@ -74,7 +74,7 @@ Zentic는 코딩 에이전트를 관리하는 로컬 서버인 데몬을 실행�
 
 ### 데스크톱 앱(권장)
 
-[zentic.sh/download](https://zentic.sh/download) 또는 [GitHub 릴리스 페이지](https://github.com/getzentic/zentic/releases)에서 다운로드하세요. 앱을 열면 데몬이 자동으로 시작됩니다. 별도로 설치할 것은 없습니다.
+[zentic.sh/download](https://zentic.sh/download) 또는 [GitHub 릴리스 페이지](https://github.com/debin-ge/zentic/releases)에서 다운로드하세요. 앱을 열면 데몬이 자동으로 시작됩니다. 별도로 설치할 것은 없습니다.
 
 휴대폰에서 연결하려면 **설정 → 호스트 → 기기 페어링**을 여세요.
 
@@ -105,7 +105,7 @@ docker run -d --name zentic \
   -e ZENTIC_PASSWORD=change-me \
   -v "$PWD/zentic-home:/home/zentic" \
   -v "$PWD:/workspace" \
-  ghcr.io/getzentic/zentic:latest
+  ghcr.io/debin-ge/zentic:latest
 ```
 
 컨테이너가 시작되면 `http://localhost:6767`을 여세요. 사용하는 에이전트 CLI를 기본 이미지에 추가한 뒤, 환경 변수나 영구 `/home/zentic` 볼륨으로 인증 정보를 설정하세요. 자세한 내용은 [Docker 문서](docs/docker.md)를 참고하세요.
@@ -133,7 +133,7 @@ zentic --host workstation.local:6767 run "run the full test suite"
 스킬은 에이전트가 Zentic를 통해 다른 에이전트를 오케스트레이션하는 방법을 알려 줍니다.
 
 ```bash
-npx skills add getzentic/zentic
+npx skills add debin-ge/zentic
 ```
 
 그런 다음 어떤 에이전트 대화에서든 아래 명령을 사용할 수 있습니다.
@@ -178,7 +178,7 @@ Zentic는 한 사람이 개발하며, 사용하는 분들의 후원으로 운영
 
 ## 관련 프로젝트
 
-- [getzentic/zentic-relay](https://github.com/getzentic/zentic-relay) — Elixir로 작성한 공식 분산형 릴레이
+- [debin-ge/zentic-relay](https://github.com/debin-ge/zentic-relay) — Elixir로 작성한 공식 분산형 릴레이
 - [zentic-skins](https://github.com/huangguang1999/zentic-skins) — 커뮤니티 테마와 Agent Skill을 제공하고, 코드 수정 없이 쓸 수 있는 데스크톱 테마 로더
 - [zentic-vscode](https://marketplace.visualstudio.com/items?itemName=hinnes.zentic-vscode) — VS Code 확장 프로그램
 

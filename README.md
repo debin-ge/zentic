@@ -12,11 +12,11 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/getzentic/zentic/stargazers">
-    <img src="https://img.shields.io/github/stars/getzentic/zentic?style=flat&logo=github" alt="GitHub stars">
+  <a href="https://github.com/debin-ge/zentic/stargazers">
+    <img src="https://img.shields.io/github/stars/debin-ge/zentic?style=flat&logo=github" alt="GitHub stars">
   </a>
-  <a href="https://github.com/getzentic/zentic/releases">
-    <img src="https://img.shields.io/github/v/release/getzentic/zentic?style=flat&logo=github" alt="GitHub release">
+  <a href="https://github.com/debin-ge/zentic/releases">
+    <img src="https://img.shields.io/github/v/release/debin-ge/zentic?style=flat&logo=github" alt="GitHub release">
   </a>
   <a href="https://x.com/moboudra">
     <img src="https://img.shields.io/badge/%40moboudra-555?logo=x" alt="X">
@@ -96,7 +96,7 @@ You need at least one agent CLI installed and configured with your credentials:
 
 ### Desktop app (recommended)
 
-Download it from [zentic.sh/download](https://zentic.sh/download) or the [GitHub releases page](https://github.com/getzentic/zentic/releases). Open the app and the daemon starts automatically. Nothing else to install.
+Download it from [zentic.sh/download](https://zentic.sh/download) or the [GitHub releases page](https://github.com/debin-ge/zentic/releases). Open the app and the daemon starts automatically. Nothing else to install.
 
 To connect from your phone, open **Settings → your host → Pair Device**.
 
@@ -127,7 +127,7 @@ docker run -d --name zentic \
   -e ZENTIC_PASSWORD=change-me \
   -v "$PWD/zentic-home:/home/zentic" \
   -v "$PWD:/workspace" \
-  ghcr.io/getzentic/zentic:latest
+  ghcr.io/debin-ge/zentic:latest
 ```
 
 Open `http://localhost:6767` after it starts. Extend the base image with the agent CLIs you use, then provide credentials through environment variables or the persistent `/home/zentic` volume. See the [Docker documentation](docs/docker.md) for full setup details.
@@ -179,7 +179,7 @@ See the [SDK quickstart](https://zentic.sh/docs/sdk/quickstart), [recipes](https
 Skills teach your agent to use Zentic to orchestrate other agents.
 
 ```bash
-npx skills add getzentic/zentic
+npx skills add debin-ge/zentic
 ```
 
 Then use them in any agent conversation:
@@ -224,7 +224,7 @@ Zentic is an independent project used by tens of thousands of developers daily, 
 
 ## Related projects
 
-- [getzentic/zentic-relay](https://github.com/getzentic/zentic-relay) — official distributed relay, written in Elixir
+- [debin-ge/zentic-relay](https://github.com/debin-ge/zentic-relay) — official distributed relay, written in Elixir
 - [zentic-vscode](https://marketplace.visualstudio.com/items?itemName=hinnes.zentic-vscode) — VS Code extension
 
 ## License

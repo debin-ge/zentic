@@ -76,7 +76,7 @@ function launchDesktop(args: string[]): void {
   const desktopApp = findDesktopApp();
   if (!desktopApp) {
     throw new Error(
-      "Zentic desktop app not found. Install it from https://github.com/getzentic/zentic/releases",
+      "Zentic desktop app not found. Install it from https://github.com/debin-ge/zentic/releases",
     );
   }
 

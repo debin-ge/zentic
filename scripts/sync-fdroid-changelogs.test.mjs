@@ -247,7 +247,7 @@ test("renders the real 0.1.109 notice, which is the entry's whole point", () => 
     "",
     "### Fixed",
     "",
-    "- Zentic Desktop no longer gets stuck connecting or loses native window controls after updating ([#2111](https://github.com/getzentic/zentic/pull/2111) by [@cleiter](https://github.com/cleiter))",
+    "- Zentic Desktop no longer gets stuck connecting or loses native window controls after updating ([#2111](https://github.com/debin-ge/zentic/pull/2111) by [@cleiter](https://github.com/cleiter))",
     "",
   ].join("\n");
 
@@ -277,7 +277,7 @@ test("preserves the standalone 0.1.96 Android notice", () => {
 
 test("leads with an entry's highlights and spends the budget on them first", () => {
   const highlight = (name) =>
-    `- **${name}:** ${"A highlight a user would name first. ".repeat(4).trim()} ([#1](https://github.com/getzentic/zentic/pull/1))`;
+    `- **${name}:** ${"A highlight a user would name first. ".repeat(4).trim()} ([#1](https://github.com/debin-ge/zentic/pull/1))`;
   const contents = formatFdroidChangelog(
     [
       highlight("First"),

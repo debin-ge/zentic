@@ -8,7 +8,7 @@ nav: Docker
 
 官方 Zentic Docker 镜像运行 daemon，并在同一个 HTTP 源上提供内置的浏览器界面。它适用于服务器、开发机、NAS 设备、家庭实验室主机，以及其他你希望在没有桌面应用的情况下运行 Zentic 的地方。
 
-Docker 镜像跟随 Zentic 稳定版的发布节奏。`ghcr.io/getzentic/zentic:latest` 指向最新的稳定版，而不是任意的 `main` 构建。
+Docker 镜像跟随 Zentic 稳定版的发布节奏。`ghcr.io/debin-ge/zentic:latest` 指向最新的稳定版，而不是任意的 `main` 构建。
 
 ```bash
 docker run -d --name zentic \
@@ -16,7 +16,7 @@ docker run -d --name zentic \
   -e ZENTIC_PASSWORD=change-me \
   -v "$PWD/zentic-home:/home/zentic" \
   -v "$PWD:/workspace" \
-  ghcr.io/getzentic/zentic:latest
+  ghcr.io/debin-ge/zentic:latest
 ```
 
 然后打开：
@@ -46,7 +46,7 @@ http://localhost:6767
 ```yaml
 services:
   zentic:
-    image: ghcr.io/getzentic/zentic:latest
+    image: ghcr.io/debin-ge/zentic:latest
     container_name: zentic
     restart: unless-stopped
     ports:
@@ -70,7 +70,7 @@ docker compose up -d
 为你想使用的 Provider 创建一个子镜像：
 
 ```Dockerfile
-FROM ghcr.io/getzentic/zentic:latest
+FROM ghcr.io/debin-ge/zentic:latest
 
 USER root
 RUN npm install -g @openai/codex @anthropic-ai/claude-code opencode-ai
