@@ -18,7 +18,7 @@ const execFileAsync = promisify(execFile);
 export interface IsolatedHostDaemon {
   serverId: string;
   port: number;
-  paseoHome: string;
+  zenticHome: string;
   getPid(): number | undefined;
   restart(): Promise<void>;
   close(): Promise<void>;
@@ -32,7 +32,7 @@ export interface IsolatedHostDaemonOptions {
     enabled: boolean;
     endpoint?: string;
   };
-  paseoHome?: string;
+  zenticHome?: string;
   preserveHome?: boolean;
   publishedVersion?: string;
 }
@@ -126,11 +126,11 @@ export async function startIsolatedHostDaemon(
   const metroPort = process.env.E2E_METRO_PORT;
   if (!metroPort) throw new Error("E2E_METRO_PORT is required to start an isolated host daemon");
 
-  const paseoHome =
-    options.paseoHome ?? (await mkdtemp(path.join(tmpdir(), "paseo-e2e-secondary-host-")));
+  const zenticHome =
+    options.zenticHome ?? (await mkdtemp(path.join(tmpdir(), "zentic-e2e-secondary-host-")));
   let publishedPackageRoot: string | null = null;
   if (options.publishedVersion) {
-    publishedPackageRoot = await mkdtemp(path.join(tmpdir(), "paseo-e2e-published-server-"));
+    publishedPackageRoot = await mkdtemp(path.join(tmpdir(), "zentic-e2e-published-server-"));
     await writeFile(
       path.join(publishedPackageRoot, "package.json"),
       `${JSON.stringify({ private: true })}\n`,
@@ -150,13 +150,13 @@ export async function startIsolatedHostDaemon(
           "--no-audit",
           "--no-fund",
           "--no-package-lock",
-          `@getpaseo/server@${options.publishedVersion}`,
+          `@getzentic/server@${options.publishedVersion}`,
         ],
         { cwd: publishedPackageRoot, stdio: "ignore" },
       );
     } catch (error) {
       if (!options.preserveHome) {
-        await rm(paseoHome, { recursive: true, force: true });
+        await rm(zenticHome, { recursive: true, force: true });
       }
       await rm(publishedPackageRoot, { recursive: true, force: true });
       throw error;
@@ -167,12 +167,12 @@ export async function startIsolatedHostDaemon(
     : options.config;
   if (config) {
     await writeFile(
-      path.join(paseoHome, "config.json"),
+      path.join(zenticHome, "config.json"),
       `${JSON.stringify({ version: 1, ...config })}\n`,
     );
   }
   const serverDir = publishedPackageRoot
-    ? path.join(publishedPackageRoot, "node_modules", "@getpaseo", "server")
+    ? path.join(publishedPackageRoot, "node_modules", "@getzentic", "server")
     : path.resolve(__dirname, "../../../../server");
   let child: ChildProcess | null = null;
   const stopDaemon = async (): Promise<void> => {
@@ -185,7 +185,7 @@ export async function startIsolatedHostDaemon(
         "daemon",
         "stop",
         "--home",
-        paseoHome,
+        zenticHome,
         "--force",
       ],
       { timeout: 30_000 },
@@ -198,12 +198,12 @@ export async function startIsolatedHostDaemon(
       env: withDisabledE2ESpeechEnv({
         ...process.env,
         ...options.environment,
-        PASEO_HOME: paseoHome,
-        PASEO_SERVER_ID: serverId,
-        PASEO_LISTEN: `127.0.0.1:${port}`,
-        PASEO_CORS_ORIGINS: `http://localhost:${metroPort}`,
-        PASEO_RELAY_ENABLED: options.mutableRelay ? undefined : "0",
-        PASEO_NODE_ENV: "development",
+        ZENTIC_HOME: zenticHome,
+        ZENTIC_SERVER_ID: serverId,
+        ZENTIC_LISTEN: `127.0.0.1:${port}`,
+        ZENTIC_CORS_ORIGINS: `http://localhost:${metroPort}`,
+        ZENTIC_RELAY_ENABLED: options.mutableRelay ? undefined : "0",
+        ZENTIC_NODE_ENV: "development",
         NODE_ENV: "development",
       }),
       stdio: ["ignore", "ignore", "pipe"],
@@ -236,7 +236,7 @@ export async function startIsolatedHostDaemon(
   } catch (error) {
     await stopDaemon();
     if (!options.preserveHome) {
-      await rm(paseoHome, { recursive: true, force: true });
+      await rm(zenticHome, { recursive: true, force: true });
     }
     if (publishedPackageRoot) {
       await rm(publishedPackageRoot, { recursive: true, force: true });
@@ -248,7 +248,7 @@ export async function startIsolatedHostDaemon(
   return {
     serverId,
     port,
-    paseoHome,
+    zenticHome,
     getPid: () => child?.pid,
     restart: async () => {
       if (closed) throw new Error(`Cannot restart closed isolated daemon ${serverId}`);
@@ -259,7 +259,7 @@ export async function startIsolatedHostDaemon(
       if (closed) return;
       await stopDaemon();
       if (!options.preserveHome) {
-        await rm(paseoHome, { recursive: true, force: true });
+        await rm(zenticHome, { recursive: true, force: true });
       }
       if (publishedPackageRoot) {
         await rm(publishedPackageRoot, { recursive: true, force: true });

@@ -7,9 +7,9 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 
 import type { ForgeService } from "../services/forge-service.js";
 import { createRealpathAwarePathMatcher } from "../utils/path.js";
-import { getPaseoWorktreeMetadataPath } from "../utils/worktree-metadata.js";
+import { getZenticWorktreeMetadataPath } from "../utils/worktree-metadata.js";
 import { archiveCommand } from "./worktree/commands.js";
-import { createWorktree, listPaseoWorktrees, type WorktreeConfig } from "../utils/worktree.js";
+import { createWorktree, listZenticWorktrees, type WorktreeConfig } from "../utils/worktree.js";
 import type { ManagedAgent } from "./agent/agent-manager.js";
 import type { AgentStorage, StoredAgentRecord } from "./agent/agent-storage.js";
 import type { WorkspaceGitService } from "./workspace-git-service.js";
@@ -86,11 +86,11 @@ function createGitRepo(): { tempDir: string; repoDir: string } {
   const repoDir = path.join(tempDir, "repo");
   mkdirSync(repoDir, { recursive: true });
   execFileSync("git", ["init", "-b", "main"], { cwd: repoDir, stdio: "pipe" });
-  execFileSync("git", ["config", "user.email", "test@getpaseo.local"], {
+  execFileSync("git", ["config", "user.email", "test@getzentic.local"], {
     cwd: repoDir,
     stdio: "pipe",
   });
-  execFileSync("git", ["config", "user.name", "Paseo Test"], {
+  execFileSync("git", ["config", "user.name", "Zentic Test"], {
     cwd: repoDir,
     stdio: "pipe",
   });
@@ -101,9 +101,9 @@ function createGitRepo(): { tempDir: string; repoDir: string } {
   return { tempDir, repoDir };
 }
 
-async function createPaseoOwnedWorktree(
+async function createZenticOwnedWorktree(
   repoDir: string,
-  paseoHome: string,
+  zenticHome: string,
   worktreeSlug: string,
 ): Promise<WorktreeConfig> {
   return createWorktree({
@@ -115,14 +115,14 @@ async function createPaseoOwnedWorktree(
       branchName: worktreeSlug,
     },
 
-    paseoHome,
+    zenticHome,
   });
 }
 
 interface ArchiveDepsInput {
-  paseoHome: string;
+  zenticHome: string;
   activeWorkspaces: ActiveWorkspaceRef[];
-  paseoWorktreesBaseRoot?: string;
+  zenticWorktreesBaseRoot?: string;
   findWorkspaceIdForCwd?: (cwd: string) => Promise<string | null>;
 }
 
@@ -139,8 +139,8 @@ function createArchiveDeps(input: ArchiveDepsInput): ArchiveTestDependencies {
   const archivedSnapshotIds: string[] = [];
 
   return {
-    paseoHome: input.paseoHome,
-    paseoWorktreesBaseRoot: input.paseoWorktreesBaseRoot,
+    zenticHome: input.zenticHome,
+    zenticWorktreesBaseRoot: input.zenticWorktreesBaseRoot,
     github: createGitHubServiceStub(),
     workspaceGitService: {
       getSnapshot: vi.fn(async () => null),
@@ -198,7 +198,7 @@ describe("archiveByScope", () => {
     "%s archive preserves a restored external worktree despite its marker",
     async (kind) => {
       const { tempDir, repoDir } = createGitRepo();
-      const paseoHome = path.join(tempDir, ".paseo");
+      const zenticHome = path.join(tempDir, ".zentic");
       const recordedPath = path.join(tempDir, "external");
       execFileSync("git", ["worktree", "add", "-b", "external", recordedPath], {
         cwd: repoDir,
@@ -207,16 +207,16 @@ describe("archiveByScope", () => {
       execFileSync("git", ["worktree", "remove", recordedPath], { cwd: repoDir, stdio: "pipe" });
       const restored = await createWorktree({
         cwd: repoDir,
-        paseoHome,
+        zenticHome,
         worktreeSlug: "external",
         worktreePath: recordedPath,
         source: { kind: "restore", branchName: "external", baseRef: "main" },
       });
-      expect(existsSync(await getPaseoWorktreeMetadataPath(restored.worktreePath))).toBe(true);
+      expect(existsSync(await getZenticWorktreeMetadataPath(restored.worktreePath))).toBe(true);
       const workspaceId = "external-workspace";
       const result = await archiveByScope(
         createArchiveDeps({
-          paseoHome,
+          zenticHome,
           activeWorkspaces: [
             {
               workspaceId,
@@ -224,7 +224,7 @@ describe("archiveByScope", () => {
               kind: "worktree",
               worktreeRoot: restored.worktreePath,
               mainRepoRoot: repoDir,
-              isPaseoOwnedWorktree: false,
+              isZenticOwnedWorktree: false,
             },
           ],
         }),
@@ -244,13 +244,13 @@ describe("archiveByScope", () => {
 
   test("workspace scope archives the record and removes the directory on last reference", async () => {
     const { tempDir, repoDir } = createGitRepo();
-    const paseoHome = path.join(tempDir, ".paseo");
-    const worktree = await createPaseoOwnedWorktree(repoDir, paseoHome, "last-ref-workspace");
+    const zenticHome = path.join(tempDir, ".zentic");
+    const worktree = await createZenticOwnedWorktree(repoDir, zenticHome, "last-ref-workspace");
     const workspaceId = "ws-last-ref";
 
     const result = await archiveByScope(
       createArchiveDeps({
-        paseoHome,
+        zenticHome,
         activeWorkspaces: [
           {
             workspaceId,
@@ -274,21 +274,21 @@ describe("archiveByScope", () => {
 
   test("workspace scope archives the record but leaves a plugin-placed directory whose marker is gone", async () => {
     const { tempDir, repoDir } = createGitRepo();
-    const paseoHome = path.join(tempDir, ".paseo");
+    const zenticHome = path.join(tempDir, ".zentic");
     const worktree = await createWorktree({
       cwd: repoDir,
       worktreeSlug: "unproven-workspace",
       source: { kind: "branch-off", baseBranch: "main", branchName: "unproven-workspace" },
-      paseoHome,
+      zenticHome,
       worktreePath: path.join(tempDir, "placed-worktree"),
     });
     // Remove the ownership marker: no proof remains for this path.
-    rmSync(await getPaseoWorktreeMetadataPath(worktree.worktreePath), { force: true });
+    rmSync(await getZenticWorktreeMetadataPath(worktree.worktreePath), { force: true });
     const workspaceId = "ws-unproven";
 
     const logs: Array<{ targetPath: string; msg: string }> = [];
     const dependencies = createArchiveDeps({
-      paseoHome,
+      zenticHome,
       activeWorkspaces: [{ workspaceId, cwd: worktree.worktreePath, kind: "worktree" }],
     });
     dependencies.sessionLogger = pino(
@@ -318,22 +318,22 @@ describe("archiveByScope", () => {
 
   test("archives a plugin-placed worktree by its discovered directory name", async () => {
     const { tempDir, repoDir } = createGitRepo();
-    const paseoHome = path.join(tempDir, ".paseo");
+    const zenticHome = path.join(tempDir, ".zentic");
     const worktreePath = path.join(tempDir, "sibling-feature");
     await createWorktree({
       cwd: repoDir,
-      paseoHome,
+      zenticHome,
       worktreePath,
       worktreeSlug: "original-slug",
       source: { kind: "branch-off", branchName: "feature", baseBranch: "main" },
     });
-    const dependencies = createArchiveDeps({ paseoHome, activeWorkspaces: [] });
+    const dependencies = createArchiveDeps({ zenticHome, activeWorkspaces: [] });
     const result = await archiveCommand(
       {
         ...dependencies,
         workspaceGitService: {
           ...dependencies.workspaceGitService,
-          listWorktrees: (cwd) => listPaseoWorktrees({ cwd, paseoHome }),
+          listWorktrees: (cwd) => listZenticWorktrees({ cwd, zenticHome }),
         },
       },
       {
@@ -349,7 +349,7 @@ describe("archiveByScope", () => {
 
   test("workspace scope deletes a plugin-placed directory on registry proof even with the marker gone", async () => {
     const { tempDir, repoDir } = createGitRepo();
-    const paseoHome = path.join(tempDir, ".paseo");
+    const zenticHome = path.join(tempDir, ".zentic");
     const worktree = await createWorktree({
       cwd: repoDir,
       worktreeSlug: "registry-proven-workspace",
@@ -358,21 +358,21 @@ describe("archiveByScope", () => {
         baseBranch: "main",
         branchName: "registry-proven-workspace",
       },
-      paseoHome,
+      zenticHome,
       worktreePath: path.join(tempDir, "placed-worktree"),
     });
-    rmSync(await getPaseoWorktreeMetadataPath(worktree.worktreePath), { force: true });
+    rmSync(await getZenticWorktreeMetadataPath(worktree.worktreePath), { force: true });
     const workspaceId = "ws-registry-proven";
 
     const result = await archiveByScope(
       createArchiveDeps({
-        paseoHome,
+        zenticHome,
         activeWorkspaces: [
           {
             workspaceId,
             cwd: worktree.worktreePath,
             kind: "worktree",
-            isPaseoOwnedWorktree: true,
+            isZenticOwnedWorktree: true,
             worktreeRoot: worktree.worktreePath,
             mainRepoRoot: repoDir,
           },
@@ -389,11 +389,11 @@ describe("archiveByScope", () => {
   test("workspace scope runs teardown while keeping a directory referenced by a sibling", async () => {
     const { tempDir, repoDir } = createGitRepo();
     writeFileSync(
-      path.join(repoDir, "paseo.json"),
+      path.join(repoDir, "zentic.json"),
       JSON.stringify({
         worktree: {
           teardown: [
-            "node -e \"require('fs').writeFileSync(process.env.PASEO_SOURCE_CHECKOUT_PATH + '/shared-teardown.log', 'ok')\"",
+            "node -e \"require('fs').writeFileSync(process.env.ZENTIC_SOURCE_CHECKOUT_PATH + '/shared-teardown.log', 'ok')\"",
           ],
         },
       }),
@@ -403,14 +403,14 @@ describe("archiveByScope", () => {
       cwd: repoDir,
       stdio: "pipe",
     });
-    const paseoHome = path.join(tempDir, ".paseo");
-    const worktree = await createPaseoOwnedWorktree(repoDir, paseoHome, "sibling-workspace");
+    const zenticHome = path.join(tempDir, ".zentic");
+    const worktree = await createZenticOwnedWorktree(repoDir, zenticHome, "sibling-workspace");
     const workspaceA = "ws-sibling-a";
     const workspaceB = "ws-sibling-b";
 
     const result = await archiveByScope(
       createArchiveDeps({
-        paseoHome,
+        zenticHome,
         activeWorkspaces: [
           { workspaceId: workspaceA, cwd: worktree.worktreePath, kind: "worktree" },
           { workspaceId: workspaceB, cwd: worktree.worktreePath, kind: "local_checkout" },
@@ -434,7 +434,7 @@ describe("archiveByScope", () => {
     const { tempDir, repoDir } = createGitRepo();
     const marker = path.join(repoDir, "blocked-teardown.log");
     writeFileSync(
-      path.join(repoDir, "paseo.json"),
+      path.join(repoDir, "zentic.json"),
       JSON.stringify({
         worktree: {
           teardown: [`node -e "require('fs').writeFileSync('${marker}', 'unsafe')"`],
@@ -446,18 +446,18 @@ describe("archiveByScope", () => {
       cwd: repoDir,
       stdio: "pipe",
     });
-    const paseoHome = path.join(tempDir, ".paseo");
-    const worktree = await createPaseoOwnedWorktree(repoDir, paseoHome, "blocked-teardown");
+    const zenticHome = path.join(tempDir, ".zentic");
+    const worktree = await createZenticOwnedWorktree(repoDir, zenticHome, "blocked-teardown");
     const workspaceId = "ws-blocked-teardown";
     const deps = createArchiveDeps({
-      paseoHome,
+      zenticHome,
       activeWorkspaces: [
         {
           workspaceId,
           cwd: worktree.worktreePath,
           kind: "worktree",
           worktreeRoot: worktree.worktreePath,
-          isPaseoOwnedWorktree: true,
+          isZenticOwnedWorktree: true,
           mainRepoRoot: repoDir,
         },
       ],
@@ -467,7 +467,7 @@ describe("archiveByScope", () => {
         kind: "change_request",
         forge: "github",
         number: 42,
-        headRepository: "contributor/paseo",
+        headRepository: "contributor/zentic",
       });
     };
 
@@ -482,8 +482,8 @@ describe("archiveByScope", () => {
 
   test("workspace scope keeps a worktree for an active workspace in a subdirectory", async () => {
     const { tempDir, repoDir } = createGitRepo();
-    const paseoHome = path.join(tempDir, ".paseo");
-    const worktree = await createPaseoOwnedWorktree(repoDir, paseoHome, "subdirectory-sibling");
+    const zenticHome = path.join(tempDir, ".zentic");
+    const worktree = await createZenticOwnedWorktree(repoDir, zenticHome, "subdirectory-sibling");
     const sourceWorkspaceId = "ws-subdirectory-source";
     const siblingWorkspaceId = "ws-subdirectory-sibling";
     const siblingDirectory = path.join(worktree.worktreePath, "packages", "app");
@@ -491,21 +491,21 @@ describe("archiveByScope", () => {
 
     const result = await archiveByScope(
       createArchiveDeps({
-        paseoHome,
+        zenticHome,
         activeWorkspaces: [
           {
             workspaceId: sourceWorkspaceId,
             cwd: worktree.worktreePath,
             kind: "worktree",
             worktreeRoot: worktree.worktreePath,
-            isPaseoOwnedWorktree: true,
+            isZenticOwnedWorktree: true,
           },
           {
             workspaceId: siblingWorkspaceId,
             cwd: siblingDirectory,
             kind: "worktree",
             worktreeRoot: worktree.worktreePath,
-            isPaseoOwnedWorktree: true,
+            isZenticOwnedWorktree: true,
           },
         ],
       }),
@@ -524,8 +524,8 @@ describe("archiveByScope", () => {
 
   test("archiving a subdirectory workspace keeps its active worktree root", async () => {
     const { tempDir, repoDir } = createGitRepo();
-    const paseoHome = path.join(tempDir, ".paseo");
-    const worktree = await createPaseoOwnedWorktree(repoDir, paseoHome, "subdirectory-target");
+    const zenticHome = path.join(tempDir, ".zentic");
+    const worktree = await createZenticOwnedWorktree(repoDir, zenticHome, "subdirectory-target");
     const rootWorkspaceId = "ws-subdirectory-root";
     const subdirectoryWorkspaceId = "ws-subdirectory-target";
     const subdirectory = path.join(worktree.worktreePath, "packages", "app");
@@ -533,21 +533,21 @@ describe("archiveByScope", () => {
 
     const result = await archiveByScope(
       createArchiveDeps({
-        paseoHome,
+        zenticHome,
         activeWorkspaces: [
           {
             workspaceId: rootWorkspaceId,
             cwd: worktree.worktreePath,
             kind: "worktree",
             worktreeRoot: worktree.worktreePath,
-            isPaseoOwnedWorktree: true,
+            isZenticOwnedWorktree: true,
           },
           {
             workspaceId: subdirectoryWorkspaceId,
             cwd: subdirectory,
             kind: "worktree",
             worktreeRoot: worktree.worktreePath,
-            isPaseoOwnedWorktree: true,
+            isZenticOwnedWorktree: true,
           },
         ],
       }),
@@ -570,11 +570,11 @@ describe("archiveByScope", () => {
     const sourceNested = path.join(repoDir, nestedRelative);
     mkdirSync(sourceNested, { recursive: true });
     writeFileSync(
-      path.join(sourceNested, "paseo.json"),
+      path.join(sourceNested, "zentic.json"),
       JSON.stringify({
         worktree: {
           teardown: [
-            "node -e \"require('fs').writeFileSync(process.env.PASEO_SOURCE_CHECKOUT_PATH + '/nested-teardown.log', process.cwd())\"",
+            "node -e \"require('fs').writeFileSync(process.env.ZENTIC_SOURCE_CHECKOUT_PATH + '/nested-teardown.log', process.cwd())\"",
           ],
         },
       }),
@@ -585,22 +585,22 @@ describe("archiveByScope", () => {
       stdio: "pipe",
     });
 
-    const paseoHome = path.join(tempDir, ".paseo");
-    const worktree = await createPaseoOwnedWorktree(repoDir, paseoHome, "nested-teardown");
+    const zenticHome = path.join(tempDir, ".zentic");
+    const worktree = await createZenticOwnedWorktree(repoDir, zenticHome, "nested-teardown");
     const workspaceCwd = path.join(worktree.worktreePath, nestedRelative);
     const matchesWorkspaceCwd = createRealpathAwarePathMatcher(workspaceCwd);
     const workspaceId = "ws-nested-teardown";
 
     const result = await archiveByScope(
       createArchiveDeps({
-        paseoHome,
+        zenticHome,
         activeWorkspaces: [
           {
             workspaceId,
             cwd: workspaceCwd,
             kind: "worktree",
             worktreeRoot: worktree.worktreePath,
-            isPaseoOwnedWorktree: true,
+            isZenticOwnedWorktree: true,
             mainRepoRoot: repoDir,
           },
         ],
@@ -627,21 +627,21 @@ describe("archiveByScope", () => {
     const sourceNested = path.join(repoDir, nestedRelative);
     mkdirSync(sourceNested, { recursive: true });
     writeFileSync(
-      path.join(repoDir, "paseo.json"),
+      path.join(repoDir, "zentic.json"),
       JSON.stringify({
         worktree: {
           teardown: [
-            "node -e \"const fs=require('fs');const out=process.env.PASEO_SOURCE_CHECKOUT_PATH+'/root-scope-teardown.log';if(fs.existsSync(out))process.exit(2);fs.writeFileSync(out,'ok')\"",
+            "node -e \"const fs=require('fs');const out=process.env.ZENTIC_SOURCE_CHECKOUT_PATH+'/root-scope-teardown.log';if(fs.existsSync(out))process.exit(2);fs.writeFileSync(out,'ok')\"",
           ],
         },
       }),
     );
     writeFileSync(
-      path.join(sourceNested, "paseo.json"),
+      path.join(sourceNested, "zentic.json"),
       JSON.stringify({
         worktree: {
           teardown: [
-            "node -e \"require('fs').writeFileSync(process.env.PASEO_SOURCE_CHECKOUT_PATH+'/nested-scope-teardown.log','ok')\"",
+            "node -e \"require('fs').writeFileSync(process.env.ZENTIC_SOURCE_CHECKOUT_PATH+'/nested-scope-teardown.log','ok')\"",
           ],
         },
       }),
@@ -651,8 +651,8 @@ describe("archiveByScope", () => {
       cwd: repoDir,
       stdio: "pipe",
     });
-    const paseoHome = path.join(tempDir, ".paseo");
-    const worktree = await createPaseoOwnedWorktree(repoDir, paseoHome, "worktree-scope");
+    const zenticHome = path.join(tempDir, ".zentic");
+    const worktree = await createZenticOwnedWorktree(repoDir, zenticHome, "worktree-scope");
     const workspaceA = "ws-worktree-a";
     const workspaceB = "ws-worktree-b";
     const workspaceC = "ws-worktree-subdirectory";
@@ -660,28 +660,28 @@ describe("archiveByScope", () => {
 
     const result = await archiveByScope(
       createArchiveDeps({
-        paseoHome,
+        zenticHome,
         activeWorkspaces: [
           {
             workspaceId: workspaceA,
             cwd: worktree.worktreePath,
             kind: "worktree",
             worktreeRoot: worktree.worktreePath,
-            isPaseoOwnedWorktree: true,
+            isZenticOwnedWorktree: true,
           },
           {
             workspaceId: workspaceB,
             cwd: worktree.worktreePath,
             kind: "worktree",
             worktreeRoot: worktree.worktreePath,
-            isPaseoOwnedWorktree: true,
+            isZenticOwnedWorktree: true,
           },
           {
             workspaceId: workspaceC,
             cwd: subdirectory,
             kind: "worktree",
             worktreeRoot: worktree.worktreePath,
-            isPaseoOwnedWorktree: true,
+            isZenticOwnedWorktree: true,
           },
         ],
       }),
@@ -701,14 +701,14 @@ describe("archiveByScope", () => {
     expect(readFileSync(path.join(repoDir, "nested-scope-teardown.log"), "utf8")).toBe("ok");
   });
 
-  test("workspace scope never removes a non-Paseo-owned directory", async () => {
+  test("workspace scope never removes a non-Zentic-owned directory", async () => {
     const { tempDir } = createGitRepo();
     const localCheckoutDir = mkdtempSync(path.join(tempDir, "local-checkout-"));
     const workspaceId = "ws-local-checkout";
 
     const result = await archiveByScope(
       createArchiveDeps({
-        paseoHome: path.join(tempDir, ".paseo"),
+        zenticHome: path.join(tempDir, ".zentic"),
         activeWorkspaces: [{ workspaceId, cwd: localCheckoutDir, kind: "local_checkout" }],
       }),
       {
@@ -726,13 +726,13 @@ describe("archiveByScope", () => {
 
   test("worktree scope keeps the directory when one record teardown fails", async () => {
     const { tempDir, repoDir } = createGitRepo();
-    const paseoHome = path.join(tempDir, ".paseo");
-    const worktree = await createPaseoOwnedWorktree(repoDir, paseoHome, "partial-failure");
+    const zenticHome = path.join(tempDir, ".zentic");
+    const worktree = await createZenticOwnedWorktree(repoDir, zenticHome, "partial-failure");
     const workspaceA = "ws-partial-a";
     const workspaceB = "ws-partial-b";
 
     const deps = createArchiveDeps({
-      paseoHome,
+      zenticHome,
       activeWorkspaces: [
         { workspaceId: workspaceA, cwd: worktree.worktreePath, kind: "worktree" },
         { workspaceId: workspaceB, cwd: worktree.worktreePath, kind: "worktree" },
@@ -759,10 +759,10 @@ describe("archiveByScope", () => {
 
   test("workspace scope with unknown workspace id is a clean no-op", async () => {
     const { tempDir } = createGitRepo();
-    const paseoHome = path.join(tempDir, ".paseo");
+    const zenticHome = path.join(tempDir, ".zentic");
 
     const deps = createArchiveDeps({
-      paseoHome,
+      zenticHome,
       activeWorkspaces: [],
     });
     const originalArchiveWorkspaceRecord = deps.archiveWorkspaceRecord;
@@ -788,8 +788,8 @@ describe("archiveByScope", () => {
     "worktree scope removes an owned directory with zero matching records and %s Git administration",
     async (gitAdministration) => {
       const { tempDir, repoDir } = createGitRepo();
-      const paseoHome = path.join(tempDir, ".paseo");
-      const worktree = await createPaseoOwnedWorktree(repoDir, paseoHome, "zero-records");
+      const zenticHome = path.join(tempDir, ".zentic");
+      const worktree = await createZenticOwnedWorktree(repoDir, zenticHome, "zero-records");
       if (gitAdministration === "missing") {
         const gitDir = execFileSync("git", ["rev-parse", "--absolute-git-dir"], {
           cwd: worktree.worktreePath,
@@ -798,7 +798,7 @@ describe("archiveByScope", () => {
           .trim();
         rmSync(gitDir, { recursive: true, force: true });
       }
-      const dependencies = createArchiveDeps({ paseoHome, activeWorkspaces: [] });
+      const dependencies = createArchiveDeps({ zenticHome, activeWorkspaces: [] });
       const invalidateWorktrees = vi.fn();
       dependencies.workspaceGitService.invalidateWorktrees = invalidateWorktrees;
 
@@ -818,12 +818,12 @@ describe("archiveByScope", () => {
 
   test("marks archiving, emits an upsert carrying the archiving state, then clears it and emits a remove", async () => {
     const { tempDir, repoDir } = createGitRepo();
-    const paseoHome = path.join(tempDir, ".paseo");
-    const worktree = await createPaseoOwnedWorktree(repoDir, paseoHome, "lifecycle");
+    const zenticHome = path.join(tempDir, ".zentic");
+    const worktree = await createZenticOwnedWorktree(repoDir, zenticHome, "lifecycle");
     const workspaceId = "ws-lifecycle";
 
     const deps = createArchiveDeps({
-      paseoHome,
+      zenticHome,
       activeWorkspaces: [{ workspaceId, cwd: worktree.worktreePath, kind: "worktree" }],
     });
 
@@ -902,8 +902,8 @@ describe("archiveByScope", () => {
 
   test("archives stored snapshots only for the target workspace", async () => {
     const { tempDir, repoDir } = createGitRepo();
-    const paseoHome = path.join(tempDir, ".paseo");
-    const worktree = await createPaseoOwnedWorktree(repoDir, paseoHome, "snapshot-scope");
+    const zenticHome = path.join(tempDir, ".zentic");
+    const worktree = await createZenticOwnedWorktree(repoDir, zenticHome, "snapshot-scope");
     const targetWorkspaceId = "ws-snapshot-target";
     const otherWorkspaceId = "ws-snapshot-other";
     const liveAgentId = "agent-live";
@@ -911,7 +911,7 @@ describe("archiveByScope", () => {
     const otherStoredAgentId = "agent-stored-other";
 
     const deps = createArchiveDeps({
-      paseoHome,
+      zenticHome,
       activeWorkspaces: [
         { workspaceId: targetWorkspaceId, cwd: worktree.worktreePath, kind: "worktree" },
       ],
@@ -958,11 +958,11 @@ describe("archiveByScope", () => {
 
   test("archives the durable snapshot when an observed live agent closes before teardown", async () => {
     const { tempDir, repoDir } = createGitRepo();
-    const paseoHome = path.join(tempDir, ".paseo");
+    const zenticHome = path.join(tempDir, ".zentic");
     const workspaceId = "ws-live-teardown-race";
     const agentId = "agent-live-teardown-race";
     const deps = createArchiveDeps({
-      paseoHome,
+      zenticHome,
       activeWorkspaces: [{ workspaceId, cwd: repoDir, kind: "local_checkout" }],
     });
     deps.agentManager = {
@@ -991,15 +991,15 @@ describe("archiveByScope", () => {
 
   test("worktree scope archives three workspaces on the directory and removes it", async () => {
     const { tempDir, repoDir } = createGitRepo();
-    const paseoHome = path.join(tempDir, ".paseo");
-    const worktree = await createPaseoOwnedWorktree(repoDir, paseoHome, "worktree-scope-n3");
+    const zenticHome = path.join(tempDir, ".zentic");
+    const worktree = await createZenticOwnedWorktree(repoDir, zenticHome, "worktree-scope-n3");
     const workspaceA = "ws-worktree-n3-a";
     const workspaceB = "ws-worktree-n3-b";
     const workspaceC = "ws-worktree-n3-c";
 
     const result = await archiveByScope(
       createArchiveDeps({
-        paseoHome,
+        zenticHome,
         activeWorkspaces: [
           { workspaceId: workspaceA, cwd: worktree.worktreePath, kind: "worktree" },
           { workspaceId: workspaceB, cwd: worktree.worktreePath, kind: "worktree" },
@@ -1062,11 +1062,11 @@ describe("archiveByScope cancellation", () => {
 
   test("an abort while agents archive keeps the workspace record active", async () => {
     const { tempDir, repoDir } = createGitRepo();
-    const paseoHome = path.join(tempDir, ".paseo");
-    const worktree = await createPaseoOwnedWorktree(repoDir, paseoHome, "cancel-agents");
+    const zenticHome = path.join(tempDir, ".zentic");
+    const worktree = await createZenticOwnedWorktree(repoDir, zenticHome, "cancel-agents");
     const workspaceId = "ws-cancel-agents";
     const deps = createArchiveDeps({
-      paseoHome,
+      zenticHome,
       activeWorkspaces: [{ workspaceId, cwd: worktree.worktreePath, kind: "worktree" }],
     });
     deps.agentStorage = storedAgents(workspaceId, [
@@ -1105,11 +1105,11 @@ describe("archiveByScope cancellation", () => {
 
   test("an abort after the record archived keeps the worktree directory", async () => {
     const { tempDir, repoDir } = createGitRepo();
-    const paseoHome = path.join(tempDir, ".paseo");
-    const worktree = await createPaseoOwnedWorktree(repoDir, paseoHome, "cancel-record");
+    const zenticHome = path.join(tempDir, ".zentic");
+    const worktree = await createZenticOwnedWorktree(repoDir, zenticHome, "cancel-record");
     const workspaceId = "ws-cancel-record";
     const deps = createArchiveDeps({
-      paseoHome,
+      zenticHome,
       activeWorkspaces: [{ workspaceId, cwd: worktree.worktreePath, kind: "worktree" }],
     });
     const recordArchive = gate();
@@ -1139,11 +1139,11 @@ describe("archiveByScope cancellation", () => {
 
   test("an archive aborted before it starts touches nothing", async () => {
     const { tempDir, repoDir } = createGitRepo();
-    const paseoHome = path.join(tempDir, ".paseo");
-    const worktree = await createPaseoOwnedWorktree(repoDir, paseoHome, "cancel-before");
+    const zenticHome = path.join(tempDir, ".zentic");
+    const worktree = await createZenticOwnedWorktree(repoDir, zenticHome, "cancel-before");
     const workspaceId = "ws-cancel-before";
     const deps = createArchiveDeps({
-      paseoHome,
+      zenticHome,
       activeWorkspaces: [{ workspaceId, cwd: worktree.worktreePath, kind: "worktree" }],
     });
     deps.agentStorage = storedAgents(workspaceId, [{ id: "agent-active", archivedAt: null }]);
@@ -1202,7 +1202,7 @@ describe("resolveWorkspaceIdAtPath", () => {
 test("uses the operation timestamp for live agents, snapshots, and the workspace", async () => {
   const { repoDir } = createGitRepo();
   const deps = createArchiveDeps({
-    paseoHome: repoDir,
+    zenticHome: repoDir,
     activeWorkspaces: [{ workspaceId: "stamped", cwd: repoDir, kind: "local_checkout" }],
   });
   const stamps: Array<string | undefined> = [];

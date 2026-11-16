@@ -1,8 +1,8 @@
 import type { ChildProcessWithoutNullStreams } from "node:child_process";
-import { spawnProcess } from "@getpaseo/plugin/server";
+import { spawnProcess } from "@getzentic/plugin/server";
 import { signalProcess } from "./signals.js";
 import { createInterface } from "node:readline";
-import type { ProviderLaunch, ProviderSessionConfig } from "@getpaseo/plugin/server/provider";
+import type { ProviderLaunch, ProviderSessionConfig } from "@getzentic/plugin/server/provider";
 import {
   AntigravityError,
   decodeFrame,

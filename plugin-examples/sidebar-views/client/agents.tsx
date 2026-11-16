@@ -1,6 +1,6 @@
-import type { PluginAgentSnapshot } from "@getpaseo/plugin";
+import type { PluginAgentSnapshot } from "@getzentic/plugin";
 import { ScrollView, View } from "react-native";
-import { useAgents, type PluginSidebarViewProps } from "@getpaseo/plugin/client";
+import { useAgents, type PluginSidebarViewProps } from "@getzentic/plugin/client";
 import { AgentRow, Heading } from "./rows";
 export function agentTask(agent: PluginAgentSnapshot) {
   if (agent.attentionReason === "permission") return "Respond";

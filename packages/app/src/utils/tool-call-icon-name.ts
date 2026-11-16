@@ -1,8 +1,8 @@
-import type { AgentMessage } from "@getpaseo/protocol/agent-message";
-import type { ToolCallDetail, ToolCallIconName } from "@getpaseo/protocol/agent-types";
-import { isPaseoToolName } from "@getpaseo/protocol/tool-name-normalization";
+import type { AgentMessage } from "@getzentic/protocol/agent-message";
+import type { ToolCallDetail, ToolCallIconName } from "@getzentic/protocol/agent-types";
+import { isZenticToolName } from "@getzentic/protocol/tool-name-normalization";
 
-export type ToolCallIcon = ToolCallIconName | "paseo";
+export type ToolCallIcon = ToolCallIconName | "zentic";
 
 const TOOL_DETAIL_ICON_NAMES: Record<ToolCallDetail["type"], ToolCallIcon> = {
   shell: "square_terminal",
@@ -23,9 +23,9 @@ export function resolveToolCallIconName(
   detail?: ToolCallDetail,
   agentMessage?: AgentMessage,
 ): ToolCallIcon {
-  // Agent messages are Paseo deliveries; the wire detail's legacy "bot" icon is for old clients.
+  // Agent messages are Zentic deliveries; the wire detail's legacy "bot" icon is for old clients.
   if (agentMessage) {
-    return "paseo";
+    return "zentic";
   }
   const lowerName = toolName.trim().toLowerCase();
 
@@ -40,8 +40,8 @@ export function resolveToolCallIconName(
   if (lowerName === "speak") {
     return "mic_vocal";
   }
-  if (isPaseoToolName(lowerName)) {
-    return "paseo";
+  if (isZenticToolName(lowerName)) {
+    return "zentic";
   }
   if (lowerName === "task") {
     return "bot";

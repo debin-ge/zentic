@@ -8,7 +8,7 @@ import {
   startPidLockHeartbeat,
   updatePidLock,
 } from "../src/server/pid-lock.js";
-import { resolvePaseoHome } from "../src/server/paseo-home.js";
+import { resolveZenticHome } from "../src/server/zentic-home.js";
 import { daemonLogPath } from "../src/server/daemon-instance.js";
 import { PRIVATE_FILE_MODE } from "../src/server/private-files.js";
 import { loadPersistedConfig } from "../src/server/persisted-config.js";
@@ -16,7 +16,7 @@ import { reapTerminalWorkers } from "../src/terminal/terminal-worker-reaper.js";
 import { runSupervisor } from "./supervisor.js";
 import { resolveSupervisorLogFile } from "./supervisor-log-config.js";
 
-process.title = "Paseo Supervisor";
+process.title = "Zentic Supervisor";
 
 interface DaemonRunnerConfig {
   devMode: boolean;
@@ -77,9 +77,9 @@ function resolveWorkerExecArgv(workerEntry: string, devMode: boolean): string[] 
     "--heapsnapshot-near-heap-limit=3",
     "--max-old-space-size=3072",
     "--report-on-fatalerror",
-    "--report-directory=/tmp/paseo-reports",
+    "--report-directory=/tmp/zentic-reports",
   ];
-  const inspectArg = process.env.PASEO_NODE_INSPECT ?? "--inspect";
+  const inspectArg = process.env.ZENTIC_NODE_INSPECT ?? "--inspect";
   if (inspectArg !== "0" && inspectArg !== "false" && inspectArg !== "off") {
     devArgs.push(inspectArg);
   }
@@ -87,7 +87,7 @@ function resolveWorkerExecArgv(workerEntry: string, devMode: boolean): string[] 
 }
 
 function resolvePackagedNodeEntrypointRunnerPath(currentScriptPath: string): string | null {
-  const packageMarker = `${path.sep}node_modules${path.sep}@getpaseo${path.sep}server${path.sep}`;
+  const packageMarker = `${path.sep}node_modules${path.sep}@getzentic${path.sep}server${path.sep}`;
   const markerIndex = currentScriptPath.lastIndexOf(packageMarker);
   if (markerIndex === -1) {
     return null;
@@ -108,12 +108,12 @@ async function main(): Promise<void> {
       ? resolvePackagedNodeEntrypointRunnerPath(fileURLToPath(import.meta.url))
       : null;
 
-  const paseoHome = resolvePaseoHome(workerEnv);
-  const persistedConfig = loadPersistedConfig(paseoHome);
-  const supervisorLogFile = resolveSupervisorLogFile(paseoHome, persistedConfig, workerEnv);
+  const zenticHome = resolveZenticHome(workerEnv);
+  const persistedConfig = loadPersistedConfig(zenticHome);
+  const supervisorLogFile = resolveSupervisorLogFile(zenticHome, persistedConfig, workerEnv);
 
   try {
-    await acquirePidLock(paseoHome, null, {
+    await acquirePidLock(zenticHome, null, {
       ownerPid: process.pid,
     });
   } catch (error) {
@@ -125,7 +125,7 @@ async function main(): Promise<void> {
 
   let lockReleased = false;
   let requestSupervisorShutdown: ((reason: string) => void) | null = null;
-  const stopLockHeartbeat = startPidLockHeartbeat(paseoHome, {
+  const stopLockHeartbeat = startPidLockHeartbeat(zenticHome, {
     ownerPid: process.pid,
     onError: (error) => {
       const message = error instanceof Error ? error.message : String(error);
@@ -141,7 +141,7 @@ async function main(): Promise<void> {
     }
     lockReleased = true;
     stopLockHeartbeat();
-    await releasePidLock(paseoHome, {
+    await releasePidLock(zenticHome, {
       ownerPid: process.pid,
     });
   };
@@ -171,13 +171,13 @@ async function main(): Promise<void> {
     restartOnCrash: true,
     logFile: supervisorLogFile,
     onWorkerReady: async ({ listen, serverId }) => {
-      await updatePidLock(paseoHome, { listen, serverId }, { ownerPid: process.pid });
+      await updatePidLock(zenticHome, { listen, serverId }, { ownerPid: process.pid });
     },
     onWorkerExit: () =>
-      updatePidLock(paseoHome, { listen: null, serverId: null }, { ownerPid: process.pid }),
+      updatePidLock(zenticHome, { listen: null, serverId: null }, { ownerPid: process.pid }),
     onSupervisorExit: releaseLock,
     cleanupTerminals: async (log) => {
-      const result = await reapTerminalWorkers({ paseoHome, log });
+      const result = await reapTerminalWorkers({ zenticHome, log });
       log("Terminal worker cleanup result", { ...result });
     },
   });
@@ -189,7 +189,7 @@ async function main(): Promise<void> {
 function failStartup(detail: string, summary: string): never {
   process.stderr.write(`${detail}\n`);
   try {
-    const logPath = daemonLogPath(resolvePaseoHome(process.env));
+    const logPath = daemonLogPath(resolveZenticHome(process.env));
     mkdirSync(path.dirname(logPath), { recursive: true });
     appendFileSync(
       logPath,

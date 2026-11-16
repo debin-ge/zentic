@@ -1,4 +1,4 @@
-import { createPluginReferenceApi } from "@getpaseo/plugin/client/host";
+import { createPluginReferenceApi } from "@getzentic/plugin/client/host";
 import { router } from "expo-router";
 import { i18n } from "@/i18n/i18next";
 import { getHostRuntimeStore } from "@/runtime/host-runtime";
@@ -10,7 +10,7 @@ import type { InstalledPlugin } from "../types";
 import { createPluginClientStateSource } from "./source";
 
 interface InstallationApi {
-  paseo: ReturnType<typeof createPluginReferenceApi>;
+  zentic: ReturnType<typeof createPluginReferenceApi>;
   hosts: ReturnType<typeof createPluginHosts>;
 }
 // Registry presentation clones share the installation lifetime and its client pool.
@@ -21,9 +21,9 @@ export function getPluginClientApi(plugin: InstalledPlugin): InstallationApi {
   if (cached) return cached;
   const state = createPluginClientStateSource();
   const hosts = createPluginHosts(getHostRuntimeStore(), plugin.lifetime.signal);
-  const paseo = createPluginReferenceApi({
-    paseo: plugin.paseo,
-    resolveHost: hosts.getPaseoClient,
+  const zentic = createPluginReferenceApi({
+    zentic: plugin.zentic,
+    resolveHost: hosts.getZenticClient,
     readProject: state.getProject,
     navigation: {
       openWorkspace(ref) {
@@ -62,7 +62,7 @@ export function getPluginClientApi(plugin: InstalledPlugin): InstallationApi {
       },
     },
   });
-  const api = { paseo, hosts };
+  const api = { zentic, hosts };
   apis.set(plugin.lifetime.signal, api);
   return api;
 }

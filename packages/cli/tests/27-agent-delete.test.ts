@@ -11,9 +11,9 @@
  */
 
 import assert from "node:assert";
-import { runLocalPaseo } from "./helpers/local-cli.ts";
+import { runLocalZentic } from "./helpers/local-cli.ts";
 import { getAvailablePort } from "./helpers/network.ts";
-import { createTempDirs, runPaseoCli, startTestDaemon } from "./helpers/test-daemon.ts";
+import { createTempDirs, runZenticCli, startTestDaemon } from "./helpers/test-daemon.ts";
 import { mkdtemp, rm, writeFile } from "fs/promises";
 import { tmpdir } from "os";
 import { join } from "path";
@@ -21,10 +21,10 @@ import { join } from "path";
 console.log("=== Delete Command Tests ===\n");
 
 const port = await getAvailablePort();
-const paseoHome = await mkdtemp(join(tmpdir(), "paseo-delete-test-home-"));
+const zenticHome = await mkdtemp(join(tmpdir(), "zentic-delete-test-home-"));
 
 async function runCli(args: string[]) {
-  return runLocalPaseo(["--host", `localhost:${port}`, ...args], { PASEO_HOME: paseoHome });
+  return runLocalZentic(["--host", `localhost:${port}`, ...args], { ZENTIC_HOME: zenticHome });
 }
 
 async function runDelete(args: string[]) {
@@ -98,11 +98,11 @@ try {
   }
 
   {
-    console.log("Test 7: paseo --help shows delete command");
+    console.log("Test 7: zentic --help shows delete command");
     const result = await runCli(["--help"]);
-    assert.strictEqual(result.exitCode, 0, "paseo --help should exit 0");
+    assert.strictEqual(result.exitCode, 0, "zentic --help should exit 0");
     assert(result.stdout.includes("delete"), "help should mention delete command");
-    console.log("✓ paseo --help shows delete command\n");
+    console.log("✓ zentic --help shows delete command\n");
   }
 
   {
@@ -118,7 +118,7 @@ try {
     console.log("Test 9: delete reports AGENT_NOT_FOUND for an unknown ID");
     const daemon = await startTestDaemon();
     try {
-      const result = await runPaseoCli(daemon, [
+      const result = await runZenticCli(daemon, [
         "agent",
         "delete",
         "does-not-exist",
@@ -129,7 +129,7 @@ try {
       assert.notStrictEqual(result.exitCode, 0, "delete should fail for an unknown ID");
       const { error } = JSON.parse(result.stderr);
       assert.strictEqual(error.code, "AGENT_NOT_FOUND", result.stderr);
-      assert.match(error.details, /paseo ls/);
+      assert.match(error.details, /zentic ls/);
     } finally {
       await daemon.stop();
     }
@@ -142,7 +142,7 @@ try {
     const titledId = "c9a97e5d-4a92-4646-a016-53032146d0a1";
     const dirs = await createTempDirs();
     await writeFile(
-      join(dirs.paseoHome, "agents", `${titledId}.json`),
+      join(dirs.zenticHome, "agents", `${titledId}.json`),
       JSON.stringify(
         {
           id: titledId,
@@ -162,7 +162,7 @@ try {
     const host = `127.0.0.1:${daemon.port}`;
     try {
       for (const command of ["inspect", "delete"]) {
-        const result = await runPaseoCli(daemon, [
+        const result = await runZenticCli(daemon, [
           "agent",
           command,
           missingId,
@@ -178,7 +178,7 @@ try {
         );
       }
 
-      const titled = await runPaseoCli(daemon, [
+      const titled = await runZenticCli(daemon, [
         "agent",
         "inspect",
         titledId,
@@ -194,7 +194,7 @@ try {
     console.log("✓ a missing full ID does not delete an agent titled with it\n");
   }
 } finally {
-  await rm(paseoHome, { recursive: true, force: true });
+  await rm(zenticHome, { recursive: true, force: true });
 }
 
 console.log("=== All delete tests passed ===");

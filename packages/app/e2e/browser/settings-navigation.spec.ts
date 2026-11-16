@@ -315,22 +315,22 @@ test.describe("Settings sidebar navigation", () => {
     await expectAddHostMethodOptions(page);
     await selectHostConnectionType(page, "direct");
 
-    await fillDirectHostAddress(page, "example.paseo.test", "7443");
+    await fillDirectHostAddress(page, "example.zentic.test", "7443");
     await expectDirectHostSslDisabled(page);
     await toggleDirectHostSsl(page);
     await expectDirectHostSslEnabled(page);
     await toggleHostAdvanced(page);
-    await expectDirectHostUriValue(page, "tcp://example.paseo.test:7443?ssl=true");
+    await expectDirectHostUriValue(page, "tcp://example.zentic.test:7443?ssl=true");
     await toggleHostAdvanced(page);
     await toggleDirectHostSsl(page);
     await expectDirectHostSslDisabled(page);
 
     await toggleHostAdvanced(page);
-    await fillDirectHostUri(page, "tcp://example.paseo.test:7443?ssl=true&password=shared-secret");
+    await fillDirectHostUri(page, "tcp://example.zentic.test:7443?ssl=true&password=shared-secret");
     await toggleHostAdvanced(page);
 
     await expectDirectHostFormValues(page, {
-      host: "example.paseo.test",
+      host: "example.zentic.test",
       port: "7443",
       password: "shared-secret",
     });
@@ -340,7 +340,7 @@ test.describe("Settings sidebar navigation", () => {
     await toggleHostAdvanced(page);
     await expectDirectHostUriValue(
       page,
-      "tcp://example.paseo.test:7443?ssl=true&password=shared-secret",
+      "tcp://example.zentic.test:7443?ssl=true&password=shared-secret",
     );
     await toggleHostAdvanced(page);
     await expectDirectHostUriHidden(page);

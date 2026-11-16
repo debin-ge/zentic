@@ -1,5 +1,5 @@
 import { Platform } from "react-native";
-import { darkHighlightColors, lightHighlightColors } from "@getpaseo/highlight";
+import { darkHighlightColors, lightHighlightColors } from "@getzentic/highlight";
 import { deriveSurfaceStates } from "./derive-colors";
 
 export const baseColors = {
@@ -453,8 +453,8 @@ export function buildDarkSemanticColors(tint: DarkThemeConfig) {
 // Dark tint definitions
 // ---------------------------------------------------------------------------
 
-// Paseo — subtle teal-green tint (default)
-const paseoDarkColors = buildDarkSemanticColors({
+// Zentic — subtle teal-green tint (default)
+const zenticDarkColors = buildDarkSemanticColors({
   surface0: "#181B1A",
   surface1: "#1E2120",
   surface2: "#272A29",
@@ -705,14 +705,14 @@ export function buildDarkTheme(semanticColors: ReturnType<typeof buildDarkSemant
   } as const;
 }
 
-export const darkTheme = buildDarkTheme(paseoDarkColors);
+export const darkTheme = buildDarkTheme(zenticDarkColors);
 export const darkZincTheme = buildDarkTheme(zincDarkColors);
 export const darkMidnightTheme = buildDarkTheme(midnightDarkColors);
 export const darkClaudeTheme = buildDarkTheme(claudeDarkColors);
 export const darkGhosttyTheme = buildDarkTheme(ghosttyDarkColors);
 
 // Pure black — zero-luminance background with high-contrast surfaces. A control over the
-// workspace surface (`surface2` on `surface1`) steps by a contrast ratio of 1.12, the step Paseo
+// workspace surface (`surface2` on `surface1`) steps by a contrast ratio of 1.12, the step Zentic
 // dark has there; the old `#111111` gave half of it.
 const pureBlackDarkColors = buildDarkSemanticColors({
   surface0: "#000000",

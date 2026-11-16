@@ -1,7 +1,7 @@
 import type { z } from "zod";
-import type { ProviderPaseoToolsPolicy } from "@getpaseo/protocol/provider-config";
+import type { ProviderZenticToolsPolicy } from "@getzentic/protocol/provider-config";
 
-export class PaseoToolInputError extends Error {
+export class ZenticToolInputError extends Error {
   readonly status = 400;
 
   constructor(
@@ -9,51 +9,51 @@ export class PaseoToolInputError extends Error {
     readonly issues?: z.ZodError["issues"],
   ) {
     super(message);
-    this.name = "PaseoToolInputError";
+    this.name = "ZenticToolInputError";
   }
 }
 
-export interface PaseoToolExecutionContext {
+export interface ZenticToolExecutionContext {
   signal?: AbortSignal;
-  sendUpdate?: (update: PaseoToolResult) => void;
+  sendUpdate?: (update: ZenticToolResult) => void;
 }
 
-export interface PaseoToolResult {
+export interface ZenticToolResult {
   content: Array<{ type: string; text?: string; [key: string]: unknown }>;
   structuredContent?: unknown;
   isError?: boolean;
 }
 
-export interface PaseoToolConfig {
+export interface ZenticToolConfig {
   title?: string;
   description?: string;
   inputSchema?: z.ZodRawShape | z.ZodType;
   outputSchema?: z.ZodRawShape;
 }
 
-export interface PaseoToolDefinition extends PaseoToolConfig {
+export interface ZenticToolDefinition extends ZenticToolConfig {
   name: string;
   description: string;
-  handler: (input: unknown, context: PaseoToolExecutionContext) => Promise<PaseoToolResult>;
+  handler: (input: unknown, context: ZenticToolExecutionContext) => Promise<ZenticToolResult>;
 }
 
-export interface PaseoToolCatalog {
-  tools: ReadonlyMap<string, PaseoToolDefinition>;
-  getTool(name: string): PaseoToolDefinition | undefined;
+export interface ZenticToolCatalog {
+  tools: ReadonlyMap<string, ZenticToolDefinition>;
+  getTool(name: string): ZenticToolDefinition | undefined;
   executeTool(
     name: string,
     input: unknown,
-    context?: PaseoToolExecutionContext,
-  ): Promise<PaseoToolResult>;
+    context?: ZenticToolExecutionContext,
+  ): Promise<ZenticToolResult>;
 }
 
-export interface PaseoToolRuntimeContext {
+export interface ZenticToolRuntimeContext {
   callerAgentId?: string;
-  paseoToolPolicy?: ProviderPaseoToolsPolicy;
+  zenticToolPolicy?: ProviderZenticToolsPolicy;
   enableVoiceTools?: boolean;
   voiceOnly?: boolean;
 }
 
-export type PaseoToolCatalogFactory = (
-  context: PaseoToolRuntimeContext,
-) => PaseoToolCatalog | Promise<PaseoToolCatalog>;
+export type ZenticToolCatalogFactory = (
+  context: ZenticToolRuntimeContext,
+) => ZenticToolCatalog | Promise<ZenticToolCatalog>;

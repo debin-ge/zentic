@@ -96,7 +96,7 @@ function shouldIncludeLocalProviderConfig(params: {
 
   return (
     localRequestedByFeature ||
-    params.env.PASEO_LOCAL_MODELS_DIR !== undefined ||
+    params.env.ZENTIC_LOCAL_MODELS_DIR !== undefined ||
     params.persisted.providers?.local?.modelsDir !== undefined
   );
 }
@@ -127,13 +127,13 @@ function buildLocalSpeechLanguageResolutionInput(params: {
   const { env, persisted } = params;
   return {
     dictationLanguage: firstNonEmptyString([
-      env.PASEO_DICTATION_LANGUAGE,
+      env.ZENTIC_DICTATION_LANGUAGE,
       persisted.features?.dictation?.stt?.language,
       DEFAULT_STT_LANGUAGE,
     ]),
     voiceLanguage: firstNonEmptyString([
-      env.PASEO_VOICE_LANGUAGE,
-      env.PASEO_DICTATION_LANGUAGE,
+      env.ZENTIC_VOICE_LANGUAGE,
+      env.ZENTIC_DICTATION_LANGUAGE,
       persisted.features?.voiceMode?.stt?.language,
       persisted.features?.dictation?.stt?.language,
       DEFAULT_STT_LANGUAGE,
@@ -142,24 +142,24 @@ function buildLocalSpeechLanguageResolutionInput(params: {
 }
 
 function buildLocalSpeechResolutionInput(params: {
-  paseoHome: string;
+  zenticHome: string;
   env: NodeJS.ProcessEnv;
   persisted: PersistedConfig;
   providers: RequestedSpeechProviders;
   includeProviderConfig: boolean;
 }): Record<string, unknown> {
-  const { paseoHome, env, persisted, providers, includeProviderConfig } = params;
+  const { zenticHome, env, persisted, providers, includeProviderConfig } = params;
   const tts = persisted.features?.voiceMode?.tts;
   const localTts = tts?.provider === "local" ? tts : undefined;
   return {
     includeProviderConfig,
     modelsDir: firstDefinedValue<string>([
-      env.PASEO_LOCAL_MODELS_DIR,
+      env.ZENTIC_LOCAL_MODELS_DIR,
       persisted.providers?.local?.modelsDir,
-      path.join(paseoHome, DEFAULT_LOCAL_MODELS_SUBDIR),
+      path.join(zenticHome, DEFAULT_LOCAL_MODELS_SUBDIR),
     ]),
     dictationLocalSttModel: firstDefinedValue<string>([
-      env.PASEO_DICTATION_LOCAL_STT_MODEL,
+      env.ZENTIC_DICTATION_LOCAL_STT_MODEL,
       persistedLocalFeatureModel(
         providers.dictationStt.provider,
         providers.dictationStt.enabled,
@@ -168,7 +168,7 @@ function buildLocalSpeechResolutionInput(params: {
       DEFAULT_LOCAL_STT_MODEL,
     ]),
     voiceLocalSttModel: firstDefinedValue<string>([
-      env.PASEO_VOICE_LOCAL_STT_MODEL,
+      env.ZENTIC_VOICE_LOCAL_STT_MODEL,
       persistedLocalFeatureModel(
         providers.voiceStt.provider,
         providers.voiceStt.enabled,
@@ -177,7 +177,7 @@ function buildLocalSpeechResolutionInput(params: {
       DEFAULT_LOCAL_STT_MODEL,
     ]),
     voiceLocalTtsModel: firstDefinedValue<string>([
-      env.PASEO_VOICE_LOCAL_TTS_MODEL,
+      env.ZENTIC_VOICE_LOCAL_TTS_MODEL,
       persistedLocalFeatureModel(
         providers.voiceTts.provider,
         providers.voiceTts.enabled,
@@ -187,18 +187,18 @@ function buildLocalSpeechResolutionInput(params: {
     ]),
     ...buildLocalSpeechLanguageResolutionInput({ env, persisted }),
     voiceLocalTtsSpeakerId: firstDefinedValue<string | number>([
-      env.PASEO_VOICE_LOCAL_TTS_SPEAKER_ID,
+      env.ZENTIC_VOICE_LOCAL_TTS_SPEAKER_ID,
       localTts?.speakerId,
     ]),
     voiceLocalTtsSpeed: firstDefinedValue<string | number>([
-      env.PASEO_VOICE_LOCAL_TTS_SPEED,
+      env.ZENTIC_VOICE_LOCAL_TTS_SPEED,
       localTts?.speed,
     ]),
   };
 }
 
 export function resolveLocalSpeechConfig(params: {
-  paseoHome: string;
+  zenticHome: string;
   env: NodeJS.ProcessEnv;
   persisted: PersistedConfig;
   providers: RequestedSpeechProviders;

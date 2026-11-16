@@ -1,4 +1,4 @@
-import { pluginOverviewUrl } from "@getpaseo/protocol/plugin-overview";
+import { pluginOverviewUrl } from "@getzentic/protocol/plugin-overview";
 import { useLocale } from "~/i18n";
 import { type Plugin, pluginListing } from "./registry";
 

@@ -23,7 +23,7 @@ import {
 export const TERMINAL_INPUT_CONTEXT_MENU_HIDDEN = true;
 export const TERMINAL_INPUT_HITBOX_SIZE = 1;
 /** Matched by the Android hardware keyboard module to claim arrow keys for this input. */
-export const TERMINAL_INPUT_NATIVE_ID = "paseo-terminal-input";
+export const TERMINAL_INPUT_NATIVE_ID = "zentic-terminal-input";
 
 export interface TerminalTextInputChange {
   data: string;

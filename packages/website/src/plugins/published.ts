@@ -2,7 +2,7 @@ import {
   PluginRegistryIdSchema,
   PluginRegistryIndexSchema,
   PublishedPluginDetailSchema,
-} from "@getpaseo/protocol/plugin-registry";
+} from "@getzentic/protocol/plugin-registry";
 import { languageAlternates, LOCALES, localizePath } from "~/i18n";
 import { SITE_ORIGIN } from "~/meta";
 import { getBlockingColdCache, type WebsiteCacheContext } from "../github-cache";
@@ -65,12 +65,12 @@ export async function handlePluginRegistryRequest(
 ): Promise<Response | null> {
   const url = new URL(request.url);
   if (request.method !== "GET") return null;
-  const base = env.PLUGINS_REGISTRY_URL ?? "https://getpaseo.github.io/plugins";
+  const base = env.PLUGINS_REGISTRY_URL ?? "https://getzentic.github.io/plugins";
   if (url.pathname.startsWith("/plugins/thumb/")) {
     const index = await loadRegistryIndex(base, context);
     return handlePluginThumbnailRequest(request, index.plugins);
   }
-  if (url.hostname === "plugins.paseo.sh" && url.pathname === "/index.json")
+  if (url.hostname === "plugins.zentic.sh" && url.pathname === "/index.json")
     return Response.json(await loadRegistryIndex(base, context));
   if (url.pathname === "/sitemap-plugins.xml") {
     const index = await loadRegistryIndex(base, context);
@@ -125,7 +125,7 @@ export async function handlePluginRegistryRequest(
   const plugin = await loadRegistryPlugin(base, id, context);
   if (!plugin) return Response.json({ error: "Plugin not found" }, { status: 404 });
   if (
-    request.headers.get("X-Paseo-Install") === "1" ||
+    request.headers.get("X-Zentic-Install") === "1" ||
     url.searchParams.get("intent") === "install"
   ) {
     const cache = context.cache;

@@ -1,0 +1,1 @@
+{ "id": "host-agents", "requirements": { "zentic": ">=0.8.0" } }

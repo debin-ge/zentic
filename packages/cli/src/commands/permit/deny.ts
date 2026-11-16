@@ -1,5 +1,5 @@
 import type { Command } from "commander";
-import type { AgentPermissionRequest } from "@getpaseo/protocol/agent-types";
+import type { AgentPermissionRequest } from "@getzentic/protocol/agent-types";
 import { connectToDaemon } from "../../utils/client.js";
 import type { CommandOptions, ListResult, CommandError } from "../../output/index.js";
 import {
@@ -30,7 +30,7 @@ export function createDenyCommand(connect: PermitClientConnector = connectToDaem
       const error: CommandError = {
         code: "MISSING_ARGUMENT",
         message: "Request ID is required unless --all is specified",
-        details: "Usage: paseo permit deny <agent> <req_id> or paseo permit deny <agent> --all",
+        details: "Usage: zentic permit deny <agent> <req_id> or zentic permit deny <agent> --all",
       };
       throw error;
     }
@@ -44,7 +44,7 @@ export function createDenyCommand(connect: PermitClientConnector = connectToDaem
         const error: CommandError = {
           code: "AGENT_NOT_FOUND",
           message: `Agent not found: ${agentIdOrPrefix}`,
-          details: 'Use "paseo ls" to list available agents',
+          details: 'Use "zentic ls" to list available agents',
         };
         throw error;
       }
@@ -97,7 +97,7 @@ export function createDenyCommand(connect: PermitClientConnector = connectToDaem
             const error: CommandError = {
               code: "PERMISSION_RESPONSE_UNCONFIRMED",
               message: `Permission response unconfirmed for request ${permission.id}: ${message}`,
-              details: 'Use "paseo permit ls" to check whether the request is still pending',
+              details: 'Use "zentic permit ls" to check whether the request is still pending',
             };
             throw error;
           }

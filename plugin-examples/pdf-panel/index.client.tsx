@@ -1,4 +1,4 @@
-import type { PluginClientContext } from "@getpaseo/plugin/client";
+import type { PluginClientContext } from "@getzentic/plugin/client";
 import { PdfPanel } from "./client/pdf-panel";
 
 export default function contribute(client: PluginClientContext) {

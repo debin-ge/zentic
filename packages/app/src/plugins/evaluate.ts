@@ -1,19 +1,19 @@
-import { requirePluginText } from "@getpaseo/plugin/client/host";
+import { requirePluginText } from "@getzentic/plugin/client/host";
 import type { createPluginHosts } from "./hosts";
 import { openExternalUrl } from "@/utils/open-external-url";
 import * as pluginUiRuntime from "./react-native/ui";
 import { useRevealedText } from "@/hooks/use-revealed-text";
 import { useSettings } from "./settings/use-settings";
-import * as pluginSharedRuntime from "@getpaseo/plugin";
-import * as pluginClientRuntime from "@getpaseo/plugin/client";
+import * as pluginSharedRuntime from "@getzentic/plugin";
+import * as pluginClientRuntime from "@getzentic/plugin/client";
 import * as React from "react";
 import * as ReactJsxRuntime from "react/jsx-runtime";
 // eslint-disable-next-line no-restricted-imports -- plugin client runtime injects host ReactNative.
 import * as ReactNative from "react-native";
-// eslint-disable-next-line no-restricted-imports -- plugin bundles receive TanStack's real runtime, not Paseo's query wrappers.
+// eslint-disable-next-line no-restricted-imports -- plugin bundles receive TanStack's real runtime, not Zentic's query wrappers.
 import * as ReactQuery from "@tanstack/react-query";
 import * as Zod from "zod";
-import { type PluginCleanup } from "@getpaseo/plugin";
+import { type PluginCleanup } from "@getzentic/plugin";
 import {
   type PluginClientContext,
   type PluginAgentPanelContribution,
@@ -25,7 +25,7 @@ import {
   type PluginTimelineRendererContribution,
   type PluginTimelineTransformerContribution,
   type PluginButtonRegistration,
-} from "@getpaseo/plugin/client";
+} from "@getzentic/plugin/client";
 import type {
   EvaluatedPlugin,
   PluginSidebarSection,
@@ -83,7 +83,7 @@ function isComponentType(value: unknown): boolean {
   );
 }
 
-function normalizePluginText(text: import("@getpaseo/plugin/client").PluginText) {
+function normalizePluginText(text: import("@getzentic/plugin/client").PluginText) {
   return typeof text === "string" ? text.trim() : requirePluginText(text);
 }
 
@@ -106,7 +106,7 @@ export type PluginClientRuntime = Pick<
   PluginClientContext,
   | "i18n"
   | "playAudio"
-  | "paseo"
+  | "zentic"
   | "rpc"
   | "openSettings"
   | "openScreen"
@@ -576,19 +576,19 @@ export function runPluginClientBundle(
   };
   const runtimeRequire = (name: string): unknown => {
     // COMPAT(pluginReactNativeEntrypoint): added in v0.13.0, remove after 2027-04-20
-    if (name === "@getpaseo/plugin/client/react-native") return pluginReactNativeCompatRuntime;
-    if (name === "@getpaseo/plugin/client/ui") return pluginUiRuntime;
+    if (name === "@getzentic/plugin/client/react-native") return pluginReactNativeCompatRuntime;
+    if (name === "@getzentic/plugin/client/ui") return pluginUiRuntime;
     if (name === "react") return React;
     if (name === "react/jsx-runtime") return ReactJsxRuntime;
     if (name === "react-native") return ReactNative;
-    if (name === "@getpaseo/plugin") return pluginSharedRuntime;
-    if (name === "@getpaseo/plugin/client")
+    if (name === "@getzentic/plugin") return pluginSharedRuntime;
+    if (name === "@getzentic/plugin/client")
       return {
         ...pluginClientRuntime,
-        useSettings: (definition: import("@getpaseo/plugin").SettingsDefinition) =>
+        useSettings: (definition: import("@getzentic/plugin").SettingsDefinition) =>
           useSettings(definition, id),
         openExternalUrl,
-        getPaseoClient: (serverId: string) => runtime.hosts.getPaseoClient(serverId),
+        getZenticClient: (serverId: string) => runtime.hosts.getZenticClient(serverId),
         useHosts: () =>
           React.useSyncExternalStore(
             runtime.hosts.subscribe,

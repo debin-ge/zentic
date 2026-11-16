@@ -1,5 +1,5 @@
-import type { JsonValue } from "@getpaseo/protocol/agent-types";
-import type { ProviderConfigState } from "@getpaseo/plugin/server/provider";
+import type { JsonValue } from "@getzentic/protocol/agent-types";
+import type { ProviderConfigState } from "@getzentic/plugin/server/provider";
 import type { AgentOptionControl } from "./agent-sdk-types.js";
 
 /** How a provider session's composer options look to the daemon, whichever shape it reports. */

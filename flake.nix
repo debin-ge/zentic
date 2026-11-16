@@ -1,5 +1,5 @@
 {
-  description = "Paseo - self-hosted daemon for AI coding agents";
+  description = "Zentic - self-hosted daemon for AI coding agents";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -25,8 +25,8 @@
         system:
         let
           pkgs = pkgsFor system;
-          paseo = pkgs.callPackage ./nix/package.nix { };
-          versionParts = pkgs.lib.splitString "." paseo.version;
+          zentic = pkgs.callPackage ./nix/package.nix { };
+          versionParts = pkgs.lib.splitString "." zentic.version;
           sourceRevision = if self ? revCount && self.revCount != null then self.revCount else 0;
           buildRevision = sourceRevision - (sourceRevision / 10000) * 10000;
           desktopBuildVersion = pkgs.lib.concatStringsSep "." [
@@ -36,10 +36,10 @@
           ];
         in
         {
-          default = paseo;
-          paseo = paseo;
+          default = zentic;
+          zentic = zentic;
           desktop = pkgs.callPackage ./nix/desktop-package.nix {
-            inherit paseo;
+            inherit zentic;
             buildVersion = desktopBuildVersion;
           };
         }
@@ -54,18 +54,18 @@
         in
         {
           license-metadata =
-            assert packages.paseo.meta.license.spdxId == license;
+            assert packages.zentic.meta.license.spdxId == license;
             assert packages.desktop.meta.license.spdxId == license;
-            pkgs.runCommand "paseo-license-metadata" { } "touch $out";
+            pkgs.runCommand "zentic-license-metadata" { } "touch $out";
         }
       );
 
-      nixosModules.default = self.nixosModules.paseo;
-      nixosModules.paseo =
+      nixosModules.default = self.nixosModules.zentic;
+      nixosModules.zentic =
         { pkgs, lib, ... }:
         {
           imports = [ ./nix/module.nix ];
-          services.paseo.package = lib.mkDefault self.packages.${pkgs.stdenv.hostPlatform.system}.default;
+          services.zentic.package = lib.mkDefault self.packages.${pkgs.stdenv.hostPlatform.system}.default;
         };
 
       devShells = forAllSystems (

@@ -27,7 +27,7 @@ interface CreateAgentWorktreeTestOptions {
   branchName: string;
   baseBranch: string;
   worktreeSlug: string;
-  paseoHome?: string;
+  zenticHome?: string;
 }
 
 interface CreateAgentWorktreeTestResult {
@@ -63,7 +63,7 @@ async function createBootstrapWorktreeForTest(
       branchName: options.branchName,
     },
 
-    paseoHome: options.paseoHome,
+    zenticHome: options.zenticHome,
   });
   return { worktree, shouldBootstrap: true };
 }
@@ -116,14 +116,14 @@ describe("workspace setup detail", () => {
 describe("runWorktreeAutoTerminals", () => {
   let tempDir: string;
   let repoDir: string;
-  let paseoHome: string;
+  let zenticHome: string;
   let realTerminalManagers: TerminalManager[];
 
   beforeEach(() => {
     realTerminalManagers = [];
     tempDir = realpathSync(mkdtempSync(join(tmpdir(), "worktree-bootstrap-test-")));
     repoDir = join(tempDir, "repo");
-    paseoHome = join(tempDir, "paseo-home");
+    zenticHome = join(tempDir, "zentic-home");
 
     mkdirSync(repoDir, { recursive: true });
     execFileSync("git", ["init", "-b", "main"], { cwd: repoDir, stdio: "pipe" });
@@ -144,7 +144,7 @@ describe("runWorktreeAutoTerminals", () => {
 
   it("waits for terminal output before sending bootstrap commands", async () => {
     writeFileSync(
-      join(repoDir, "paseo.json"),
+      join(repoDir, "zentic.json"),
       JSON.stringify({
         worktree: {
           terminals: [
@@ -156,7 +156,7 @@ describe("runWorktreeAutoTerminals", () => {
         },
       }),
     );
-    execFileSync("git", ["add", "paseo.json"], { cwd: repoDir, stdio: "pipe" });
+    execFileSync("git", ["add", "zentic.json"], { cwd: repoDir, stdio: "pipe" });
     execFileSync(
       "git",
       ["-c", "commit.gpgsign=false", "commit", "-m", "add terminal bootstrap config"],
@@ -171,7 +171,7 @@ describe("runWorktreeAutoTerminals", () => {
       branchName: "feature-terminal-readiness",
       baseBranch: "main",
       worktreeSlug: "feature-terminal-readiness",
-      paseoHome,
+      zenticHome,
     });
 
     let readyAt = 0;
@@ -369,15 +369,15 @@ describe("runWorktreeAutoTerminals", () => {
     expect(createTerminalCalls[0]?.name).toBe("api");
     expect(terminalRecords[0]?.sentInputs).toEqual(["npm run api\r"]);
     expect(createTerminalCalls[0]?.env).not.toHaveProperty("PORT");
-    expect(createTerminalCalls[0]?.env?.PASEO_PORT).toEqual(expect.any(String));
+    expect(createTerminalCalls[0]?.env?.ZENTIC_PORT).toEqual(expect.any(String));
     expect(createTerminalCalls[0]?.env?.HOST).toBe("127.0.0.1");
-    expect(createTerminalCalls[0]?.env?.PASEO_URL).toBe(
+    expect(createTerminalCalls[0]?.env?.ZENTIC_URL).toBe(
       "http://api--feature-socket-service--repo.localhost:6767",
     );
-    expect(createTerminalCalls[0]?.env?.PASEO_SERVICE_API_PORT).toBe(
-      createTerminalCalls[0]?.env?.PASEO_PORT,
+    expect(createTerminalCalls[0]?.env?.ZENTIC_SERVICE_API_PORT).toBe(
+      createTerminalCalls[0]?.env?.ZENTIC_PORT,
     );
-    expect(createTerminalCalls[0]?.env?.PASEO_SERVICE_API_URL).toBe(
+    expect(createTerminalCalls[0]?.env?.ZENTIC_SERVICE_API_URL).toBe(
       "http://api--feature-socket-service--repo.localhost:6767",
     );
   }
@@ -398,10 +398,10 @@ describe("runWorktreeAutoTerminals", () => {
     if (plannedAppServerPort === undefined) {
       throw new Error("Expected app-server to be present in the service port plan");
     }
-    expect(createTerminalCalls[0]?.env?.PASEO_SERVICE_APP_SERVER_PORT).toBe(
+    expect(createTerminalCalls[0]?.env?.ZENTIC_SERVICE_APP_SERVER_PORT).toBe(
       String(plannedAppServerPort),
     );
-    expect(createTerminalCalls[0]?.env?.PASEO_SERVICE_APP_SERVER_URL).toBe(
+    expect(createTerminalCalls[0]?.env?.ZENTIC_SERVICE_APP_SERVER_URL).toBe(
       "http://app-server--feature-socket-service--repo.localhost:6767",
     );
   }
@@ -418,12 +418,12 @@ describe("runWorktreeAutoTerminals", () => {
     });
   }
 
-  function commitPaseoScripts(
+  function commitZenticScripts(
     scripts: Record<string, { command: string; type?: "script" | "service" }>,
     message = "add script config",
   ): void {
-    writeFileSync(join(repoDir, "paseo.json"), JSON.stringify({ scripts }));
-    execFileSync("git", ["add", "paseo.json"], { cwd: repoDir, stdio: "pipe" });
+    writeFileSync(join(repoDir, "zentic.json"), JSON.stringify({ scripts }));
+    execFileSync("git", ["add", "zentic.json"], { cwd: repoDir, stdio: "pipe" });
     execFileSync("git", ["-c", "commit.gpgsign=false", "commit", "-m", message], {
       cwd: repoDir,
       stdio: "pipe",
@@ -431,7 +431,7 @@ describe("runWorktreeAutoTerminals", () => {
   }
 
   it("spawns plain scripts in persistent shell terminals without env injection or routes", async () => {
-    commitPaseoScripts({
+    commitZenticScripts({
       web: {
         command: "npm run dev",
       },
@@ -471,7 +471,7 @@ describe("runWorktreeAutoTerminals", () => {
   });
 
   it("records plain script exit codes from shell command completion without terminal exit", async () => {
-    commitPaseoScripts(
+    commitZenticScripts(
       {
         typecheck: {
           command: 'node -e "process.exit(7)"',
@@ -510,7 +510,7 @@ describe("runWorktreeAutoTerminals", () => {
   });
 
   it("reuses a live terminal when rerunning after plain script completion", async () => {
-    commitPaseoScripts(
+    commitZenticScripts(
       {
         typecheck: {
           command: "npm run typecheck",
@@ -576,7 +576,7 @@ describe("runWorktreeAutoTerminals", () => {
   });
 
   it("tracks command completion when reusing a live terminal from a stopped plain script entry", async () => {
-    commitPaseoScripts(
+    commitZenticScripts(
       {
         typecheck: {
           command: "npm run typecheck",
@@ -631,7 +631,7 @@ describe("runWorktreeAutoTerminals", () => {
   });
 
   it("uses terminal exit as a fallback before shell command completion", async () => {
-    commitPaseoScripts(
+    commitZenticScripts(
       {
         typecheck: {
           command: "npm run typecheck",
@@ -669,7 +669,7 @@ describe("runWorktreeAutoTerminals", () => {
   });
 
   it("rejects duplicate plain script starts while running", async () => {
-    commitPaseoScripts(
+    commitZenticScripts(
       {
         typecheck: {
           command: 'node -e "setTimeout(() => {}, 30000)"',
@@ -712,7 +712,7 @@ describe("runWorktreeAutoTerminals", () => {
   });
 
   it("spawns services with route registration and injected peer service env vars", async () => {
-    commitPaseoScripts(
+    commitZenticScripts(
       {
         api: {
           type: "service",
@@ -765,12 +765,12 @@ describe("runWorktreeAutoTerminals", () => {
     });
   });
 
-  it("starts a service added to paseo.json without restarting the daemon", async () => {
+  it("starts a service added to zentic.json without restarting the daemon", async () => {
     const backend = {
       type: "service" as const,
-      command: "uv run uvicorn app.main:app --reload --port $PASEO_PORT",
+      command: "uv run uvicorn app.main:app --reload --port $ZENTIC_PORT",
     };
-    commitPaseoScripts({ "backend-dev": backend });
+    commitZenticScripts({ "backend-dev": backend });
 
     const serviceProxy = new ScriptRouteStore();
     const runtimeStore = new WorkspaceScriptRuntimeStore();
@@ -789,11 +789,11 @@ describe("runWorktreeAutoTerminals", () => {
     const backendResult = await spawnWorkspaceScript({ ...options, scriptName: "backend-dev" });
 
     writeFileSync(
-      join(repoDir, "paseo.json"),
+      join(repoDir, "zentic.json"),
       JSON.stringify({
         scripts: {
           "backend-dev": backend,
-          web: { type: "service", command: "pnpm run dev -- --port $PASEO_PORT" },
+          web: { type: "service", command: "pnpm run dev -- --port $ZENTIC_PORT" },
         },
       }),
     );
@@ -801,9 +801,9 @@ describe("runWorktreeAutoTerminals", () => {
 
     expect(webResult.port).toEqual(expect.any(Number));
     expect(webResult.port).not.toBe(backendResult.port);
-    expect(terminalRecords[1]?.sentInputs).toEqual(["pnpm run dev -- --port $PASEO_PORT\r"]);
-    expect(createTerminalCalls[1]?.env?.PASEO_PORT).toBe(String(webResult.port));
-    expect(createTerminalCalls[1]?.env?.PASEO_SERVICE_BACKEND_DEV_PORT).toBe(
+    expect(terminalRecords[1]?.sentInputs).toEqual(["pnpm run dev -- --port $ZENTIC_PORT\r"]);
+    expect(createTerminalCalls[1]?.env?.ZENTIC_PORT).toBe(String(webResult.port));
+    expect(createTerminalCalls[1]?.env?.ZENTIC_SERVICE_BACKEND_DEV_PORT).toBe(
       String(backendResult.port),
     );
     expect(serviceProxy.listRoutes()).toHaveLength(2);
@@ -814,7 +814,7 @@ describe("runWorktreeAutoTerminals", () => {
   });
 
   it("spawns services with public aliases and public service URLs", async () => {
-    commitPaseoScripts(
+    commitZenticScripts(
       {
         api: {
           type: "service",
@@ -856,20 +856,20 @@ describe("runWorktreeAutoTerminals", () => {
       workspaceId: repoDir,
       scriptName: "api",
     });
-    expect(createTerminalCalls[0]?.env?.PASEO_URL).toBe(
+    expect(createTerminalCalls[0]?.env?.ZENTIC_URL).toBe(
       "https://api--feature-public-service--repo.services.example.com",
     );
-    expect(createTerminalCalls[0]?.env?.PASEO_SERVICE_API_URL).toBe(
+    expect(createTerminalCalls[0]?.env?.ZENTIC_SERVICE_API_URL).toBe(
       "https://api--feature-public-service--repo.services.example.com",
     );
-    expect(createTerminalCalls[0]?.env?.PASEO_SERVICE_APP_SERVER_URL).toBe(
+    expect(createTerminalCalls[0]?.env?.ZENTIC_SERVICE_APP_SERVER_URL).toBe(
       "https://app-server--feature-public-service--repo.services.example.com",
     );
   });
 
   it("refreshes a stopped service port on respawn and updates the route", async () => {
     writeFileSync(
-      join(repoDir, "paseo.json"),
+      join(repoDir, "zentic.json"),
       JSON.stringify({
         scripts: {
           api: {
@@ -883,7 +883,7 @@ describe("runWorktreeAutoTerminals", () => {
         },
       }),
     );
-    execFileSync("git", ["add", "paseo.json"], { cwd: repoDir, stdio: "pipe" });
+    execFileSync("git", ["add", "zentic.json"], { cwd: repoDir, stdio: "pipe" });
     execFileSync(
       "git",
       ["-c", "commit.gpgsign=false", "commit", "-m", "add respawn service script config"],
@@ -973,8 +973,8 @@ describe("runWorktreeAutoTerminals", () => {
     }
     expect(secondPort).not.toBe(firstPort);
     expect(secondPort).toEqual(expect.any(Number));
-    expect(createTerminalCalls[2]?.env?.PASEO_PORT).toBe(String(secondPort));
-    expect(createTerminalCalls[2]?.env?.PASEO_SERVICE_WORKER_PORT).toBe(String(workerPort));
+    expect(createTerminalCalls[2]?.env?.ZENTIC_PORT).toBe(String(secondPort));
+    expect(createTerminalCalls[2]?.env?.ZENTIC_SERVICE_WORKER_PORT).toBe(String(workerPort));
     expect(routeStore.getRouteEntry("api--feature-respawn-service--repo.localhost")).toMatchObject({
       hostname: "api--feature-respawn-service--repo.localhost",
       port: secondPort,
@@ -986,7 +986,7 @@ describe("runWorktreeAutoTerminals", () => {
 
   it("removes the current service route on exit after a branch rename", async () => {
     writeFileSync(
-      join(repoDir, "paseo.json"),
+      join(repoDir, "zentic.json"),
       JSON.stringify({
         scripts: {
           api: {
@@ -996,7 +996,7 @@ describe("runWorktreeAutoTerminals", () => {
         },
       }),
     );
-    execFileSync("git", ["add", "paseo.json"], { cwd: repoDir, stdio: "pipe" });
+    execFileSync("git", ["add", "zentic.json"], { cwd: repoDir, stdio: "pipe" });
     execFileSync(
       "git",
       ["-c", "commit.gpgsign=false", "commit", "-m", "add renamed service script config"],
@@ -1048,7 +1048,7 @@ describe("runWorktreeAutoTerminals", () => {
 
   it("fails normalized service env name collisions before terminal creation", async () => {
     writeFileSync(
-      join(repoDir, "paseo.json"),
+      join(repoDir, "zentic.json"),
       JSON.stringify({
         scripts: {
           "app-server": {
@@ -1062,7 +1062,7 @@ describe("runWorktreeAutoTerminals", () => {
         },
       }),
     );
-    execFileSync("git", ["add", "paseo.json"], { cwd: repoDir, stdio: "pipe" });
+    execFileSync("git", ["add", "zentic.json"], { cwd: repoDir, stdio: "pipe" });
     execFileSync(
       "git",
       ["-c", "commit.gpgsign=false", "commit", "-m", "add colliding service config"],
@@ -1097,7 +1097,7 @@ describe("runWorktreeAutoTerminals", () => {
     ).toBeNull();
 
     writeFileSync(
-      join(repoDir, "paseo.json"),
+      join(repoDir, "zentic.json"),
       JSON.stringify({
         scripts: {
           "app-server": {
@@ -1134,13 +1134,13 @@ describe("runWorktreeAutoTerminals", () => {
 
     expect(Array.from(plan.keys())).toEqual(["app-server", "worker"]);
     expect(createTerminalCalls).toHaveLength(1);
-    expect(createTerminalCalls[0]?.env).toHaveProperty("PASEO_SERVICE_APP_SERVER_PORT");
-    expect(createTerminalCalls[0]?.env).toHaveProperty("PASEO_SERVICE_WORKER_PORT");
+    expect(createTerminalCalls[0]?.env).toHaveProperty("ZENTIC_SERVICE_APP_SERVER_PORT");
+    expect(createTerminalCalls[0]?.env).toHaveProperty("ZENTIC_SERVICE_WORKER_PORT");
   });
 
   it("binds services to the network when the daemon listens on a non-loopback host", async () => {
     writeFileSync(
-      join(repoDir, "paseo.json"),
+      join(repoDir, "zentic.json"),
       JSON.stringify({
         scripts: {
           web: {
@@ -1150,7 +1150,7 @@ describe("runWorktreeAutoTerminals", () => {
         },
       }),
     );
-    execFileSync("git", ["add", "paseo.json"], { cwd: repoDir, stdio: "pipe" });
+    execFileSync("git", ["add", "zentic.json"], { cwd: repoDir, stdio: "pipe" });
     execFileSync(
       "git",
       ["-c", "commit.gpgsign=false", "commit", "-m", "add remote service script config"],
@@ -1179,7 +1179,7 @@ describe("runWorktreeAutoTerminals", () => {
 
     expect(createTerminalCalls).toHaveLength(1);
     expect(createTerminalCalls[0]?.env?.HOST).toBe("0.0.0.0");
-    expect(createTerminalCalls[0]?.env?.PASEO_URL).toBe(
+    expect(createTerminalCalls[0]?.env?.ZENTIC_URL).toBe(
       "http://web--feature-remote-service--repo.localhost:6767",
     );
   });

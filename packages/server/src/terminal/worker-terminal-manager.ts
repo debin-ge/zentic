@@ -3,12 +3,15 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { access } from "node:fs/promises";
 import { setTimeout as delay } from "node:timers/promises";
 import type { Logger } from "pino";
-import { createExternalProcessEnv } from "../server/paseo-env.js";
+import { createExternalProcessEnv } from "../server/zentic-env.js";
 import { assertAbsolutePath, isSameOrDescendantPath } from "../server/path-utils.js";
 import { writtenDuringThisBoot } from "../server/pid-lock.js";
 import type { WorkerTerminalState } from "./terminal-worker-protocol.js";
-import type { TerminalActivity, TerminalActivityState } from "@getpaseo/protocol/terminal-activity";
-import { deriveTerminalActivityStatusBucket } from "@getpaseo/protocol/terminal-activity";
+import type {
+  TerminalActivity,
+  TerminalActivityState,
+} from "@getzentic/protocol/terminal-activity";
+import { deriveTerminalActivityStatusBucket } from "@getzentic/protocol/terminal-activity";
 import type {
   ClientMessage,
   ServerMessage,
@@ -17,7 +20,7 @@ import type {
   TerminalExitInfo,
   TerminalSession,
 } from "./terminal.js";
-import { resolvePaseoCliExecutablePath } from "./paseo-cli-path.js";
+import { resolveZenticCliExecutablePath } from "./zentic-cli-path.js";
 import type { CaptureTerminalLinesResult } from "./terminal-capture.js";
 import { connectTerminalWorker, type TerminalWorkerConnection } from "./terminal-worker-client.js";
 import { launchTerminalWorker } from "./terminal-worker-launch.js";
@@ -105,7 +108,7 @@ interface WorkerTerminalRecord {
 
 export interface TerminalCreateEnvironment {
   baseEnv: Record<string, string>;
-  paseoCliPath: string | null;
+  zenticCliPath: string | null;
 }
 
 interface WorkerTerminalManagerOptions {
@@ -140,7 +143,7 @@ function createActivityToken(): string {
 function resolveDaemonTerminalCreateEnvironment(): TerminalCreateEnvironment {
   return {
     baseEnv: createExternalProcessEnv(process.env),
-    paseoCliPath: resolvePaseoCliExecutablePath(),
+    zenticCliPath: resolveZenticCliExecutablePath(),
   };
 }
 
@@ -839,7 +842,7 @@ export function createWorkerTerminalManager(
             activityToken,
             activityUrl: terminalActivityUrl,
             baseEnv: environment.baseEnv,
-            paseoCliPath: environment.paseoCliPath,
+            zenticCliPath: environment.zenticCliPath,
           },
         });
         if (!creation.session) {
@@ -992,8 +995,8 @@ export function createWorkerTerminalManager(
 }
 
 export interface StartWorkerTerminalManagerOptions {
-  paseoHome: string;
-  paseoVersion: string;
+  zenticHome: string;
+  zenticVersion: string;
   logger: Logger;
   getTerminalActivityUrl?: () => string | null;
   requestTimeoutMs?: number;
@@ -1014,7 +1017,7 @@ interface LiveWorkerRecord {
 /**
  * Connects the daemon to its terminal workers. A worker of this daemon's protocol is adopted
  * (restart, crash, `stop --keep-terminals`); one a protocol older is adopted to drain; anything
- * older is shut down, its terminals closed; one from a newer Paseo is left running and the
+ * older is shut down, its terminals closed; one from a newer Zentic is left running and the
  * terminal service reports it as incompatible. A worker is launched only when none is current,
  * none is incompatible and fewer than two run; when two run, the first terminal created after one
  * of them exits launches it. Records that cannot be adopted (a cleanup that
@@ -1029,7 +1032,7 @@ export async function startWorkerTerminalManager(
   const log = (message: string, fields?: Record<string, unknown>) => logger.info(fields, message);
   const live: LiveWorkerRecord[] = [];
   const toReap: string[] = [];
-  for (const file of await listTerminalWorkerRecords(options.paseoHome)) {
+  for (const file of await listTerminalWorkerRecords(options.zenticHome)) {
     if ("error" in file) {
       logger.warn({ recordPath: file.path, err: file.error }, "Unreadable terminal worker record");
       continue;
@@ -1065,7 +1068,7 @@ export async function startWorkerTerminalManager(
 
   if (toReap.length > 0) {
     await reapTerminalWorkers({
-      paseoHome: options.paseoHome,
+      zenticHome: options.zenticHome,
       gracefulMs: 0,
       recordPaths: toReap,
       inspector,
@@ -1082,14 +1085,14 @@ export async function startWorkerTerminalManager(
         {
           pid: entry.record.pid,
           protocolVersion: entry.record.protocolVersion,
-          paseoVersion: entry.record.paseoVersion,
+          zenticVersion: entry.record.zenticVersion,
           terminals: entry.record.terminals.length,
         },
         "Closing a terminal worker two or more protocol versions old; its terminals close",
       );
     }
     await reapTerminalWorkers({
-      paseoHome: options.paseoHome,
+      zenticHome: options.zenticHome,
       recordPaths: obsolete.map((entry) => entry.path),
       inspector,
       log,
@@ -1099,11 +1102,11 @@ export async function startWorkerTerminalManager(
   }
 
   const closeAll = async () => {
-    const result = await reapTerminalWorkers({ paseoHome: options.paseoHome, inspector, log });
+    const result = await reapTerminalWorkers({ zenticHome: options.zenticHome, inspector, log });
     logger.info(result, "Terminals closed");
   };
   const prune = async () => {
-    const result = await pruneTerminalWorkerRuntimes(options.paseoHome);
+    const result = await pruneTerminalWorkerRuntimes(options.zenticHome);
     if (result.removed.length > 0)
       log("Removed terminal worker copies", { removed: result.removed });
     for (const failure of result.failed) {
@@ -1112,7 +1115,7 @@ export async function startWorkerTerminalManager(
   };
 
   const pruneAfterExit = async (workerPid: number) => {
-    if (await waitForWorkerRecordRemoval(options.paseoHome, workerPid)) {
+    if (await waitForWorkerRecordRemoval(options.zenticHome, workerPid)) {
       await prune();
       return;
     }
@@ -1122,7 +1125,7 @@ export async function startWorkerTerminalManager(
   const newer = live.find((entry) => entry.fit === "newer");
   if (newer) {
     const incompatible = new TerminalWorkerIncompatibleError({
-      paseoVersion: newer.record.paseoVersion,
+      zenticVersion: newer.record.zenticVersion,
       protocolVersion: newer.record.protocolVersion,
     });
     logger.error({ pid: newer.record.pid }, incompatible.message);
@@ -1152,8 +1155,8 @@ export async function startWorkerTerminalManager(
           const ownership = await identifyTerminalWorker(record);
           if (ownership.status === "gone" || ownership.status === "unrelated") {
             await reapTerminalWorkers({
-              paseoHome: options.paseoHome,
-              recordPaths: [terminalWorkerRecordPath(options.paseoHome, record.pid)],
+              zenticHome: options.zenticHome,
+              recordPaths: [terminalWorkerRecordPath(options.zenticHome, record.pid)],
               inspector,
               log,
               gracefulMs: 0,
@@ -1247,15 +1250,15 @@ export async function startWorkerTerminalManager(
   // Counted from the records rather than from what startup drove: a worker a cleanup could not
   // confirm gone keeps running, and a draining one exits on its own.
   const startCurrent = async (): Promise<TerminalWorkerPoolMember> => {
-    const running = await countRunningTerminalWorkers(options.paseoHome);
+    const running = await countRunningTerminalWorkers(options.zenticHome);
     if (running >= MAX_TERMINAL_WORKERS) {
       throw new NoTerminalWorkerAvailableError(
-        `${running} terminal workers are already running in ${options.paseoHome}; new terminals can open once one of them exits`,
+        `${running} terminal workers are already running in ${options.zenticHome}; new terminals can open once one of them exits`,
       );
     }
     const launched = await launchTerminalWorker({
-      paseoHome: options.paseoHome,
-      paseoVersion: options.paseoVersion,
+      zenticHome: options.zenticHome,
+      zenticVersion: options.zenticVersion,
     });
     const connection = await connectTerminalWorker({
       socketPath: launched.record.socketPath,
@@ -1304,9 +1307,9 @@ export async function startWorkerTerminalManager(
 // are listed as one. Unreadable records and workers that cannot be identified count; a worker
 // confirmed gone, or a pid now running something else (another birth time, or nothing listening
 // on the worker's socket), does not.
-async function countRunningTerminalWorkers(paseoHome: string): Promise<number> {
+async function countRunningTerminalWorkers(zenticHome: string): Promise<number> {
   let running = 0;
-  for (const file of await listTerminalWorkerRecords(paseoHome)) {
+  for (const file of await listTerminalWorkerRecords(zenticHome)) {
     if ("error" in file) {
       running += 1;
       continue;
@@ -1320,8 +1323,8 @@ async function countRunningTerminalWorkers(paseoHome: string): Promise<number> {
 }
 
 // A worker deletes its own record as it exits.
-async function waitForWorkerRecordRemoval(paseoHome: string, workerPid: number): Promise<boolean> {
-  const recordPath = terminalWorkerRecordPath(paseoHome, workerPid);
+async function waitForWorkerRecordRemoval(zenticHome: string, workerPid: number): Promise<boolean> {
+  const recordPath = terminalWorkerRecordPath(zenticHome, workerPid);
   const deadline = Date.now() + DRAINED_WORKER_EXIT_TIMEOUT_MS;
   while (
     await access(recordPath).then(

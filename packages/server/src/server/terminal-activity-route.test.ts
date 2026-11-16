@@ -98,7 +98,7 @@ it("accepts terminalId and token reports through the route into the tracker", as
       `
         const fs = require("node:fs");
         const envPath = ${JSON.stringify(envPath)};
-        fs.writeFileSync(envPath + ".tmp", JSON.stringify({ terminalId: process.env.PASEO_TERMINAL_ID, token: process.env.PASEO_ACTIVITY_TOKEN, url: process.env.PASEO_TERMINAL_ACTIVITY_URL }));
+        fs.writeFileSync(envPath + ".tmp", JSON.stringify({ terminalId: process.env.ZENTIC_TERMINAL_ID, token: process.env.ZENTIC_ACTIVITY_TOKEN, url: process.env.ZENTIC_TERMINAL_ACTIVITY_URL }));
         fs.renameSync(envPath + ".tmp", envPath);
         setInterval(() => {}, 1000);
       `,

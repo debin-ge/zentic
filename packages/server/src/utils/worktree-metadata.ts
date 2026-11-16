@@ -17,14 +17,14 @@ const ChangeRequestLookupTargetSchema = z.object({
 // baseRefName is the display name; baseRef is the checkout's current exact base
 // ("refs/remotes/upstream/main"). baseRef is optional because worktrees written before it
 // existed only have the name — there are no migrations, so readers fall back.
-const PaseoWorktreeMetadataV1Schema = z.object({
+const ZenticWorktreeMetadataV1Schema = z.object({
   version: z.literal(1),
   baseRefName: z.string().min(1),
   baseRef: z.string().min(1).optional(),
   changeRequestLookupTarget: ChangeRequestLookupTargetSchema.optional(),
 });
 
-const PaseoWorktreeMetadataV2Schema = z.object({
+const ZenticWorktreeMetadataV2Schema = z.object({
   version: z.literal(2),
   baseRefName: z.string().min(1),
   baseRef: z.string().min(1).optional(),
@@ -49,24 +49,24 @@ const PaseoWorktreeMetadataV2Schema = z.object({
     .optional(),
 });
 
-const PaseoWorktreeMetadataSchema = z.union([
-  PaseoWorktreeMetadataV1Schema,
-  PaseoWorktreeMetadataV2Schema,
+const ZenticWorktreeMetadataSchema = z.union([
+  ZenticWorktreeMetadataV1Schema,
+  ZenticWorktreeMetadataV2Schema,
 ]);
 
-export type PaseoWorktreeMetadata = z.infer<typeof PaseoWorktreeMetadataSchema>;
-export type PaseoWorktreeChangeRequestHint = z.infer<typeof ChangeRequestLookupTargetSchema>;
+export type ZenticWorktreeMetadata = z.infer<typeof ZenticWorktreeMetadataSchema>;
+export type ZenticWorktreeChangeRequestHint = z.infer<typeof ChangeRequestLookupTargetSchema>;
 
-export function createPaseoWorktreeChangeRequestHint(
-  input: PaseoWorktreeChangeRequestHint,
-): PaseoWorktreeChangeRequestHint {
+export function createZenticWorktreeChangeRequestHint(
+  input: ZenticWorktreeChangeRequestHint,
+): ZenticWorktreeChangeRequestHint {
   return ChangeRequestLookupTargetSchema.parse(input);
 }
 
-export function getPaseoWorktreeChangeRequestHintForBranch(
-  metadata: PaseoWorktreeMetadata | null,
+export function getZenticWorktreeChangeRequestHintForBranch(
+  metadata: ZenticWorktreeMetadata | null,
   currentBranch: string,
-): PaseoWorktreeChangeRequestHint | null {
+): ZenticWorktreeChangeRequestHint | null {
   const target = metadata?.changeRequestLookupTarget;
   if (!target) {
     return null;
@@ -95,19 +95,19 @@ function normalizeLegacyGitHubOwnerForBranch(owner: string): string | null {
   return /^[a-z0-9-]+$/.test(normalized) ? normalized : null;
 }
 
-export async function rebindPaseoWorktreeChangeRequestHint(
+export async function rebindZenticWorktreeChangeRequestHint(
   worktreeRoot: string,
   previousBranch: string,
   currentBranch: string,
 ): Promise<boolean> {
   return mutateMetadata(worktreeRoot, async (root) => {
     const metadata = await readMetadataFile(root);
-    const target = getPaseoWorktreeChangeRequestHintForBranch(metadata, previousBranch);
+    const target = getZenticWorktreeChangeRequestHintForBranch(metadata, previousBranch);
     if (!metadata || !target) {
       return false;
     }
 
-    await writePaseoWorktreeMetadataFile(root, {
+    await writeZenticWorktreeMetadataFile(root, {
       ...metadata,
       changeRequestLookupTarget: {
         ...target,
@@ -123,7 +123,7 @@ export async function rebindPaseoWorktreeChangeRequestHint(
   });
 }
 
-export async function pinPaseoWorktreeBranchIdentityIfMissing(
+export async function pinZenticWorktreeBranchIdentityIfMissing(
   worktreeRoot: string,
   branch: string,
 ): Promise<boolean> {
@@ -132,11 +132,11 @@ export async function pinPaseoWorktreeBranchIdentityIfMissing(
     if (!metadata || metadata.changeRequestLookupTarget) {
       return false;
     }
-    const target = createPaseoWorktreeChangeRequestHint({
+    const target = createZenticWorktreeChangeRequestHint({
       headRef: branch,
       localBranchName: branch,
     });
-    await writePaseoWorktreeMetadataFile(root, {
+    await writeZenticWorktreeMetadataFile(root, {
       ...metadata,
       changeRequestLookupTarget: target,
     });
@@ -165,9 +165,9 @@ async function getGitDirForWorktreeRoot(worktreeRoot: string): Promise<string> {
   return gitPath;
 }
 
-export async function getPaseoWorktreeMetadataPath(worktreeRoot: string): Promise<string> {
+export async function getZenticWorktreeMetadataPath(worktreeRoot: string): Promise<string> {
   const gitDir = await getGitDirForWorktreeRoot(worktreeRoot);
-  return join(gitDir, "paseo", "worktree.json");
+  return join(gitDir, "zentic", "worktree.json");
 }
 
 export function isQualifiedRef(ref: string): boolean {
@@ -221,12 +221,12 @@ function assertValidBaseRef(value: string): void {
   }
 }
 
-export async function writePaseoWorktreeMetadata(
+export async function writeZenticWorktreeMetadata(
   worktreeRoot: string,
   options: {
     baseRefName: string;
     baseRef?: string;
-    changeRequestLookupTarget?: PaseoWorktreeChangeRequestHint;
+    changeRequestLookupTarget?: ZenticWorktreeChangeRequestHint;
   },
 ): Promise<void> {
   return mutateMetadata(worktreeRoot, async (root) => {
@@ -237,7 +237,7 @@ export async function writePaseoWorktreeMetadata(
       assertValidBaseRef(baseRef);
     }
 
-    const metadata: PaseoWorktreeMetadata = {
+    const metadata: ZenticWorktreeMetadata = {
       version: 1,
       baseRefName,
       ...(baseRef ? { baseRef } : {}),
@@ -245,18 +245,18 @@ export async function writePaseoWorktreeMetadata(
         ? { changeRequestLookupTarget: options.changeRequestLookupTarget }
         : {}),
     };
-    await writePaseoWorktreeMetadataFile(root, metadata);
+    await writeZenticWorktreeMetadataFile(root, metadata);
   });
 }
 
-export async function setPaseoWorktreeBaseRef(input: {
+export async function setZenticWorktreeBaseRef(input: {
   worktreeRoot: string;
   baseRef: string;
 }): Promise<void> {
   return mutateMetadata(input.worktreeRoot, async (root) => {
     const current = await readMetadataFile(root);
     if (!current) throw new Error("Cannot change base: missing worktree metadata");
-    await writePaseoWorktreeMetadataFile(root, {
+    await writeZenticWorktreeMetadataFile(root, {
       ...current,
       baseRefName: branchNameFromRef(input.baseRef),
       baseRef: input.baseRef,
@@ -264,7 +264,7 @@ export async function setPaseoWorktreeBaseRef(input: {
   });
 }
 
-export async function writePaseoWorktreeRuntimeMetadata(
+export async function writeZenticWorktreeRuntimeMetadata(
   worktreeRoot: string,
   options: { worktreePort: number },
 ): Promise<void> {
@@ -278,18 +278,18 @@ export async function writePaseoWorktreeRuntimeMetadata(
       throw new Error("Cannot persist worktree runtime metadata: missing base metadata");
     }
 
-    const next: PaseoWorktreeMetadata = {
+    const next: ZenticWorktreeMetadata = {
       ...current,
       version: 2,
       runtime: {
         worktreePort: options.worktreePort,
       },
     };
-    await writePaseoWorktreeMetadataFile(root, next);
+    await writeZenticWorktreeMetadataFile(root, next);
   });
 }
 
-export async function writePaseoWorktreeFirstAgentBranchAutoNameMetadata(
+export async function writeZenticWorktreeFirstAgentBranchAutoNameMetadata(
   worktreeRoot: string,
   options: { placeholderBranchName: string },
 ): Promise<void> {
@@ -306,7 +306,7 @@ export async function writePaseoWorktreeFirstAgentBranchAutoNameMetadata(
       );
     }
 
-    await writePaseoWorktreeMetadataFile(root, {
+    await writeZenticWorktreeMetadataFile(root, {
       ...current,
       version: 2,
       firstAgentBranchAutoName: {
@@ -317,10 +317,10 @@ export async function writePaseoWorktreeFirstAgentBranchAutoNameMetadata(
   });
 }
 
-export async function markPaseoWorktreeFirstAgentBranchAutoNameAttempted(
+export async function markZenticWorktreeFirstAgentBranchAutoNameAttempted(
   worktreeRoot: string,
   options: { attemptedAt?: string } = {},
-): Promise<PaseoWorktreeMetadata | null> {
+): Promise<ZenticWorktreeMetadata | null> {
   return mutateMetadata(worktreeRoot, async (root) => {
     const current = await readMetadataFile(root);
     if (
@@ -331,7 +331,7 @@ export async function markPaseoWorktreeFirstAgentBranchAutoNameAttempted(
       return current;
     }
 
-    const next: PaseoWorktreeMetadata = {
+    const next: ZenticWorktreeMetadata = {
       ...current,
       firstAgentBranchAutoName: {
         status: "attempted",
@@ -339,26 +339,26 @@ export async function markPaseoWorktreeFirstAgentBranchAutoNameAttempted(
         attemptedAt: options.attemptedAt ?? new Date().toISOString(),
       },
     };
-    await writePaseoWorktreeMetadataFile(root, next);
+    await writeZenticWorktreeMetadataFile(root, next);
     return next;
   });
 }
 
-export async function hasPaseoWorktreeMetadata(worktreeRoot: string): Promise<boolean> {
+export async function hasZenticWorktreeMetadata(worktreeRoot: string): Promise<boolean> {
   try {
-    return (await readPaseoWorktreeMetadata(worktreeRoot)) !== null;
+    return (await readZenticWorktreeMetadata(worktreeRoot)) !== null;
   } catch {
     return false;
   }
 }
 
 /**
- * Filesystem-only search for a Paseo worktree root at or above cwd: the
+ * Filesystem-only search for a Zentic worktree root at or above cwd: the
  * first directory containing a .git entry wins, and it only counts when
- * its git admin dir holds the paseo/worktree.json marker. Lets callers
+ * its git admin dir holds the zentic/worktree.json marker. Lets callers
  * cheaply rule out plain directories before running git ownership checks.
  */
-export async function findPaseoWorktreeRootForCwd(cwd: string): Promise<string | null> {
+export async function findZenticWorktreeRootForCwd(cwd: string): Promise<string | null> {
   let current = resolve(cwd);
   for (;;) {
     if (
@@ -367,7 +367,7 @@ export async function findPaseoWorktreeRootForCwd(cwd: string): Promise<string |
         () => false,
       )
     ) {
-      return (await hasPaseoWorktreeMetadata(current)) ? current : null;
+      return (await hasZenticWorktreeMetadata(current)) ? current : null;
     }
     const parent = dirname(current);
     if (parent === current) {
@@ -377,18 +377,18 @@ export async function findPaseoWorktreeRootForCwd(cwd: string): Promise<string |
   }
 }
 
-export async function readPaseoWorktreeMetadata(
+export async function readZenticWorktreeMetadata(
   worktreeRoot: string,
-): Promise<PaseoWorktreeMetadata | null> {
+): Promise<ZenticWorktreeMetadata | null> {
   const key = await resolveMetadataIdentity(worktreeRoot);
   await metadataMutations.get(key)?.catch(() => {});
   return metadataIo(() => readMetadataFile(key));
 }
 
-async function readMetadataFile(worktreeRoot: string): Promise<PaseoWorktreeMetadata | null> {
-  const metadataPath = await getPaseoWorktreeMetadataPath(worktreeRoot);
+async function readMetadataFile(worktreeRoot: string): Promise<ZenticWorktreeMetadata | null> {
+  const metadataPath = await getZenticWorktreeMetadataPath(worktreeRoot);
   try {
-    return PaseoWorktreeMetadataSchema.parse(JSON.parse(await readBoundedFile(metadataPath)));
+    return ZenticWorktreeMetadataSchema.parse(JSON.parse(await readBoundedFile(metadataPath)));
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
     throw error;
@@ -403,7 +403,7 @@ async function readBoundedFile(path: string): Promise<string> {
     const info = await file.stat();
     const limit = MAX_WORKTREE_METADATA_BYTES;
     if (!info.isFile() || info.size > limit)
-      throw new Error(`Invalid Paseo worktree metadata file: ${path}`);
+      throw new Error(`Invalid Zentic worktree metadata file: ${path}`);
     const buffer = Buffer.alloc(limit + 1);
     let length = 0;
     while (length < buffer.length) {
@@ -411,24 +411,24 @@ async function readBoundedFile(path: string): Promise<string> {
       if (bytesRead === 0) break;
       length += bytesRead;
     }
-    if (length > limit) throw new Error(`Invalid Paseo worktree metadata file: ${path}`);
+    if (length > limit) throw new Error(`Invalid Zentic worktree metadata file: ${path}`);
     return buffer.toString("utf8", 0, length);
   } finally {
     await file.close();
   }
 }
 
-export async function requirePaseoWorktreeBaseRefName(worktreeRoot: string): Promise<string> {
-  const metadataPath = await getPaseoWorktreeMetadataPath(worktreeRoot);
-  const metadata = await readPaseoWorktreeMetadata(worktreeRoot);
+export async function requireZenticWorktreeBaseRefName(worktreeRoot: string): Promise<string> {
+  const metadataPath = await getZenticWorktreeMetadataPath(worktreeRoot);
+  const metadata = await readZenticWorktreeMetadata(worktreeRoot);
   if (!metadata) {
-    throw new Error(`Missing Paseo worktree base metadata: ${metadataPath}`);
+    throw new Error(`Missing Zentic worktree base metadata: ${metadataPath}`);
   }
   return metadata.baseRefName;
 }
 
-export async function readPaseoWorktreeRuntimePort(worktreeRoot: string): Promise<number | null> {
-  const metadata = await readPaseoWorktreeMetadata(worktreeRoot);
+export async function readZenticWorktreeRuntimePort(worktreeRoot: string): Promise<number | null> {
+  const metadata = await readZenticWorktreeMetadata(worktreeRoot);
   if (!metadata) {
     return null;
   }
@@ -438,18 +438,18 @@ export async function readPaseoWorktreeRuntimePort(worktreeRoot: string): Promis
   return null;
 }
 
-async function writePaseoWorktreeMetadataFile(
+async function writeZenticWorktreeMetadataFile(
   worktreeRoot: string,
-  metadata: PaseoWorktreeMetadata,
+  metadata: ZenticWorktreeMetadata,
 ): Promise<void> {
-  const metadataPath = await getPaseoWorktreeMetadataPath(worktreeRoot);
+  const metadataPath = await getZenticWorktreeMetadataPath(worktreeRoot);
   const contents = `${JSON.stringify(metadata, null, 2)}\n`;
   if (Buffer.byteLength(contents) > MAX_WORKTREE_METADATA_BYTES) {
-    throw new Error(`Invalid Paseo worktree metadata file: ${metadataPath}`);
+    throw new Error(`Invalid Zentic worktree metadata file: ${metadataPath}`);
   }
   // Never recreate an archived Git directory while a queued mutation is pending.
   try {
-    await mkdir(join(await getGitDirForWorktreeRoot(worktreeRoot), "paseo"));
+    await mkdir(join(await getGitDirForWorktreeRoot(worktreeRoot), "zentic"));
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
   }

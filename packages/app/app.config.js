@@ -6,12 +6,12 @@ const withAndroidOptionalCamera = require("./plugins/with-android-optional-camer
 const withAndroidProfileable = require("./plugins/with-android-profileable");
 const withFdroidAutolinking = require("./plugins/with-fdroid-autolinking");
 const withPasteInput = require("./plugins/with-paste-input");
-const withAndroidScroll = require("./modules/paseo-scroll/app.plugin");
+const withAndroidScroll = require("./modules/zentic-scroll/app.plugin");
 const { getNativeReleaseVersion } = require("./native-release-version");
 const appVariant = process.env.APP_VARIANT ?? "production";
-const isFdroidBuild = process.env.PASEO_FDROID_BUILD === "1";
-const isWatchdogBuild = process.env.PASEO_WATCHDOG_BUILD === "1";
-const isProfileBuild = process.env.PASEO_PROFILE_BUILD === "1";
+const isFdroidBuild = process.env.ZENTIC_FDROID_BUILD === "1";
+const isWatchdogBuild = process.env.ZENTIC_WATCHDOG_BUILD === "1";
+const isProfileBuild = process.env.ZENTIC_PROFILE_BUILD === "1";
 
 const buildProfile = isFdroidBuild
   ? {
@@ -69,8 +69,8 @@ function resolveSecretFile(params) {
 
 const variants = {
   production: {
-    name: "Paseo",
-    packageId: "sh.paseo",
+    name: "Zentic",
+    packageId: "sh.zentic",
     googleServicesFile: resolveSecretFile({
       envKey: "GOOGLE_SERVICES_FILE_PROD",
       fallbackRelativePath: "./.secrets/google-services.prod.json",
@@ -81,8 +81,8 @@ const variants = {
     }),
   },
   development: {
-    name: "Paseo Debug",
-    packageId: "sh.paseo.debug",
+    name: "Zentic Debug",
+    packageId: "sh.zentic.debug",
     googleServicesFile: resolveSecretFile({
       envKey: "GOOGLE_SERVICES_FILE_DEBUG",
       fallbackRelativePath: "./.secrets/google-services.debug.json",
@@ -104,7 +104,7 @@ export default {
     version: nativeReleaseVersion.appVersion,
     orientation: "default",
     icon: "./assets/images/icon.png",
-    scheme: "paseo",
+    scheme: "zentic",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
     ios: {
@@ -142,7 +142,7 @@ export default {
       searchPaths: ["../../node_modules", "./node_modules"],
     },
     plugins: [
-      "./modules/paseo-hardware-keyboard/app.plugin",
+      "./modules/zentic-hardware-keyboard/app.plugin",
       "expo-router",
       withPasteInput,
       withAndroidScroll,
@@ -194,13 +194,13 @@ export default {
       fdroidBuild: isFdroidBuild,
       profileBuild: isProfileBuild,
       watchdogBuild: isWatchdogBuild,
-      diagnosticRevision: process.env.PASEO_DIAGNOSTIC_REVISION,
-      diagnosticBuildTime: process.env.PASEO_DIAGNOSTIC_BUILD_TIME,
+      diagnosticRevision: process.env.ZENTIC_DIAGNOSTIC_REVISION,
+      diagnosticBuildTime: process.env.ZENTIC_DIAGNOSTIC_BUILD_TIME,
       router: {},
       eas: {
         projectId: "0e7f65ce-0367-46c8-a238-2b65963d235a",
       },
     },
-    owner: "getpaseo",
+    owner: "getzentic",
   },
 };

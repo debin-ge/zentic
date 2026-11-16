@@ -3,12 +3,12 @@ import type { AgentPromptSource } from "../agent-messages/index.js";
 import type { Logger } from "pino";
 
 import type { TerminalManager } from "../../../terminal/terminal-manager.js";
-import type { CreatePaseoWorktreeInput } from "../../paseo-worktree-service.js";
+import type { CreateZenticWorktreeInput } from "../../zentic-worktree-service.js";
 import { expandUserPath, resolvePathFromBase } from "../../path-utils.js";
 import { toWorktreeRequestError } from "../../worktree-errors.js";
 import type {
-  CreatePaseoWorktreeWorkflowFn,
-  CreatePaseoWorktreeWorkflowResult,
+  CreateZenticWorktreeWorkflowFn,
+  CreateZenticWorktreeWorkflowResult,
 } from "../../worktree-session.js";
 import type { AgentAttachment, FirstAgentContext } from "../../messages.js";
 import type { AgentManager, CreateAgentOptions, ManagedAgent } from "../agent-manager.js";
@@ -26,7 +26,7 @@ import {
   inheritWorkspaceBackground,
   resolveCreateAgentIntent,
 } from "./intent.js";
-import type { ProviderOptions } from "@getpaseo/protocol/agent-types";
+import type { ProviderOptions } from "@getzentic/protocol/agent-types";
 import { foldFeatureValues, type LegacyFeatureValues } from "../option-controls.js";
 
 /** How a workspace this creation makes inherits its creator's visibility. */
@@ -40,11 +40,11 @@ export interface CreateAgentCommandDependencies {
   agentManager: AgentManager;
   agentStorage: AgentStorage;
   logger: Logger;
-  paseoHome?: string;
+  zenticHome?: string;
   worktreesRoot?: string;
   terminalManager?: TerminalManager | null;
   providerSnapshotManager: Pick<ProviderSnapshotManager, "resolveCreateConfig">;
-  createPaseoWorktree?: CreatePaseoWorktreeWorkflowFn;
+  createZenticWorktree?: CreateZenticWorktreeWorkflowFn;
   // Mints a fresh directory workspace for a cwd and returns its id.
   ensureWorkspaceForCreate?: EnsureWorkspaceForCreate;
 }
@@ -99,9 +99,9 @@ export interface CreateAgentFromMcpInput {
   env?: Record<string, string>;
   onCreated?: (created: {
     agentId: string;
-    createdWorktree: CreatePaseoWorktreeWorkflowResult | null;
+    createdWorktree: CreateZenticWorktreeWorkflowResult | null;
   }) => void;
-  onWorktreeCreated?: (createdWorktree: CreatePaseoWorktreeWorkflowResult) => void;
+  onWorktreeCreated?: (createdWorktree: CreateZenticWorktreeWorkflowResult) => void;
   callerAgentId?: string;
   callerContext?: {
     lockedCwd?: string;
@@ -127,7 +127,7 @@ export interface CreateAgentCommandResult {
   liveSnapshot: ManagedAgent;
   initialPromptStarted: boolean;
   initialPromptError: unknown | null;
-  createdWorktree?: CreatePaseoWorktreeWorkflowResult;
+  createdWorktree?: CreateZenticWorktreeWorkflowResult;
 }
 
 export type BoundCreateAgentCommand = (
@@ -167,7 +167,7 @@ interface ResolvedCreateAgent {
   runOptions?: AgentRunOptions;
   promptFailure: CreateAgentPromptFailureMode;
   promptLogger?: Logger;
-  createdWorktree?: CreatePaseoWorktreeWorkflowResult;
+  createdWorktree?: CreateZenticWorktreeWorkflowResult;
 }
 
 export async function createAgentCommand(
@@ -269,7 +269,7 @@ async function resolveSessionCreateAgent(
       initialPrompt: trimmedPrompt,
       env: input.env,
       initialTitle: input.provisionalTitle,
-      // Paseo never persists an internal agent, so nothing could resume its
+      // Zentic never persists an internal agent, so nothing could resume its
       // provider session either. Same as the daemon's own ephemeral helpers.
       ...(sessionConfig.internal ? { persistSession: false } : {}),
       workspaceId: requireResolvedWorkspaceId(workspaceId),
@@ -512,19 +512,19 @@ function resolveChildAgentCwd(params: {
 }
 
 interface CreateMcpWorktreeOptions {
-  input: CreatePaseoWorktreeInput;
-  createPaseoWorktree: CreatePaseoWorktreeWorkflowFn | undefined;
+  input: CreateZenticWorktreeInput;
+  createZenticWorktree: CreateZenticWorktreeWorkflowFn | undefined;
   resolveDefaultBranch?: (repoRoot: string) => Promise<string>;
 }
 
 async function createMcpWorktree(
   options: CreateMcpWorktreeOptions,
-): Promise<CreatePaseoWorktreeWorkflowResult> {
+): Promise<CreateZenticWorktreeWorkflowResult> {
   try {
-    if (!options.createPaseoWorktree) {
-      throw new Error("Paseo worktree service is not configured");
+    if (!options.createZenticWorktree) {
+      throw new Error("Zentic worktree service is not configured");
     }
-    return await options.createPaseoWorktree(
+    return await options.createZenticWorktree(
       options.input,
       options.resolveDefaultBranch ? { resolveDefaultBranch: options.resolveDefaultBranch } : {},
     );
@@ -542,7 +542,7 @@ async function resolveMcpCwd(params: {
 }): Promise<{
   resolvedCwd: string;
   createdWorkspaceId?: string;
-  createdWorktree?: CreatePaseoWorktreeWorkflowResult;
+  createdWorktree?: CreateZenticWorktreeWorkflowResult;
 }> {
   const { dependencies, worktree } = params;
   if (!worktree) {
@@ -575,10 +575,10 @@ async function resolveMcpCwd(params: {
       githubPrNumber: worktree.githubPrNumber,
       firstAgentContext: { prompt: params.initialPrompt },
 
-      paseoHome: dependencies.paseoHome,
+      zenticHome: dependencies.zenticHome,
       worktreesRoot: dependencies.worktreesRoot,
     },
-    createPaseoWorktree: dependencies.createPaseoWorktree,
+    createZenticWorktree: dependencies.createZenticWorktree,
     resolveDefaultBranch: baseBranch ? async () => baseBranch : undefined,
   });
   return {

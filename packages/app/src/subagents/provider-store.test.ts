@@ -1,7 +1,7 @@
 import { createHistoryStartPagination } from "@/agent-stream/history-start-pagination";
-import { DaemonConnectionError } from "@getpaseo/client/internal/daemon-client";
+import { DaemonConnectionError } from "@getzentic/client/internal/daemon-client";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import type { ProviderSubagentDescriptorPayload } from "@getpaseo/protocol/messages";
+import type { ProviderSubagentDescriptorPayload } from "@getzentic/protocol/messages";
 import {
   loadOlderProviderSubagentTimeline,
   observeProviderSubagentTimeline,

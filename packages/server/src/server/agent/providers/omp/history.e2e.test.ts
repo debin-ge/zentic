@@ -1,12 +1,12 @@
 import { measureMainThreadWork } from "../../../../test-utils/main-thread-work.js";
-import { BUILTIN_PROVIDER_IDS } from "@getpaseo/protocol/provider-manifest";
+import { BUILTIN_PROVIDER_IDS } from "@getzentic/protocol/provider-manifest";
 import { mkdtemp, open, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { performance } from "node:perf_hooks";
 import { setTimeout as delay } from "node:timers/promises";
 import { expect, test } from "vitest";
-import { createTestPaseoDaemon } from "../../../test-utils/paseo-daemon.js";
+import { createTestZenticDaemon } from "../../../test-utils/zentic-daemon.js";
 import { DaemonClient } from "../../../test-utils/daemon-client.js";
 import { readActiveOmpEntryChain } from "./history.js";
 
@@ -15,7 +15,7 @@ test("replays selected OMP history without blocking the event loop", async () =>
   const sessionFile = join(directory, "session.jsonl");
   const started = performance.now();
   try {
-    const daemon = await createTestPaseoDaemon({
+    const daemon = await createTestZenticDaemon({
       // This regression exercises file replay and daemon requests, not executable discovery.
       providerOverrides: Object.fromEntries(
         BUILTIN_PROVIDER_IDS.map((id) => [id, { enabled: false }]),

@@ -84,9 +84,9 @@ export async function resetSpeechSite(siteId: SpeechSiteId): Promise<void> {
 
 /** Makes the daemon's config file unreadable for the duration of `run`. */
 export async function withUnwritableDaemonConfig(run: () => Promise<void>): Promise<void> {
-  const paseoHome = process.env.E2E_PASEO_HOME;
-  if (!paseoHome) throw new Error("E2E_PASEO_HOME is required to break the daemon config");
-  const configPath = path.join(paseoHome, "config.json");
+  const zenticHome = process.env.E2E_ZENTIC_HOME;
+  if (!zenticHome) throw new Error("E2E_ZENTIC_HOME is required to break the daemon config");
+  const configPath = path.join(zenticHome, "config.json");
   const asidePath = `${configPath}.aside`;
   await rename(configPath, asidePath);
   await mkdir(configPath);

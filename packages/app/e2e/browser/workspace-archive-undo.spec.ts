@@ -262,7 +262,7 @@ test.describe("Workspace archive undo", () => {
   test("opening the workspace while its undo is still running keeps its tabs", async ({ page }) => {
     const teardown = createGatedTeardown();
     const repo = await createTempGitRepo("archive-undo-tabs-", {
-      paseoConfig: teardown.paseoConfig,
+      zenticConfig: teardown.zenticConfig,
     });
     const seedClient = await connectSeedClient();
     try {

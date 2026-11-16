@@ -1,2 +1,2 @@
-export { createSshTunnel, resolveSshFailureDetail } from "@getpaseo/client/node";
-export type { SshTunnel } from "@getpaseo/client/node";
+export { createSshTunnel, resolveSshFailureDetail } from "@getzentic/client/node";
+export type { SshTunnel } from "@getzentic/client/node";

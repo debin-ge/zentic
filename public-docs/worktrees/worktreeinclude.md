@@ -1,6 +1,6 @@
 ---
 title: .worktreeinclude
-description: Copy gitignored local files into new Paseo worktrees.
+description: Copy gitignored local files into new Zentic worktrees.
 nav: .worktreeinclude
 order: 12
 category: Workspaces
@@ -8,7 +8,7 @@ category: Workspaces
 
 # .worktreeinclude
 
-Add `.worktreeinclude` at the root of your source checkout to copy local configuration into new [Git worktrees](/docs/worktrees). Paseo copies matching gitignored files before setup, terminals, and the first Agent start.
+Add `.worktreeinclude` at the root of your source checkout to copy local configuration into new [Git worktrees](/docs/worktrees). Zentic copies matching gitignored files before setup, terminals, and the first Agent start.
 
 ## Copy your local configuration
 
@@ -19,7 +19,7 @@ For a project whose `.gitignore` includes `.env` and `config/*.local.json`, crea
 config/*.local.json
 ```
 
-When you create a worktree through Paseo, an existing `.env` and matching files such as `config/dev.local.json` are copied to the same relative paths in the new worktree. Their contents stay out of Git.
+When you create a worktree through Zentic, an existing `.env` and matching files such as `config/dev.local.json` are copied to the same relative paths in the new worktree. Their contents stay out of Git.
 
 Commit `.worktreeinclude` to share the patterns with your team. Each teammate supplies their own ignored files in the checkout they create worktrees from.
 
@@ -58,4 +58,4 @@ Use `.worktreeinclude` for files that already exist locally. Use a [setup hook](
 }
 ```
 
-Put this configuration in `paseo.json` on the base branch used for the new worktree. Copied files are available when setup runs.
+Put this configuration in `zentic.json` on the base branch used for the new worktree. Copied files are available when setup runs.

@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { createArchiveFinishedSubagents, type ManagedSubagentSnapshot } from "./archive-finished";
-import type { PaseoSubagentRow, ProviderSubagentRow } from "./select";
+import type { ZenticSubagentRow, ProviderSubagentRow } from "./select";
 
-function paseo(id: string, status: PaseoSubagentRow["status"] = "idle"): PaseoSubagentRow {
+function zentic(id: string, status: ZenticSubagentRow["status"] = "idle"): ZenticSubagentRow {
   return {
-    kind: "paseo",
+    kind: "zentic",
     address: { serverId: "server-1", agentId: id },
     id,
     provider: "codex",
@@ -74,7 +74,7 @@ describe("createArchiveFinishedSubagents", () => {
     ]);
     const events: string[] = [];
     const archive = createArchiveFinishedSubagents(
-      [provider("native"), paseo("first"), paseo("second", "error"), paseo("resumed")],
+      [provider("native"), zentic("first"), zentic("second", "error"), zentic("resumed")],
       {
         parentAgentId: "parent",
         getManagedSubagent: ({ agentId: id }) => current.get(id),
@@ -110,9 +110,9 @@ describe("createArchiveFinishedSubagents", () => {
 
     second.resolve();
     await expect(operation).resolves.toEqual({
-      archivedPaseoIds: ["first", "second"],
+      archivedZenticIds: ["first", "second"],
       dismissedProviderIds: ["native"],
-      skippedPaseoIds: ["resumed"],
+      skippedZenticIds: ["resumed"],
       failures: [],
     });
     expect(progress).toEqual(["0/4", "1/4", "2/4", "3/4", "4/4"]);
@@ -129,7 +129,7 @@ describe("createArchiveFinishedSubagents", () => {
     ]);
     const responses = [first.promise, second.promise, retry.promise];
     const calls: string[] = [];
-    const archive = createArchiveFinishedSubagents([paseo("first"), paseo("second")], {
+    const archive = createArchiveFinishedSubagents([zentic("first"), zentic("second")], {
       parentAgentId: "parent",
       getManagedSubagent: ({ agentId: id }) => current.get(id),
       archiveManagedSubagent: ({ agentId: id }) => {
@@ -142,16 +142,16 @@ describe("createArchiveFinishedSubagents", () => {
     });
 
     const firstAttempt = archive.archiveFinished();
-    archive.setRows([paseo("second")]);
+    archive.setRows([zentic("second")]);
     const firstError = new Error("first failed");
     first.reject(firstError);
     await Promise.resolve();
     second.resolve();
     archive.setRows([]);
     await expect(firstAttempt).resolves.toEqual({
-      archivedPaseoIds: ["second"],
+      archivedZenticIds: ["second"],
       dismissedProviderIds: [],
-      skippedPaseoIds: [],
+      skippedZenticIds: [],
       failures: [{ id: "first", error: firstError }],
     });
 
@@ -159,7 +159,7 @@ describe("createArchiveFinishedSubagents", () => {
       eligibleCount: 0,
       status: { kind: "failed", failedCount: 1, totalCount: 1 },
     });
-    archive.setRows([paseo("first")]);
+    archive.setRows([zentic("first")]);
 
     expect(archive.getState()).toEqual({
       eligibleCount: 1,
@@ -167,7 +167,7 @@ describe("createArchiveFinishedSubagents", () => {
     });
     expect(calls).toEqual(["first", "second"]);
 
-    archive.setRows([paseo("first", "error")]);
+    archive.setRows([zentic("first", "error")]);
     expect(archive.getState()).toEqual({
       eligibleCount: 1,
       status: { kind: "failed", failedCount: 1, totalCount: 1 },
@@ -182,9 +182,9 @@ describe("createArchiveFinishedSubagents", () => {
     const retryError = new Error("retry failed");
     retry.reject(retryError);
     await expect(retryAttempt).resolves.toEqual({
-      archivedPaseoIds: [],
+      archivedZenticIds: [],
       dismissedProviderIds: [],
-      skippedPaseoIds: [],
+      skippedZenticIds: [],
       failures: [{ id: "first", error: retryError }],
     });
 
@@ -192,7 +192,7 @@ describe("createArchiveFinishedSubagents", () => {
       eligibleCount: 1,
       status: { kind: "failed", failedCount: 1, totalCount: 1 },
     });
-    archive.setRows([paseo("first"), paseo("later")]);
+    archive.setRows([zentic("first"), zentic("later")]);
     expect(archive.getState()).toEqual({ eligibleCount: 2, status: { kind: "idle" } });
   });
 
@@ -203,7 +203,7 @@ describe("createArchiveFinishedSubagents", () => {
       ["first", managed("first")],
       ["second", managed("second")],
     ]);
-    const archive = createArchiveFinishedSubagents([paseo("first"), paseo("second")], {
+    const archive = createArchiveFinishedSubagents([zentic("first"), zentic("second")], {
       parentAgentId: "parent",
       getManagedSubagent: ({ agentId: id }) => current.get(id),
       archiveManagedSubagent: async ({ agentId: id }) => {
@@ -215,21 +215,21 @@ describe("createArchiveFinishedSubagents", () => {
     const operation = archive.archiveFinished();
     archive.setRows([]);
     await operation;
-    archive.setRows([paseo("first"), paseo("second")]);
+    archive.setRows([zentic("first"), zentic("second")]);
 
-    archive.setRows([paseo("second", "error"), paseo("first", "error")]);
+    archive.setRows([zentic("second", "error"), zentic("first", "error")]);
     expect(archive.getState()).toEqual({
       eligibleCount: 2,
       status: { kind: "failed", failedCount: 2, totalCount: 2 },
     });
 
-    archive.setRows([paseo("second", "error")]);
+    archive.setRows([zentic("second", "error")]);
     expect(archive.getState()).toEqual({ eligibleCount: 1, status: { kind: "idle" } });
   });
 
   it("clears retry state when the authoritative failed child is running", async () => {
     const current = new Map([["failed", managed("failed")]]);
-    const archive = createArchiveFinishedSubagents([paseo("failed")], {
+    const archive = createArchiveFinishedSubagents([zentic("failed")], {
       parentAgentId: "parent",
       getManagedSubagent: ({ agentId: id }) => current.get(id),
       archiveManagedSubagent: async () => {
@@ -242,20 +242,20 @@ describe("createArchiveFinishedSubagents", () => {
     const operation = archive.archiveFinished();
     archive.setRows([]);
     await operation;
-    archive.setRows([paseo("failed", "running")]);
+    archive.setRows([zentic("failed", "running")]);
 
     expect(archive.getState()).toEqual({ eligibleCount: 0, status: { kind: "idle" } });
     await expect(archive.archiveFinished()).resolves.toEqual({
-      archivedPaseoIds: [],
+      archivedZenticIds: [],
       dismissedProviderIds: [],
-      skippedPaseoIds: [],
+      skippedZenticIds: [],
       failures: [],
     });
   });
 
   it("clears retry state when the authoritative failed child is initializing", async () => {
     const current = new Map([["failed", managed("failed")]]);
-    const archive = createArchiveFinishedSubagents([paseo("failed")], {
+    const archive = createArchiveFinishedSubagents([zentic("failed")], {
       parentAgentId: "parent",
       getManagedSubagent: ({ agentId: id }) => current.get(id),
       archiveManagedSubagent: async () => {
@@ -268,13 +268,13 @@ describe("createArchiveFinishedSubagents", () => {
     const operation = archive.archiveFinished();
     archive.setRows([]);
     await operation;
-    archive.setRows([paseo("failed", "initializing")]);
+    archive.setRows([zentic("failed", "initializing")]);
 
     expect(archive.getState()).toEqual({ eligibleCount: 0, status: { kind: "idle" } });
     await expect(archive.archiveFinished()).resolves.toEqual({
-      archivedPaseoIds: [],
+      archivedZenticIds: [],
       dismissedProviderIds: [],
-      skippedPaseoIds: [],
+      skippedZenticIds: [],
       failures: [],
     });
   });
@@ -296,7 +296,7 @@ describe("createArchiveFinishedSubagents", () => {
     async (_label, updateSnapshot) => {
       const error = new Error("archive failed");
       const current = new Map([["failed", managed("failed")]]);
-      const archive = createArchiveFinishedSubagents([paseo("failed")], {
+      const archive = createArchiveFinishedSubagents([zentic("failed")], {
         parentAgentId: "parent",
         getManagedSubagent: ({ agentId: id }) => current.get(id),
         archiveManagedSubagent: async () => {
@@ -307,9 +307,9 @@ describe("createArchiveFinishedSubagents", () => {
       });
 
       await expect(archive.archiveFinished()).resolves.toEqual({
-        archivedPaseoIds: [],
+        archivedZenticIds: [],
         dismissedProviderIds: [],
-        skippedPaseoIds: [],
+        skippedZenticIds: [],
         failures: [{ id: "failed", error }],
       });
       expect(archive.getState()).toEqual({ eligibleCount: 1, status: { kind: "idle" } });
@@ -324,7 +324,7 @@ describe("createArchiveFinishedSubagents", () => {
       ["second", managed("second")],
     ]);
     const calls: string[] = [];
-    const archive = createArchiveFinishedSubagents([paseo("first"), paseo("second")], {
+    const archive = createArchiveFinishedSubagents([zentic("first"), zentic("second")], {
       parentAgentId: "parent",
       getManagedSubagent: ({ agentId: id }) => current.get(id),
       archiveManagedSubagent: async ({ agentId: id }) => {
@@ -341,24 +341,24 @@ describe("createArchiveFinishedSubagents", () => {
     const operation = archive.archiveFinished();
     archive.setRows([]);
     await expect(operation).resolves.toEqual({
-      archivedPaseoIds: [],
+      archivedZenticIds: [],
       dismissedProviderIds: [],
-      skippedPaseoIds: [],
+      skippedZenticIds: [],
       failures: [
         { id: "first", error: firstError },
         { id: "second", error: secondError },
       ],
     });
-    archive.setRows([paseo("first"), paseo("second", "running")]);
+    archive.setRows([zentic("first"), zentic("second", "running")]);
 
     expect(archive.getState()).toEqual({
       eligibleCount: 1,
       status: { kind: "failed", failedCount: 1, totalCount: 1 },
     });
     await expect(archive.archiveFinished()).resolves.toEqual({
-      archivedPaseoIds: ["first"],
+      archivedZenticIds: ["first"],
       dismissedProviderIds: [],
-      skippedPaseoIds: [],
+      skippedZenticIds: [],
       failures: [],
     });
     expect(calls).toEqual(["first", "second", "first"]);
@@ -366,13 +366,13 @@ describe("createArchiveFinishedSubagents", () => {
 
   it("rechecks each managed child and skips resumed, missing, archived, reparented, running, and initializing rows", async () => {
     const rows = [
-      paseo("first"),
-      paseo("resumed"),
-      paseo("missing"),
-      paseo("archived"),
-      paseo("reparented"),
-      paseo("running"),
-      paseo("initializing"),
+      zentic("first"),
+      zentic("resumed"),
+      zentic("missing"),
+      zentic("archived"),
+      zentic("reparented"),
+      zentic("running"),
+      zentic("initializing"),
     ];
     const current = new Map<string, ManagedSubagentSnapshot>([
       ["first", managed("first")],
@@ -394,9 +394,9 @@ describe("createArchiveFinishedSubagents", () => {
     });
 
     await expect(archive.archiveFinished()).resolves.toEqual({
-      archivedPaseoIds: ["first"],
+      archivedZenticIds: ["first"],
       dismissedProviderIds: [],
-      skippedPaseoIds: ["resumed", "missing", "archived", "reparented", "running", "initializing"],
+      skippedZenticIds: ["resumed", "missing", "archived", "reparented", "running", "initializing"],
       failures: [],
     });
 
@@ -420,9 +420,9 @@ describe("createArchiveFinishedSubagents", () => {
     });
 
     await expect(archive.archiveFinished()).resolves.toEqual({
-      archivedPaseoIds: [],
+      archivedZenticIds: [],
       dismissedProviderIds: ["finished"],
-      skippedPaseoIds: [],
+      skippedZenticIds: [],
       failures: [],
     });
 
@@ -434,14 +434,14 @@ describe("createArchiveFinishedSubagents", () => {
 
 it("excludes live background work and rechecks it before each archive", async () => {
   const first = deferred<void>();
-  const active = { ...paseo("active"), backgroundWork: { count: 1 } };
+  const active = { ...zentic("active"), backgroundWork: { count: 1 } };
   const current = new Map([
     ["first", managed("first")],
     ["later", managed("later")],
     ["active", managed("active", "idle", { backgroundWork: { count: 1 } })],
   ]);
   const calls: string[] = [];
-  const archive = createArchiveFinishedSubagents([paseo("first"), paseo("later"), active], {
+  const archive = createArchiveFinishedSubagents([zentic("first"), zentic("later"), active], {
     parentAgentId: "parent",
     getManagedSubagent: ({ agentId }) => current.get(agentId),
     archiveManagedSubagent: ({ agentId }) => {
@@ -455,8 +455,8 @@ it("excludes live background work and rechecks it before each archive", async ()
   current.set("later", managed("later", "idle", { backgroundWork: { count: 1 } }));
   first.resolve();
   expect(await operation).toMatchObject({
-    archivedPaseoIds: ["first"],
-    skippedPaseoIds: ["later"],
+    archivedZenticIds: ["first"],
+    skippedZenticIds: ["later"],
   });
   expect(calls).toEqual(["first"]);
 });

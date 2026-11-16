@@ -29,15 +29,15 @@ import {
 } from "../utils/worktree.js";
 import { toCheckoutError } from "./checkout-git-utils.js";
 import type {
-  CreatePaseoWorktreeInput,
-  CreatePaseoWorktreeResult,
-} from "./paseo-worktree-service.js";
+  CreateZenticWorktreeInput,
+  CreateZenticWorktreeResult,
+} from "./zentic-worktree-service.js";
 import type { ArchiveDependencies } from "./workspace-archive-service.js";
 import { toWorktreeWireError } from "./worktree-errors.js";
 import {
   archiveCommand,
-  createPaseoWorktreeCommand,
-  listPaseoWorktreesCommand,
+  createZenticWorktreeCommand,
+  listZenticWorktreesCommand,
 } from "./worktree/commands.js";
 import type { WorkspaceSetupOperation } from "./workspace-setup-runtime.js";
 import {
@@ -49,8 +49,8 @@ const SAFE_GIT_REF_PATTERN = /^[A-Za-z0-9._/-]+$/;
 
 type EmitSessionMessage = (message: SessionOutboundMessage) => void;
 
-interface CreatePaseoWorktreeInBackgroundDependencies {
-  paseoHome?: string;
+interface CreateZenticWorktreeInBackgroundDependencies {
+  zenticHome?: string;
   worktreesRoot?: string;
   emitWorkspaceUpdateForWorkspaceId: (workspaceId: string) => Promise<void>;
   cacheWorkspaceSetupSnapshot: (workspaceId: string, snapshot: WorkspaceSetupSnapshot) => void;
@@ -65,13 +65,13 @@ interface CreatePaseoWorktreeInBackgroundDependencies {
   onScriptsChanged: ((workspaceId: string, workspaceDirectory: string) => void) | null;
 }
 
-interface CreatePaseoWorktreeWorkflowDependencies extends CreatePaseoWorktreeInBackgroundDependencies {
-  createPaseoWorktree: (
-    input: CreatePaseoWorktreeInput,
+interface CreateZenticWorktreeWorkflowDependencies extends CreateZenticWorktreeInBackgroundDependencies {
+  createZenticWorktree: (
+    input: CreateZenticWorktreeInput,
     options?: {
       resolveDefaultBranch?: (repoRoot: string) => Promise<string>;
     },
-  ) => Promise<CreatePaseoWorktreeResult>;
+  ) => Promise<CreateZenticWorktreeResult>;
   warmWorkspaceGitData: (workspace: PersistedWorkspaceRecord) => Promise<void>;
   autoNameWorkspaceBranchForFirstAgent: (input: {
     workspace: PersistedWorkspaceRecord;
@@ -81,14 +81,14 @@ interface CreatePaseoWorktreeWorkflowDependencies extends CreatePaseoWorktreeInB
   assertWorkspaceAutomationAllowed?: (workspaceId: string) => Promise<void>;
 }
 
-export type CreatePaseoWorktreeWorkflowResult = CreatePaseoWorktreeResult;
+export type CreateZenticWorktreeWorkflowResult = CreateZenticWorktreeResult;
 
-export type CreatePaseoWorktreeWorkflowFn = (
-  input: CreatePaseoWorktreeInput,
+export type CreateZenticWorktreeWorkflowFn = (
+  input: CreateZenticWorktreeInput,
   options?: {
     resolveDefaultBranch?: (repoRoot: string) => Promise<string>;
   },
-) => Promise<CreatePaseoWorktreeWorkflowResult>;
+) => Promise<CreateZenticWorktreeWorkflowResult>;
 
 interface HandleWorkspaceSetupStatusRequestDependencies {
   emit: EmitSessionMessage;
@@ -96,27 +96,27 @@ interface HandleWorkspaceSetupStatusRequestDependencies {
   getWorkspace: (workspaceId: string) => Promise<PersistedWorkspaceRecord | null>;
 }
 
-interface HandleWorkspaceSetupRunRequestDependencies extends CreatePaseoWorktreeInBackgroundDependencies {
+interface HandleWorkspaceSetupRunRequestDependencies extends CreateZenticWorktreeInBackgroundDependencies {
   getWorkspace: (workspaceId: string) => Promise<PersistedWorkspaceRecord | null>;
   clearAutomationBlock: (workspaceId: string) => Promise<boolean>;
   startWorkspaceSetup: (workspaceId: string, operation: WorkspaceSetupOperation) => void;
 }
 
-interface HandleCreatePaseoWorktreeRequestDependencies {
-  paseoHome?: string;
+interface HandleCreateZenticWorktreeRequestDependencies {
+  zenticHome?: string;
   worktreesRoot?: string;
   describeWorkspaceRecord: (
-    result: CreatePaseoWorktreeResult,
+    result: CreateZenticWorktreeResult,
   ) => Promise<WorkspaceDescriptorPayload>;
   emit: EmitSessionMessage;
   sessionLogger: Logger;
-  createPaseoWorktreeWorkflow: (
-    input: CreatePaseoWorktreeInput,
-  ) => Promise<CreatePaseoWorktreeWorkflowResult>;
+  createZenticWorktreeWorkflow: (
+    input: CreateZenticWorktreeInput,
+  ) => Promise<CreateZenticWorktreeWorkflowResult>;
 }
 
 function normalizeFirstAgentContext(
-  request: Extract<SessionInboundMessage, { type: "create_paseo_worktree_request" }>,
+  request: Extract<SessionInboundMessage, { type: "create_zentic_worktree_request" }>,
 ): FirstAgentContext | undefined {
   if (request.firstAgentContext) {
     return request.firstAgentContext;
@@ -138,19 +138,19 @@ export function assertSafeGitRef(ref: string, label: string): void {
   }
 }
 
-export async function handlePaseoWorktreeListRequest(
+export async function handleZenticWorktreeListRequest(
   dependencies: {
     emit: EmitSessionMessage;
-    paseoHome?: string;
+    zenticHome?: string;
     workspaceGitService: WorkspaceGitService;
   },
-  msg: Extract<SessionInboundMessage, { type: "paseo_worktree_list_request" }>,
+  msg: Extract<SessionInboundMessage, { type: "zentic_worktree_list_request" }>,
 ): Promise<void> {
   const { requestId } = msg;
   const cwd = msg.repoRoot ?? msg.cwd;
   if (!cwd) {
     dependencies.emit({
-      type: "paseo_worktree_list_response",
+      type: "zentic_worktree_list_response",
       payload: {
         worktrees: [],
         error: { code: "UNKNOWN", message: "cwd or repoRoot is required" },
@@ -161,12 +161,12 @@ export async function handlePaseoWorktreeListRequest(
   }
 
   try {
-    const worktrees = await listPaseoWorktreesCommand(
+    const worktrees = await listZenticWorktreesCommand(
       { workspaceGitService: dependencies.workspaceGitService },
       { cwd },
     );
     dependencies.emit({
-      type: "paseo_worktree_list_response",
+      type: "zentic_worktree_list_response",
       payload: {
         worktrees: worktrees.map((entry) => ({
           worktreePath: entry.path,
@@ -180,7 +180,7 @@ export async function handlePaseoWorktreeListRequest(
     });
   } catch (error) {
     dependencies.emit({
-      type: "paseo_worktree_list_response",
+      type: "zentic_worktree_list_response",
       payload: {
         worktrees: [],
         error: toCheckoutError(error),
@@ -190,7 +190,7 @@ export async function handlePaseoWorktreeListRequest(
   }
 }
 
-export async function handlePaseoWorktreeArchiveRequest(
+export async function handleZenticWorktreeArchiveRequest(
   dependencies: Omit<
     ArchiveDependencies,
     "emitWorkspaceUpdatesForWorkspaceIds" | "workspaceGitService"
@@ -202,7 +202,7 @@ export async function handlePaseoWorktreeArchiveRequest(
     >;
     emitWorkspaceUpdatesForWorkspaceIds: (workspaceIds: Iterable<string>) => Promise<void>;
   },
-  msg: Extract<SessionInboundMessage, { type: "paseo_worktree_archive_request" }>,
+  msg: Extract<SessionInboundMessage, { type: "zentic_worktree_archive_request" }>,
 ): Promise<void> {
   const { requestId } = msg;
 
@@ -217,7 +217,7 @@ export async function handlePaseoWorktreeArchiveRequest(
     });
     if (!result.ok) {
       dependencies.emit({
-        type: "paseo_worktree_archive_response",
+        type: "zentic_worktree_archive_response",
         payload: {
           success: false,
           removedAgents: result.removedAgents,
@@ -232,7 +232,7 @@ export async function handlePaseoWorktreeArchiveRequest(
     }
 
     dependencies.emit({
-      type: "paseo_worktree_archive_response",
+      type: "zentic_worktree_archive_response",
       payload: {
         success: true,
         removedAgents: result.removedAgents,
@@ -242,7 +242,7 @@ export async function handlePaseoWorktreeArchiveRequest(
     });
   } catch (error) {
     dependencies.emit({
-      type: "paseo_worktree_archive_response",
+      type: "zentic_worktree_archive_response",
       payload: {
         success: false,
         removedAgents: [],
@@ -253,16 +253,16 @@ export async function handlePaseoWorktreeArchiveRequest(
   }
 }
 
-export async function handleCreatePaseoWorktreeRequest(
-  dependencies: HandleCreatePaseoWorktreeRequestDependencies,
-  request: Extract<SessionInboundMessage, { type: "create_paseo_worktree_request" }>,
+export async function handleCreateZenticWorktreeRequest(
+  dependencies: HandleCreateZenticWorktreeRequestDependencies,
+  request: Extract<SessionInboundMessage, { type: "create_zentic_worktree_request" }>,
 ): Promise<void> {
   try {
-    const commandResult = await createPaseoWorktreeCommand(
+    const commandResult = await createZenticWorktreeCommand(
       {
-        paseoHome: dependencies.paseoHome,
+        zenticHome: dependencies.zenticHome,
         worktreesRoot: dependencies.worktreesRoot,
-        createPaseoWorktreeWorkflow: dependencies.createPaseoWorktreeWorkflow,
+        createZenticWorktreeWorkflow: dependencies.createZenticWorktreeWorkflow,
       },
       {
         cwd: request.cwd,
@@ -282,7 +282,7 @@ export async function handleCreatePaseoWorktreeRequest(
         "Failed to create worktree",
       );
       dependencies.emit({
-        type: "create_paseo_worktree_response",
+        type: "create_zentic_worktree_response",
         payload: {
           workspace: null,
           error: commandResult.error.message,
@@ -297,7 +297,7 @@ export async function handleCreatePaseoWorktreeRequest(
     const createdWorktree = commandResult.createdWorktree;
     const descriptor = await dependencies.describeWorkspaceRecord(createdWorktree);
     dependencies.emit({
-      type: "create_paseo_worktree_response",
+      type: "create_zentic_worktree_response",
       payload: {
         workspace: descriptor,
         error: null,
@@ -326,7 +326,7 @@ export async function handleCreatePaseoWorktreeRequest(
       "Failed to create worktree",
     );
     dependencies.emit({
-      type: "create_paseo_worktree_response",
+      type: "create_zentic_worktree_response",
       payload: {
         workspace: null,
         error: wireError.message,
@@ -338,18 +338,18 @@ export async function handleCreatePaseoWorktreeRequest(
   }
 }
 
-export async function createPaseoWorktreeWorkflow(
-  dependencies: CreatePaseoWorktreeWorkflowDependencies,
-  input: CreatePaseoWorktreeInput,
+export async function createZenticWorktreeWorkflow(
+  dependencies: CreateZenticWorktreeWorkflowDependencies,
+  input: CreateZenticWorktreeInput,
   options?: {
     resolveDefaultBranch?: (repoRoot: string) => Promise<string>;
   },
-): Promise<CreatePaseoWorktreeWorkflowResult> {
-  const createdWorktree = await dependencies.createPaseoWorktree(
+): Promise<CreateZenticWorktreeWorkflowResult> {
+  const createdWorktree = await dependencies.createZenticWorktree(
     {
       ...input,
 
-      paseoHome: input.paseoHome ?? dependencies.paseoHome,
+      zenticHome: input.zenticHome ?? dependencies.zenticHome,
       worktreesRoot: input.worktreesRoot ?? dependencies.worktreesRoot,
     },
     options?.resolveDefaultBranch
@@ -505,7 +505,7 @@ export async function handleWorkspaceSetupRunRequest(
 }
 
 export async function runWorktreeSetupInBackground(
-  dependencies: CreatePaseoWorktreeInBackgroundDependencies,
+  dependencies: CreateZenticWorktreeInBackgroundDependencies,
   options: {
     requestCwd: string;
     repoRoot: string;

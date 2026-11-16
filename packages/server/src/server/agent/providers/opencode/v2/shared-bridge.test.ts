@@ -24,16 +24,16 @@ interface TestContext {
   system: unknown[];
 }
 
-test("a shared plugin binds Paseo sessions without involving unrelated sessions", async () => {
-  const home = await mkdtemp(path.join(tmpdir(), "paseo-shared-bridge-"));
-  const bridge = new OpenCodeBridge({ paseoHome: home, logger: createTestLogger() });
+test("a shared plugin binds Zentic sessions without involving unrelated sessions", async () => {
+  const home = await mkdtemp(path.join(tmpdir(), "zentic-shared-bridge-"));
+  const bridge = new OpenCodeBridge({ zenticHome: home, logger: createTestLogger() });
   const tool = { name: "echo", description: "echo", inputSchema: { value: z.string() } };
   const tools = new Map([[tool.name, tool]]);
   // Session-only tools must survive plugin reload without a global definition.
   bridge.setManifestCatalog({ tools: new Map() });
   await bridge.start();
   const unbind = bridge.bindSession({
-    sessionId: "paseo",
+    sessionId: "zentic",
     env: {},
     tools: {
       tools,
@@ -43,7 +43,7 @@ test("a shared plugin binds Paseo sessions without involving unrelated sessions"
       }),
     },
   });
-  expect(() => bridge.bindSession({ sessionId: "paseo", env: {} })).toThrow("already bound");
+  expect(() => bridge.bindSession({ sessionId: "zentic", env: {} })).toThrow("already bound");
   try {
     const plugin = {
       package: await bridge.materializeV2Plugin(),
@@ -99,7 +99,9 @@ test("a shared plugin binds Paseo sessions without involving unrelated sessions"
       },
       session: {
         context: async () =>
-          structured ? [{ type: "user", metadata: { paseoOutputSchema: { type: "string" } } }] : [],
+          structured
+            ? [{ type: "user", metadata: { zenticOutputSchema: { type: "string" } } }]
+            : [],
         get: async () => ({ parentID: "" }),
         hook: async (_name: string, fn: (input: TestContext) => Promise<void>) => {
           hooks.push(fn);
@@ -108,55 +110,55 @@ test("a shared plugin binds Paseo sessions without involving unrelated sessions"
       },
     };
     let dispose = await module.default.setup(context);
-    await rpc.bind({ sessionID: "paseo", ...plugin.options });
-    await rpc.refresh({ sessionID: "paseo", ...plugin.options });
+    await rpc.bind({ sessionID: "zentic", ...plugin.options });
+    await rpc.refresh({ sessionID: "zentic", ...plugin.options });
     expect(refreshed).toEqual(["provider", "model", "agent", "command", "skill"]);
     await expect(
-      rpc.bind({ sessionID: "paseo", ...plugin.options, token: "another-daemon" }),
-    ).resolves.toEqual({ error: "OpenCode session is already bound to another Paseo bridge" });
-    const own = { sessionID: "paseo", tools: { paseo_echo: {}, native: {} }, system: [] };
+      rpc.bind({ sessionID: "zentic", ...plugin.options, token: "another-daemon" }),
+    ).resolves.toEqual({ error: "OpenCode session is already bound to another Zentic bridge" });
+    const own = { sessionID: "zentic", tools: { zentic_echo: {}, native: {} }, system: [] };
     for (const hook of hooks) await hook(own);
-    expect(Object.keys(own.tools)).toEqual(["paseo_echo", "native"]);
+    expect(Object.keys(own.tools)).toEqual(["zentic_echo", "native"]);
     expect(
-      await installed.get("paseo_echo")!.execute({ value: "ok" }, { sessionID: "paseo" }),
+      await installed.get("zentic_echo")!.execute({ value: "ok" }, { sessionID: "zentic" }),
     ).toMatchObject({ content: [{ type: "text", text: "ok" }] });
     await dispose();
     hooks.length = 0;
     installed.clear();
     dispose = await module.default.setup(context);
-    const afterReload = { sessionID: "paseo", tools: { paseo_echo: {}, native: {} }, system: [] };
+    const afterReload = { sessionID: "zentic", tools: { zentic_echo: {}, native: {} }, system: [] };
     for (const hook of hooks) await hook(afterReload);
-    expect(Object.keys(afterReload.tools)).toEqual(["paseo_echo", "native"]);
+    expect(Object.keys(afterReload.tools)).toEqual(["zentic_echo", "native"]);
     expect(
-      await installed.get("paseo_echo")!.execute({ value: "reloaded" }, { sessionID: "paseo" }),
+      await installed.get("zentic_echo")!.execute({ value: "reloaded" }, { sessionID: "zentic" }),
     ).toMatchObject({ content: [{ type: "text", text: "reloaded" }] });
     await bridge.close();
     await dispose();
     hooks.length = 0;
     installed.clear();
     dispose = await module.default.setup(context);
-    const unrelated = { sessionID: "other", tools: { paseo_echo: {}, native: {} }, system: [] };
+    const unrelated = { sessionID: "other", tools: { zentic_echo: {}, native: {} }, system: [] };
     for (const hook of hooks) await hook(unrelated);
     expect(Object.keys(unrelated.tools)).toEqual(["native"]);
     structured = true;
     const structuredOnly = {
       sessionID: "other",
-      tools: { paseo_structured_output: {} },
+      tools: { zentic_structured_output: {} },
       system: [],
     };
     for (const hook of hooks) await hook(structuredOnly);
-    expect(Object.keys(structuredOnly.tools)).toEqual(["paseo_structured_output"]);
+    expect(Object.keys(structuredOnly.tools)).toEqual(["zentic_structured_output"]);
     const restarted = new OpenCodeBridge({
-      paseoHome: home,
+      zenticHome: home,
       logger: createTestLogger(),
       port: Number(new URL(plugin.options.baseUrl).port),
     });
     restarted.setManifestCatalog({ tools });
     await restarted.start();
-    const releaseRestarted = restarted.bindSession({ sessionId: "paseo", env: {} });
+    const releaseRestarted = restarted.bindSession({ sessionId: "zentic", env: {} });
     try {
       await expect(
-        rpc.bind({ sessionID: "paseo", ...restarted.sharedV2Connection() }),
+        rpc.bind({ sessionID: "zentic", ...restarted.sharedV2Connection() }),
       ).resolves.toEqual({});
     } finally {
       releaseRestarted();
@@ -171,14 +173,14 @@ test("a shared plugin binds Paseo sessions without involving unrelated sessions"
 });
 
 test("a shared plugin rebinds a session after the previous bridge stops listening", async () => {
-  const home = await mkdtemp(path.join(tmpdir(), "paseo-shared-bridge-refused-"));
+  const home = await mkdtemp(path.join(tmpdir(), "zentic-shared-bridge-refused-"));
   const previous = createServer((_request, response) => {
     response.writeHead(200, { "Content-Type": "application/json", Connection: "close" });
     response.end(JSON.stringify({ tools: [] }));
   });
   await new Promise<void>((resolve) => previous.listen(0, "127.0.0.1", resolve));
   const previousPort = (previous.address() as AddressInfo).port;
-  const current = new OpenCodeBridge({ paseoHome: home, logger: createTestLogger() });
+  const current = new OpenCodeBridge({ zenticHome: home, logger: createTestLogger() });
   current.setManifestCatalog({ tools: new Map() });
   let rpc: Record<string, (input: Binding) => Promise<unknown>> = {};
   let dispose: (() => Promise<void>) | undefined;
@@ -212,16 +214,16 @@ test("a shared plugin rebinds a session after the previous bridge stops listenin
         hook: async () => ({ dispose: async () => {} }),
       },
     });
-    await expect(rpc.bind({ sessionID: "paseo", ...plugin.options })).resolves.toEqual({});
+    await expect(rpc.bind({ sessionID: "zentic", ...plugin.options })).resolves.toEqual({});
     await current.start();
     // The restarted daemon owns the agent again, so its bridge serves this session.
-    releaseCurrent = current.bindSession({ sessionId: "paseo", env: {} });
+    releaseCurrent = current.bindSession({ sessionId: "zentic", env: {} });
     await new Promise<void>((resolve) => {
       previous.close(() => resolve());
       previous.closeAllConnections();
     });
     await expect(
-      rpc.bind({ sessionID: "paseo", ...current.sharedV2Connection() }),
+      rpc.bind({ sessionID: "zentic", ...current.sharedV2Connection() }),
     ).resolves.toEqual({});
   } finally {
     await dispose?.();

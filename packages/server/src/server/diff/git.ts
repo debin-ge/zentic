@@ -13,13 +13,13 @@ import {
 } from "../../utils/checkout-git.js";
 import { lstat, readFile, readlink } from "node:fs/promises";
 import { resolve } from "node:path";
-import type { DiffEndpoint, DiffSubscribeRequest } from "@getpaseo/protocol/messages";
-import type { DiffEntry, DiffBody } from "@getpaseo/protocol/binary-frames/index";
+import type { DiffEndpoint, DiffSubscribeRequest } from "@getzentic/protocol/messages";
+import type { DiffEntry, DiffBody } from "@getzentic/protocol/binary-frames/index";
 import { runGitCommand, type GitCommandOptions } from "../../utils/run-git-command.js";
 import { parseDiff, highlightDiffWithFileContent } from "../utils/diff-highlighter.js";
 
 export type Compare = Omit<DiffSubscribeRequest, "type" | "requestId"> & {
-  checkoutBase?: { compare: CheckoutDiffCompare; paseoHome: string };
+  checkoutBase?: { compare: CheckoutDiffCompare; zenticHome: string };
 };
 export interface ListedFile {
   entry: DiffEntry;
@@ -145,7 +145,7 @@ function parseStats(
 export async function listComparison(compare: Compare): Promise<Comparison> {
   if (compare.checkoutBase) {
     const selected = await resolveCheckoutDiffBase(compare.cwd, compare.checkoutBase.compare, {
-      paseoHome: compare.checkoutBase.paseoHome,
+      zenticHome: compare.checkoutBase.zenticHome,
     });
     if (!selected) throw new DiffReadError("REF_NOT_FOUND", "Comparison base is unavailable");
     compare = { ...compare, base: { kind: "rev", rev: selected } };

@@ -12,9 +12,9 @@ import {
   serializeConnectionUriForStorage,
   shouldUseTlsForDefaultHostedRelay,
   type HostPortParts,
-} from "@getpaseo/protocol/daemon-endpoints";
+} from "@getzentic/protocol/daemon-endpoints";
 
-export { decodeOfferFragmentPayload } from "@getpaseo/protocol/connection-offer";
+export { decodeOfferFragmentPayload } from "@getzentic/protocol/connection-offer";
 
 export type { HostPortParts };
 

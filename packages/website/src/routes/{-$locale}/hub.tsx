@@ -54,7 +54,7 @@ export const Route = createFileRoute("/{-$locale}/hub")({
   component: Hub,
 });
 
-const HOSTED_HUB_URL = "https://hub.paseo.sh";
+const HOSTED_HUB_URL = "https://hub.zentic.sh";
 
 const LINK_CLASS = "underline hover:text-white/80";
 
@@ -321,7 +321,7 @@ function DiscordDemo() {
             </p>
           </DemoMessage>
 
-          <DemoMessage author="paseo-bot" time="09:41" bot>
+          <DemoMessage author="zentic-bot" time="09:41" bot>
             <p>{t("hub.demo.issuesOpen")}</p>
             <ul className="space-y-1">
               {DEMO_ISSUES.map((issue) => (
@@ -339,7 +339,7 @@ function DiscordDemo() {
             </p>
           </DemoMessage>
 
-          <DemoMessage author="paseo-bot" time="09:48" bot>
+          <DemoMessage author="zentic-bot" time="09:48" bot>
             <p>
               <Trans i18nKey="hub.demo.ranOn" components={DEMO_COMPONENTS} />
             </p>
@@ -360,7 +360,7 @@ function DiscordDemo() {
 }
 
 function Mention() {
-  return <span className="rounded bg-indigo-400/15 px-1 py-0.5 text-indigo-200">@paseo-bot</span>;
+  return <span className="rounded bg-indigo-400/15 px-1 py-0.5 text-indigo-200">@zentic-bot</span>;
 }
 
 function DemoMessage({
@@ -576,7 +576,7 @@ function FaqSection() {
   const links = React.useMemo(
     () => ({
       code: <code />,
-      github: <a href="https://github.com/getpaseo/hub" className={LINK_CLASS} />,
+      github: <a href="https://github.com/getzentic/hub" className={LINK_CLASS} />,
       guide: <a href={localize("/docs/hub/self-hosting")} className={LINK_CLASS} />,
       hosted: <a href={HOSTED_HUB_URL} className={LINK_CLASS} />,
     }),

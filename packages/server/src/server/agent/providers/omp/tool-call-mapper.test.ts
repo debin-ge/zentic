@@ -246,9 +246,9 @@ describe("OMP tool call mapper", () => {
   });
 
   test("maps web search and URL reads to search and fetch", () => {
-    expect(mapOmpToolDetail(parseToolArgs("web_search", { query: "Paseo" }), null)).toMatchObject({
+    expect(mapOmpToolDetail(parseToolArgs("web_search", { query: "Zentic" }), null)).toMatchObject({
       type: "search",
-      query: "Paseo",
+      query: "Zentic",
       toolName: "web_search",
     });
     expect(

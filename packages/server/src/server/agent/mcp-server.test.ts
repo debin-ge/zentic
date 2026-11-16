@@ -45,7 +45,7 @@ import {
   AgentListItemPayloadSchema,
   AgentPermissionRequestPayloadSchema,
   AgentSnapshotPayloadSchema,
-} from "@getpaseo/protocol/messages";
+} from "@getzentic/protocol/messages";
 import {
   createPersistedProjectRecord,
   createPersistedWorkspaceRecord,
@@ -58,16 +58,16 @@ import type {
   CreateScheduleInput,
   StoredSchedule,
   UpdateScheduleInput,
-} from "@getpaseo/protocol/schedule/types";
+} from "@getzentic/protocol/schedule/types";
 import type { ScheduleService } from "../schedule/service.js";
 import type { WorkspaceGitService } from "../workspace-git-service.js";
 import {
-  createPaseoWorktree as createPaseoWorktreeService,
-  type CreatePaseoWorktreeInput,
-} from "../paseo-worktree-service.js";
+  createZenticWorktree as createZenticWorktreeService,
+  type CreateZenticWorktreeInput,
+} from "../zentic-worktree-service.js";
 import {
-  createPaseoWorktreeWorkflow,
-  type CreatePaseoWorktreeWorkflowFn,
+  createZenticWorktreeWorkflow,
+  type CreateZenticWorktreeWorkflowFn,
 } from "../worktree-session.js";
 import { WorkspaceGitServiceImpl } from "../workspace-git-service.js";
 import { WorkspaceAutoName } from "../workspace-auto-name.js";
@@ -77,9 +77,9 @@ import type { ForgeService } from "../../services/forge-service.js";
 import { areEquivalentPaths } from "../../utils/path.js";
 import { createTerminalManager, type TerminalManager } from "../../terminal/terminal-manager.js";
 import { startWorkerTerminalManager } from "../../terminal/worker-terminal-manager.js";
-import { PARENT_AGENT_ID_LABEL } from "@getpaseo/protocol/agent-labels";
-import { PASEO_TOOL_NAMES } from "@getpaseo/protocol/paseo-tool-presentation/index";
-import { MutableDaemonConfigSchema, type AgentProfile } from "@getpaseo/protocol/messages";
+import { PARENT_AGENT_ID_LABEL } from "@getzentic/protocol/agent-labels";
+import { ZENTIC_TOOL_NAMES } from "@getzentic/protocol/zentic-tool-presentation/index";
+import { MutableDaemonConfigSchema, type AgentProfile } from "@getzentic/protocol/messages";
 import type { DaemonConfigStore } from "../daemon-config-store.js";
 import type { BrowserToolsBroker, BrowserToolsExecuteInput } from "../browser-tools/broker.js";
 import type { BrowserToolsResponsePayload } from "../browser-tools/errors.js";
@@ -397,7 +397,7 @@ function configureOpenCodeProviderStub(
   const opencodeModes: AgentMode[] = [
     { id: "build", label: "Build", description: "Can edit" },
     { id: "plan", label: "Plan", description: "Read-only" },
-    { id: "paseo-custom", label: "Paseo Custom", description: "Custom OpenCode agent" },
+    { id: "zentic-custom", label: "Zentic Custom", description: "Custom OpenCode agent" },
   ];
   const entries: ProviderSnapshotEntry[] = [
     buildSnapshotEntry({
@@ -424,7 +424,7 @@ function configureOpenCodeProviderStub(
   ];
   const customOpenCodeModes: AgentMode[] = [
     ...opencodeModes,
-    { id: "paseo-custom", label: "Paseo Custom" },
+    { id: "zentic-custom", label: "Zentic Custom" },
   ];
   if (options.customOpenCodeProvider) {
     entries.push(
@@ -688,7 +688,7 @@ class BoundaryProviderSnapshotManagerFake {
 }
 
 async function connectInMemoryMcpClient(server: Awaited<ReturnType<typeof createAgentMcpServer>>) {
-  const client = new Client({ name: "paseo-test-client", version: "0.0.0" });
+  const client = new Client({ name: "zentic-test-client", version: "0.0.0" });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   await server.connect(serverTransport);
   await client.connect(clientTransport);
@@ -732,20 +732,20 @@ function createArchiveWorkspaceRecordMutator(
   };
 }
 
-function createPaseoWorktreeForMcpTest(options: {
-  paseoHome: string;
+function createZenticWorktreeForMcpTest(options: {
+  zenticHome: string;
   broadcasts: string[];
   createdWorkspaceIds?: string[];
   workspaceRecords?: Map<string, PersistedWorkspaceRecord>;
   generateWorkspaceName?: () => Promise<GeneratedWorkspaceName | null>;
   startedAgentSetupIds?: string[];
-}): CreatePaseoWorktreeWorkflowFn {
+}): CreateZenticWorktreeWorkflowFn {
   const projects = new Map<string, PersistedProjectRecord>();
   const workspaces = options.workspaceRecords ?? new Map<string, PersistedWorkspaceRecord>();
   const github = createGitHubServiceStub();
   const workspaceGitService = new WorkspaceGitServiceImpl({
     logger: createTestLogger(),
-    paseoHome: options.paseoHome,
+    zenticHome: options.zenticHome,
     deps: { forgeOverrides: { github } },
   });
   const projectRegistry: ProjectRegistry = {
@@ -836,11 +836,11 @@ function createPaseoWorktreeForMcpTest(options: {
   });
 
   return async (input, serviceOptions) => {
-    const result = await createPaseoWorktreeWorkflow(
+    const result = await createZenticWorktreeWorkflow(
       {
-        paseoHome: options.paseoHome,
-        createPaseoWorktree: (workflowInput, workflowOptions) =>
-          createPaseoWorktreeService(workflowInput, {
+        zenticHome: options.zenticHome,
+        createZenticWorktree: (workflowInput, workflowOptions) =>
+          createZenticWorktreeService(workflowInput, {
             github,
             ...(workflowOptions?.resolveDefaultBranch
               ? { resolveDefaultBranch: workflowOptions.resolveDefaultBranch }
@@ -922,7 +922,7 @@ async function createAgentMcpServer(
   return server;
 }
 
-describe("bundled Paseo skill", () => {
+describe("bundled Zentic skill", () => {
   it("documents only advertised create_workspace input names", async () => {
     const server = await createAgentMcpServer({
       agentManager: new BoundaryAgentManagerFake() as AgentManager,
@@ -935,7 +935,7 @@ describe("bundled Paseo skill", () => {
 
     try {
       const skill = await readFile(
-        new URL("../../../../../skills/paseo/SKILL.md", import.meta.url),
+        new URL("../../../../../skills/zentic/SKILL.md", import.meta.url),
         "utf8",
       );
       const paragraph = skill.split("\n").find((line) => line.startsWith("**`create_workspace`**"));
@@ -965,7 +965,7 @@ describe("bundled Paseo skill", () => {
   });
 });
 
-describe("Paseo tool timeline presentation", () => {
+describe("Zentic tool timeline presentation", () => {
   it("catalogs a timeline label for every advertised tool", async () => {
     const server = await createAgentMcpServer({
       agentManager: new BoundaryAgentManagerFake() as AgentManager,
@@ -985,7 +985,7 @@ describe("Paseo tool timeline presentation", () => {
 
     try {
       const { tools } = await client.listTools();
-      const cataloged = new Set<string>(PASEO_TOOL_NAMES);
+      const cataloged = new Set<string>(ZENTIC_TOOL_NAMES);
       // speak renders as a voice message, not a tool call row.
       const uncataloged = tools
         .map((tool) => tool.name)
@@ -1188,7 +1188,7 @@ describe("browser MCP tools", () => {
       browserToolsEnabled: true,
       browserToolsBroker: broker as BrowserToolsBroker,
       callerAgentId: "agent-1",
-      paseoToolPolicy: { disabledTools: ["browser_list_tabs"] },
+      zenticToolPolicy: { disabledTools: ["browser_list_tabs"] },
       logger,
     });
 
@@ -1212,7 +1212,7 @@ describe("browser MCP tools", () => {
       browserToolsEnabled: true,
       browserToolsBroker: broker as BrowserToolsBroker,
       callerAgentId: "agent-1",
-      paseoToolPolicy: { disabledTools: ["list_agents", "browser_list_tabs"] },
+      zenticToolPolicy: { disabledTools: ["list_agents", "browser_list_tabs"] },
       logger,
     });
     const client = await connectInMemoryMcpClient(server);
@@ -1273,7 +1273,7 @@ describe("browser MCP tools", () => {
     expect(response.content).toEqual([
       {
         type: "text",
-        text: "No Paseo browser tabs are open. Call browser_new_tab to create one.",
+        text: "No Zentic browser tabs are open. Call browser_new_tab to create one.",
       },
     ]);
     expect(response.structuredContent).toEqual({
@@ -1308,7 +1308,7 @@ describe("browser MCP tools", () => {
     expect(response.content).toEqual([
       {
         type: "text",
-        text: "This browser tool needs a workspace. Start the agent from a Paseo workspace before calling browser_new_tab or browser_list_tabs.",
+        text: "This browser tool needs a workspace. Start the agent from a Zentic workspace before calling browser_new_tab or browser_list_tabs.",
       },
     ]);
     expect(response.structuredContent).toEqual({
@@ -1316,7 +1316,7 @@ describe("browser MCP tools", () => {
       error: {
         code: "browser_denied",
         message:
-          "This browser tool needs a workspace. Start the agent from a Paseo workspace before calling browser_new_tab or browser_list_tabs.",
+          "This browser tool needs a workspace. Start the agent from a Zentic workspace before calling browser_new_tab or browser_list_tabs.",
         retryable: false,
       },
       context: { agentId: "agent-1", cwd: REPO_CWD },
@@ -1410,8 +1410,8 @@ describe("terminal MCP tools", () => {
       async () => {
         const home = await mkdtemp(join(tmpdir(), "mcp-terminal-keys-home-"));
         const manager = await startWorkerTerminalManager({
-          paseoHome: home,
-          paseoVersion: "0.0.0-test",
+          zenticHome: home,
+          zenticVersion: "0.0.0-test",
           logger,
         });
         return { manager, home };
@@ -2135,13 +2135,13 @@ describe("create_agent MCP tool", () => {
 
   it("auto-titles an agent-created directory workspace from the initial prompt", async () => {
     const { agentManager, agentStorage, spies } = createTestDeps();
-    const tempDir = await mkdtemp(join(tmpdir(), "paseo-mcp-agent-directory-auto-title-"));
+    const tempDir = await mkdtemp(join(tmpdir(), "zentic-mcp-agent-directory-auto-title-"));
     const workspaceDir = join(tempDir, "workspace");
     const workspaceRecords = new Map<string, PersistedWorkspaceRecord>();
     const broadcasts: string[] = [];
     const workspaceGitService = new WorkspaceGitServiceImpl({
       logger: createTestLogger(),
-      paseoHome: join(tempDir, ".paseo"),
+      zenticHome: join(tempDir, ".zentic"),
       deps: { github: createGitHubServiceStub() },
     });
     const workspaceAutoName = new WorkspaceAutoName({
@@ -2245,9 +2245,9 @@ describe("create_agent MCP tool", () => {
 
   it("creates a worktree-isolated workspace", async () => {
     const { agentManager, agentStorage } = createTestDeps();
-    const tempDir = await mkdtemp(join(tmpdir(), "paseo-mcp-create-worktree-"));
+    const tempDir = await mkdtemp(join(tmpdir(), "zentic-mcp-create-worktree-"));
     const repoDir = join(tempDir, "repo");
-    const paseoHome = join(tempDir, ".paseo");
+    const zenticHome = join(tempDir, ".zentic");
     const broadcasts: string[] = [];
 
     try {
@@ -2275,9 +2275,9 @@ describe("create_agent MCP tool", () => {
         agentManager,
         agentStorage,
         providerSnapshotManager: createOpenCodeManager().manager,
-        paseoHome,
-        createPaseoWorktree: createPaseoWorktreeForMcpTest({
-          paseoHome,
+        zenticHome,
+        createZenticWorktree: createZenticWorktreeForMcpTest({
+          zenticHome,
           broadcasts,
         }),
         workspaceGitService: workspaceGitService as unknown as Pick<
@@ -2316,8 +2316,8 @@ describe("create_agent MCP tool", () => {
       createdAt: "2026-07-18T00:00:00.000Z",
       updatedAt: "2026-07-18T00:00:00.000Z",
     });
-    const receivedInputs: CreatePaseoWorktreeInput[] = [];
-    const createPaseoWorktree: CreatePaseoWorktreeWorkflowFn = async (input) => {
+    const receivedInputs: CreateZenticWorktreeInput[] = [];
+    const createZenticWorktree: CreateZenticWorktreeWorkflowFn = async (input) => {
       receivedInputs.push(input);
       return {
         worktree: { branchName: "project-worktree", worktreePath: TARGET_CWD },
@@ -2344,7 +2344,7 @@ describe("create_agent MCP tool", () => {
         get: async (projectId) => (projectId === project.projectId ? project : null),
         list: async () => [project],
       },
-      createPaseoWorktree,
+      createZenticWorktree,
       logger,
     });
 
@@ -2367,7 +2367,7 @@ describe("create_agent MCP tool", () => {
 
   it("preserves branch checkout and pull request checkout workspace modes", async () => {
     const { agentManager, agentStorage } = createTestDeps();
-    const createPaseoWorktree = vi.fn(async (input: CreatePaseoWorktreeInput) => ({
+    const createZenticWorktree = vi.fn(async (input: CreateZenticWorktreeInput) => ({
       worktree: {
         branchName: input.refName ?? "pr-42",
         worktreePath: "/tmp/worktrees/selected",
@@ -2392,7 +2392,7 @@ describe("create_agent MCP tool", () => {
       agentManager,
       agentStorage,
       providerSnapshotManager: createOpenCodeManager().manager,
-      createPaseoWorktree,
+      createZenticWorktree,
       logger,
     });
     const tool = registeredTool(server, "create_workspace");
@@ -2418,7 +2418,7 @@ describe("create_agent MCP tool", () => {
       prNumber: 43,
     });
 
-    expect(createPaseoWorktree).toHaveBeenNthCalledWith(
+    expect(createZenticWorktree).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
         action: "checkout",
@@ -2426,7 +2426,7 @@ describe("create_agent MCP tool", () => {
         worktreeSlug: "existing-work-copy",
       }),
     );
-    expect(createPaseoWorktree).toHaveBeenNthCalledWith(
+    expect(createZenticWorktree).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({
         action: "checkout",
@@ -2437,7 +2437,7 @@ describe("create_agent MCP tool", () => {
         },
       }),
     );
-    expect(createPaseoWorktree).toHaveBeenNthCalledWith(
+    expect(createZenticWorktree).toHaveBeenNthCalledWith(
       3,
       expect.objectContaining({
         action: "checkout",
@@ -2452,10 +2452,10 @@ describe("create_agent MCP tool", () => {
   it("archives a worktree-isolated workspace by workspace id", async () => {
     const { agentManager, agentStorage } = createTestDeps();
     const tempDir = realpathSync.native(
-      await mkdtemp(join(tmpdir(), "paseo-mcp-archive-worktree-")),
+      await mkdtemp(join(tmpdir(), "zentic-mcp-archive-worktree-")),
     );
     const repoDir = join(tempDir, "repo");
-    const paseoHome = join(tempDir, ".paseo");
+    const zenticHome = join(tempDir, ".zentic");
 
     try {
       execFileSync("git", ["init", repoDir], { stdio: "pipe" });
@@ -2487,8 +2487,8 @@ describe("create_agent MCP tool", () => {
         agentManager,
         agentStorage,
         providerSnapshotManager: createOpenCodeManager().manager,
-        paseoHome,
-        createPaseoWorktree: createPaseoWorktreeForMcpTest({ paseoHome, broadcasts: [] }),
+        zenticHome,
+        createZenticWorktree: createZenticWorktreeForMcpTest({ zenticHome, broadcasts: [] }),
         workspaceGitService: workspaceGitService as unknown as Pick<
           WorkspaceGitService,
           "getSnapshot" | "listWorktrees" | "resolveRepoRoot"
@@ -2562,10 +2562,10 @@ describe("create_agent MCP tool", () => {
   it("keeps an owned worktree while another workspace still references it", async () => {
     const { agentManager, agentStorage } = createTestDeps();
     const tempDir = realpathSync.native(
-      await mkdtemp(join(tmpdir(), "paseo-mcp-archive-worktree-multi-")),
+      await mkdtemp(join(tmpdir(), "zentic-mcp-archive-worktree-multi-")),
     );
     const repoDir = join(tempDir, "repo");
-    const paseoHome = join(tempDir, ".paseo");
+    const zenticHome = join(tempDir, ".zentic");
 
     try {
       execFileSync("git", ["init", repoDir], { stdio: "pipe" });
@@ -2603,8 +2603,8 @@ describe("create_agent MCP tool", () => {
         agentManager,
         agentStorage,
         providerSnapshotManager: createOpenCodeManager().manager,
-        paseoHome,
-        createPaseoWorktree: createPaseoWorktreeForMcpTest({ paseoHome, broadcasts: [] }),
+        zenticHome,
+        createZenticWorktree: createZenticWorktreeForMcpTest({ zenticHome, broadcasts: [] }),
         workspaceGitService: workspaceGitService as unknown as Pick<
           WorkspaceGitService,
           "getSnapshot" | "listWorktrees" | "resolveRepoRoot"
@@ -2650,10 +2650,10 @@ describe("create_agent MCP tool", () => {
   it("does not expose worktree path or slug operations", async () => {
     const { agentManager, agentStorage } = createTestDeps();
     const tempDir = realpathSync.native(
-      await mkdtemp(join(tmpdir(), "paseo-mcp-archive-worktree-slug-")),
+      await mkdtemp(join(tmpdir(), "zentic-mcp-archive-worktree-slug-")),
     );
     const repoDir = join(tempDir, "repo");
-    const paseoHome = join(tempDir, ".paseo");
+    const zenticHome = join(tempDir, ".zentic");
 
     try {
       execFileSync("git", ["init", repoDir], { stdio: "pipe" });
@@ -2680,8 +2680,8 @@ describe("create_agent MCP tool", () => {
         agentManager,
         agentStorage,
         providerSnapshotManager: createOpenCodeManager().manager,
-        paseoHome,
-        createPaseoWorktree: createPaseoWorktreeForMcpTest({ paseoHome, broadcasts: [] }),
+        zenticHome,
+        createZenticWorktree: createZenticWorktreeForMcpTest({ zenticHome, broadcasts: [] }),
         workspaceGitService: workspaceGitService as unknown as Pick<
           WorkspaceGitService,
           "getSnapshot" | "listWorktrees" | "resolveRepoRoot"
@@ -2707,7 +2707,7 @@ describe("create_agent MCP tool", () => {
     const workspace = createPersistedWorkspaceRecord({
       workspaceId: "ws-feature",
       projectId: "project-1",
-      cwd: "/tmp/paseo/worktrees/repo/feature",
+      cwd: "/tmp/zentic/worktrees/repo/feature",
       kind: "worktree",
       displayName: "feature",
       createdAt: "2026-07-17T00:00:00.000Z",
@@ -2797,7 +2797,7 @@ describe("create_agent MCP tool", () => {
 
   it("allows caller agents to override cwd and applies caller context labels", async () => {
     const { agentManager, agentStorage, spies } = createTestDeps();
-    const baseDir = await mkdtemp(join(tmpdir(), "paseo-mcp-test-"));
+    const baseDir = await mkdtemp(join(tmpdir(), "zentic-mcp-test-"));
     const subdir = join(baseDir, "subdir");
     await mkdir(subdir, { recursive: true });
     spies.agentManager.getAgent.mockReturnValue({

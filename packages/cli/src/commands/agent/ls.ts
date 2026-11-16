@@ -1,5 +1,5 @@
 import type { Command } from "commander";
-import type { AgentSnapshotPayload } from "@getpaseo/protocol/messages";
+import type { AgentSnapshotPayload } from "@getzentic/protocol/messages";
 import { connectToDaemon } from "../../utils/client.js";
 import { fetchAllAgents } from "../../utils/agent-directory.js";
 import type { CommandOptions, ListResult, OutputSchema, CommandError } from "../../output/index.js";
@@ -187,10 +187,10 @@ interface AgentLsClient {
 
 /**
  * Agent ls command semantics:
- * - `paseo agent ls`    → active non-archived agents
- * - `paseo agent ls -g` → global non-archived agents
- * - `paseo agent ls -a` → all agents, including archived and background
- * - `paseo agent ls -ag` → global agents, including archived
+ * - `zentic agent ls`    → active non-archived agents
+ * - `zentic agent ls -g` → global non-archived agents
+ * - `zentic agent ls -a` → all agents, including archived and background
+ * - `zentic agent ls -ag` → global agents, including archived
  */
 export async function runLsCommand(
   options: AgentLsOptions,

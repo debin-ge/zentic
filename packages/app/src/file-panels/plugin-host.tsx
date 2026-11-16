@@ -1,5 +1,5 @@
-import { PluginClientStateProvider } from "@getpaseo/plugin/client/host";
-import type { PluginFilePanelProps } from "@getpaseo/plugin/client";
+import { PluginClientStateProvider } from "@getzentic/plugin/client/host";
+import type { PluginFilePanelProps } from "@getzentic/plugin/client";
 import { useMemo } from "react";
 import { createPluginClientStateSource } from "@/plugins/client-state/source";
 import { PluginInstallationProvider } from "@/plugins/installation-provider";

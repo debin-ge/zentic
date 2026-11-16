@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
   createWorktree as createWorktreePrimitive,
   deriveWorktreeProjectHash,
-  deletePaseoWorktree,
-  isPaseoOwnedWorktreeCwd,
+  deleteZenticWorktree,
+  isZenticOwnedWorktreeCwd,
   mapWorkspaceCwdToWorktree,
   runWorktreeTeardownCommands,
   slugify,
@@ -33,7 +33,7 @@ interface LegacyCreateWorktreeTestOptions {
   baseBranch: string;
   worktreeSlug: string;
 
-  paseoHome?: string;
+  zenticHome?: string;
 }
 
 function createLegacyWorktreeForTest(
@@ -52,7 +52,7 @@ function createLegacyWorktreeForTest(
       branchName: options.branchName,
     },
 
-    paseoHome: options.paseoHome,
+    zenticHome: options.zenticHome,
   });
 }
 
@@ -71,15 +71,15 @@ async function startSilentRemote(): Promise<{ url: string; close: () => Promise<
   };
 }
 
-describe("paseo worktree manager", () => {
+describe("zentic worktree manager", () => {
   let tempDir: string;
   let repoDir: string;
-  let paseoHome: string;
+  let zenticHome: string;
 
   beforeEach(() => {
     tempDir = realpathSync(mkdtempSync(join(tmpdir(), "worktree-manager-test-")));
     repoDir = join(tempDir, "test-repo");
-    paseoHome = join(tempDir, "paseo-home");
+    zenticHome = join(tempDir, "zentic-home");
 
     mkdirSync(repoDir, { recursive: true });
     execFileSync("git", ["init", "-b", "main"], { cwd: repoDir });
@@ -131,7 +131,7 @@ describe("paseo worktree manager", () => {
 
       const result = await createWorktreePrimitive({
         cwd: repoDir,
-        paseoHome,
+        zenticHome,
         worktreeSlug: "fork-review",
 
         source: {
@@ -154,13 +154,13 @@ describe("paseo worktree manager", () => {
     },
   );
 
-  it("treats a worktree as paseo-owned even when its .git admin is missing", async () => {
+  it("treats a worktree as zentic-owned even when its .git admin is missing", async () => {
     const created = await createLegacyWorktreeForTest({
       branchName: "orphan-admin-branch",
       cwd: repoDir,
       baseBranch: "main",
       worktreeSlug: "orphan-admin",
-      paseoHome,
+      zenticHome,
     });
 
     // Simulate a previous archive attempt that removed git's admin dir but left
@@ -171,7 +171,7 @@ describe("paseo worktree manager", () => {
     });
     expect(existsSync(created.worktreePath)).toBe(true);
 
-    const ownership = await isPaseoOwnedWorktreeCwd(created.worktreePath, { paseoHome });
+    const ownership = await isZenticOwnedWorktreeCwd(created.worktreePath, { zenticHome });
     expect(ownership).toMatchObject({ allowed: true, worktreePath: created.worktreePath });
     // Windows may report the same root through native 8.3 and JS long spellings.
     const nativeWorktreePath = realpathSync.native(created.worktreePath);
@@ -182,18 +182,18 @@ describe("paseo worktree manager", () => {
       }),
     ).resolves.toEqual([]);
     await expect(
-      isPaseoOwnedWorktreeCwd(join(created.worktreePath, "packages", "app"), { paseoHome }),
+      isZenticOwnedWorktreeCwd(join(created.worktreePath, "packages", "app"), { zenticHome }),
     ).resolves.toMatchObject({
       allowed: true,
       worktreePath: created.worktreePath,
     });
   });
 
-  it("rejects paths that are not under the paseo worktrees root", async () => {
-    const outsidePath = join(tempDir, "outside-paseo-home");
+  it("rejects paths that are not under the zentic worktrees root", async () => {
+    const outsidePath = join(tempDir, "outside-zentic-home");
     mkdirSync(outsidePath, { recursive: true });
 
-    const ownership = await isPaseoOwnedWorktreeCwd(outsidePath, { paseoHome });
+    const ownership = await isZenticOwnedWorktreeCwd(outsidePath, { zenticHome });
 
     expect(ownership.allowed).toBe(false);
   });
@@ -204,10 +204,10 @@ describe("paseo worktree manager", () => {
       cwd: repoDir,
       baseBranch: "main",
       worktreeSlug: "placement-root",
-      paseoHome,
+      zenticHome,
     });
 
-    const ownership = await isPaseoOwnedWorktreeCwd(created.worktreePath, { paseoHome });
+    const ownership = await isZenticOwnedWorktreeCwd(created.worktreePath, { zenticHome });
 
     expect(ownership.allowed).toBe(true);
     expect(createRealpathAwarePathMatcher(repoDir)(ownership.repoRoot ?? "")).toBe(true);
@@ -266,14 +266,14 @@ describe("paseo worktree manager", () => {
 
   it("rejects the worktrees root itself and the per-repo hash dir", async () => {
     const projectHash = await deriveWorktreeProjectHash(repoDir);
-    const worktreesRoot = join(paseoHome, "worktrees");
+    const worktreesRoot = join(zenticHome, "worktrees");
     const projectHashDir = join(worktreesRoot, projectHash);
     mkdirSync(projectHashDir, { recursive: true });
 
-    await expect(isPaseoOwnedWorktreeCwd(worktreesRoot, { paseoHome })).resolves.toMatchObject({
+    await expect(isZenticOwnedWorktreeCwd(worktreesRoot, { zenticHome })).resolves.toMatchObject({
       allowed: false,
     });
-    await expect(isPaseoOwnedWorktreeCwd(projectHashDir, { paseoHome })).resolves.toMatchObject({
+    await expect(isZenticOwnedWorktreeCwd(projectHashDir, { zenticHome })).resolves.toMatchObject({
       allowed: false,
     });
   });
@@ -284,7 +284,7 @@ describe("paseo worktree manager", () => {
       cwd: repoDir,
       baseBranch: "main",
       worktreeSlug: "orphan-delete",
-      paseoHome,
+      zenticHome,
     });
 
     rmSync(join(repoDir, ".git", "worktrees", "orphan-delete"), {
@@ -293,10 +293,10 @@ describe("paseo worktree manager", () => {
     });
     expect(existsSync(created.worktreePath)).toBe(true);
 
-    await deletePaseoWorktree({
+    await deleteZenticWorktree({
       cwd: repoDir,
       worktreePath: created.worktreePath,
-      paseoHome,
+      zenticHome,
     });
 
     expect(existsSync(created.worktreePath)).toBe(false);
@@ -308,12 +308,12 @@ describe("paseo worktree manager", () => {
       cwd: repoDir,
       baseBranch: "main",
       worktreeSlug: "identity-delete",
-      paseoHome,
+      zenticHome,
     });
-    await deletePaseoWorktree({
+    await deleteZenticWorktree({
       cwd: realpathSync.native(repoDir),
       worktreePath: created.worktreePath,
-      paseoHome,
+      zenticHome,
     });
     expect(existsSync(created.worktreePath)).toBe(false);
   });
@@ -324,19 +324,19 @@ describe("paseo worktree manager", () => {
       cwd: repoDir,
       baseBranch: "main",
       worktreeSlug: "idempotent-delete",
-      paseoHome,
+      zenticHome,
     });
 
-    await deletePaseoWorktree({
+    await deleteZenticWorktree({
       cwd: repoDir,
       worktreePath: created.worktreePath,
-      paseoHome,
+      zenticHome,
     });
     expect(existsSync(created.worktreePath)).toBe(false);
 
     // Second call — nothing left on disk and no admin entry — must not throw.
     await expect(
-      deletePaseoWorktree({ cwd: repoDir, worktreePath: created.worktreePath, paseoHome }),
+      deleteZenticWorktree({ cwd: repoDir, worktreePath: created.worktreePath, zenticHome }),
     ).resolves.toBeUndefined();
   });
 
@@ -346,20 +346,20 @@ describe("paseo worktree manager", () => {
       cwd: repoDir,
       baseBranch: "main",
       worktreeSlug: "no-cwd",
-      paseoHome,
+      zenticHome,
     });
 
-    const ownership = await isPaseoOwnedWorktreeCwd(created.worktreePath, { paseoHome });
+    const ownership = await isZenticOwnedWorktreeCwd(created.worktreePath, { zenticHome });
     expect(ownership.allowed).toBe(true);
     expect(ownership.worktreeRoot).toBeTruthy();
 
     // Simulate the handler path when git has forgotten about the worktree:
     // caller forwards the path-derived worktreesRoot from the ownership check.
-    await deletePaseoWorktree({
+    await deleteZenticWorktree({
       cwd: null,
       worktreePath: created.worktreePath,
       worktreesRoot: ownership.worktreeRoot,
-      paseoHome,
+      zenticHome,
     });
 
     expect(existsSync(created.worktreePath)).toBe(false);
@@ -400,7 +400,7 @@ describe("paseo worktree manager", () => {
         cwd: repoDir,
         baseBranch: "origin/main",
         worktreeSlug: "from-remote-tip",
-        paseoHome,
+        zenticHome,
       });
 
       expect(git(["rev-parse", "HEAD"], created.worktreePath)).toBe(remoteTip);
@@ -415,7 +415,7 @@ describe("paseo worktree manager", () => {
         cwd: repoDir,
         baseBranch: "refs/remotes/team/upstream/main",
         worktreeSlug: "from-upstream-tip",
-        paseoHome,
+        zenticHome,
       });
 
       expect(git(["rev-parse", "HEAD"], created.worktreePath)).toBe(remoteTip);
@@ -431,7 +431,7 @@ describe("paseo worktree manager", () => {
         cwd: repoDir,
         baseBranch: "origin/main",
         worktreeSlug: "from-cached-ref",
-        paseoHome,
+        zenticHome,
       });
 
       expect(git(["rev-parse", "HEAD"], created.worktreePath)).toBe(cachedTip);
@@ -450,7 +450,7 @@ describe("paseo worktree manager", () => {
           cwd: repoDir,
           baseBranch: "origin/main",
           worktreeSlug: "from-silent-remote",
-          paseoHome,
+          zenticHome,
         });
 
         // Clients give up on a create request after 60s, so the fallback has to land well before.

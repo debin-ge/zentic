@@ -1,8 +1,8 @@
-import { PluginTranslationRuntime } from "@getpaseo/plugin/client/host";
-import { usePaseo, useRpc } from "@getpaseo/plugin/client";
-import { defineRpc } from "@getpaseo/plugin";
-import { createPaseoApi, type PaseoApi } from "@getpaseo/client";
-import { DaemonClient } from "@getpaseo/client/internal/daemon-client";
+import { PluginTranslationRuntime } from "@getzentic/plugin/client/host";
+import { useZentic, useRpc } from "@getzentic/plugin/client";
+import { defineRpc } from "@getzentic/plugin";
+import { createZenticApi, type ZenticApi } from "@getzentic/client";
+import { DaemonClient } from "@getzentic/client/internal/daemon-client";
 import { QueryClient } from "@tanstack/react-query";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -25,7 +25,7 @@ function installation(invoked: string[]): InstalledPlugin {
     lifetime: new AbortController(),
     locale: "en",
     i18n: new PluginTranslationRuntime({ getLocale: () => "en", subscribe: () => () => {} }),
-    paseo: createPaseoApi(
+    zentic: createZenticApi(
       new DaemonClient({
         url: "ws://127.0.0.1:1",
         clientId: "installation-provider",
@@ -63,10 +63,10 @@ function installation(invoked: string[]): InstalledPlugin {
 it("gives every surface the installation's client and RPCs on its first frame", async () => {
   const invoked: string[] = [];
   const plugin = installation(invoked);
-  const received: PaseoApi[] = [];
+  const received: ZenticApi[] = [];
   let rpc: ((input: Record<string, never>) => Promise<unknown>) | null = null;
   function Surface({ name }: { name: string }) {
-    received.push(usePaseo());
+    received.push(useZentic());
     rpc = useRpc(status);
     return <span>{name}</span>;
   }
@@ -82,10 +82,10 @@ it("gives every surface the installation's client and RPCs on its first frame", 
     .join("");
 
   expect(markup).toBe("<span>Screen</span><span>Sidebar item</span><span>Popover</span>");
-  expect(received).toEqual([plugin.paseo, plugin.paseo, plugin.paseo]);
-  expect(received.every((paseo) => paseo === plugin.paseo)).toBe(true);
+  expect(received).toEqual([plugin.zentic, plugin.zentic, plugin.zentic]);
+  expect(received.every((zentic) => zentic === plugin.zentic)).toBe(true);
   await expect(rpc!({})).resolves.toEqual({ state: "green" });
   expect(invoked).toEqual(["deploys.status"]);
   plugin.lifetime.abort();
-  await plugin.paseo.dispose();
+  await plugin.zentic.dispose();
 });

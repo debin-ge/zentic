@@ -1,6 +1,6 @@
 import type { WorkspaceRef, AgentRef, ProjectRef, TerminalRef } from "./refs.js";
 import type { PluginText } from "./text.js";
-import type { JsonValue } from "@getpaseo/protocol/agent-types";
+import type { JsonValue } from "@getzentic/protocol/agent-types";
 import type { PluginSerializableIcon } from "./icons.js";
 import type { PluginRpcContract } from "./rpc.js";
 

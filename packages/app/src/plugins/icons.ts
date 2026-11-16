@@ -6,9 +6,9 @@ import {
   type PluginIconProps,
   type PluginSerializableIcon,
   type PluginSvgIcon,
-} from "@getpaseo/plugin";
-import type { PluginIcon } from "@getpaseo/plugin/client";
-import type { IconProps } from "@getpaseo/plugin/client/ui";
+} from "@getzentic/plugin";
+import type { PluginIcon } from "@getzentic/plugin/client";
+import type { IconProps } from "@getzentic/plugin/client/ui";
 import { SvgIcon } from "@/components/provider-icons";
 
 /** Host surfaces may thin a Lucide stroke; SVG and plugin components ignore it. */

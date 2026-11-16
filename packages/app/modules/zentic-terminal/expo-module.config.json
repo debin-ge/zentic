@@ -1,0 +1,9 @@
+{
+  "platforms": ["android", "ios"],
+  "android": {
+    "modules": ["sh.zentic.terminal.ZenticTerminalModule"]
+  },
+  "ios": {
+    "modules": ["ZenticTerminalModule"]
+  }
+}

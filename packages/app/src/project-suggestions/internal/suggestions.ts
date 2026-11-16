@@ -1,4 +1,4 @@
-import type { ProjectSuggestion } from "@getpaseo/protocol/messages";
+import type { ProjectSuggestion } from "@getzentic/protocol/messages";
 
 export type { ProjectSuggestion };
 

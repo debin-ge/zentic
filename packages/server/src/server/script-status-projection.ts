@@ -3,9 +3,9 @@ import type {
   ScriptStatusUpdateMessage,
   SessionOutboundMessage,
   WorkspaceScriptPayload,
-} from "@getpaseo/protocol/messages";
-import type { PaseoConfig } from "@getpaseo/protocol/paseo-config-schema";
-import { readPaseoConfigOrLastKnown } from "../utils/paseo-config-file.js";
+} from "@getzentic/protocol/messages";
+import type { ZenticConfig } from "@getzentic/protocol/zentic-config-schema";
+import { readZenticConfigOrLastKnown } from "../utils/zentic-config-file.js";
 import { getScriptConfigs, isServiceScript } from "../utils/worktree.js";
 import { deriveProjectSlug } from "./workspace-git-metadata.js";
 import type { ScriptHealthEntry, ScriptHealthState } from "./script-health-monitor.js";
@@ -22,7 +22,7 @@ interface SessionEmitter {
 interface BuildWorkspaceScriptPayloadsOptions {
   workspaceId: string;
   workspaceDirectory: string;
-  paseoConfig: PaseoConfig | null;
+  zenticConfig: ZenticConfig | null;
   serviceProxy: ServiceProxySubsystem;
   runtimeStore: WorkspaceScriptRuntimeStore;
   daemonPort: number | null;
@@ -34,17 +34,17 @@ interface BuildWorkspaceScriptPayloadsOptions {
   resolveHealth?: (hostname: string) => ScriptHealthState | null;
 }
 
-export async function readPaseoConfigForProjection(
+export async function readZenticConfigForProjection(
   workspaceDirectory: string,
   logger: Logger,
-): Promise<PaseoConfig | null> {
-  const result = await readPaseoConfigOrLastKnown(workspaceDirectory);
+): Promise<ZenticConfig | null> {
+  const result = await readZenticConfigOrLastKnown(workspaceDirectory);
   if (result.ok) {
     return result.config;
   }
   logger.warn(
     { configPath: result.configPath, workspaceDirectory, err: result.error },
-    "Failed to parse paseo.json; treating workspace as having no scripts",
+    "Failed to parse zentic.json; treating workspace as having no scripts",
   );
   return null;
 }
@@ -219,7 +219,7 @@ export function buildWorkspaceScriptPayloads(
   const workspaceDirectory = options.workspaceDirectory;
   const projectSlug = options.gitMetadata?.projectSlug ?? deriveProjectSlug(workspaceDirectory);
   const branchName = options.gitMetadata?.currentBranch ?? null;
-  const scriptConfigs = getScriptConfigs(options.paseoConfig);
+  const scriptConfigs = getScriptConfigs(options.zenticConfig);
   const runtimeEntries = new Map(
     options.runtimeStore
       .listForWorkspace(workspaceId)
@@ -305,7 +305,7 @@ export function createScriptStatusEmitter({
       const projected = buildWorkspaceScriptPayloads({
         workspaceId,
         workspaceDirectory,
-        paseoConfig: await readPaseoConfigForProjection(workspaceDirectory, logger),
+        zenticConfig: await readZenticConfigForProjection(workspaceDirectory, logger),
         serviceProxy,
         runtimeStore,
         daemonPort: resolvedDaemonPort,

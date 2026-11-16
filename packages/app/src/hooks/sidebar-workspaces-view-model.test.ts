@@ -72,7 +72,7 @@ describe("createSidebarWorkspaceEntry forge threading", () => {
 });
 
 describe("createSidebarWorkspaceEntry workspace directory label", () => {
-  it("uses the daemon-provided slug for a Paseo-owned worktree", () => {
+  it("uses the daemon-provided slug for a Zentic-owned worktree", () => {
     const descriptor = workspaceWithForge(undefined, "https://github.com/acme/repo/pull/42");
     descriptor.workspaceDirectory = "/worktrees/feature/packages/app";
     descriptor.worktreeSlug = "feature";
@@ -279,19 +279,19 @@ describe("buildSidebarProjectsFromStructure", () => {
           projectKey: "project-1",
           hosts: [
             {
-              serverId: "relay:paseo-host",
+              serverId: "relay:zentic-host",
               iconWorkingDir: "/repo/project-1",
               worktreeSupport: "supported" as const,
             },
           ],
-          workspaceKeys: ["relay:paseo-host:ws-main"],
+          workspaceKeys: ["relay:zentic-host:ws-main"],
         }),
       ],
     });
 
     expect(projects[0]?.workspaces[0]).toMatchObject({
-      workspaceKey: "relay:paseo-host:ws-main",
-      serverId: "relay:paseo-host",
+      workspaceKey: "relay:zentic-host:ws-main",
+      serverId: "relay:zentic-host",
       workspaceId: "ws-main",
     });
   });
@@ -302,18 +302,18 @@ describe("shared sidebar workspace model", () => {
     const model = buildSidebarWorkspacePlacementModel({
       projects: [
         project({
-          projectKey: "getpaseo/paseo",
-          projectName: "getpaseo/paseo",
-          iconWorkingDir: "/repo/getpaseo/paseo",
+          projectKey: "getzentic/zentic",
+          projectName: "getzentic/zentic",
+          iconWorkingDir: "/repo/getzentic/zentic",
           hosts: [
             {
               serverId: "host-a",
-              iconWorkingDir: "/repo/getpaseo/paseo",
+              iconWorkingDir: "/repo/getzentic/zentic",
               worktreeSupport: "supported" as const,
             },
             {
               serverId: "host-b",
-              iconWorkingDir: "/repo/getpaseo/paseo",
+              iconWorkingDir: "/repo/getzentic/zentic",
               worktreeSupport: "supported" as const,
             },
           ],
@@ -333,8 +333,8 @@ describe("shared sidebar workspace model", () => {
               workspace({
                 id: "main",
                 name: "main",
-                projectId: "getpaseo/paseo",
-                projectDisplayName: "getpaseo/paseo",
+                projectId: "getzentic/zentic",
+                projectDisplayName: "getzentic/zentic",
                 status: "done",
               }),
             ],
@@ -349,8 +349,8 @@ describe("shared sidebar workspace model", () => {
               workspace({
                 id: "feature",
                 name: "feature/status-flow",
-                projectId: "getpaseo/paseo",
-                projectDisplayName: "getpaseo/paseo",
+                projectId: "getzentic/zentic",
+                projectDisplayName: "getzentic/zentic",
                 status: "running",
                 statusEnteredAt: new Date("2026-06-10T00:00:00.000Z"),
               }),
@@ -366,18 +366,18 @@ describe("shared sidebar workspace model", () => {
     ]);
     expect(model.projects).toEqual([
       expect.objectContaining({
-        viewKey: "getpaseo/paseo",
+        viewKey: "getzentic/zentic",
         hosts: [
           {
             serverId: "host-a",
-            projectId: "getpaseo/paseo",
-            iconWorkingDir: "/repo/getpaseo/paseo",
+            projectId: "getzentic/zentic",
+            iconWorkingDir: "/repo/getzentic/zentic",
             worktreeSupport: "supported" as const,
           },
           {
             serverId: "host-b",
-            projectId: "getpaseo/paseo",
-            iconWorkingDir: "/repo/getpaseo/paseo",
+            projectId: "getzentic/zentic",
+            iconWorkingDir: "/repo/getzentic/zentic",
             worktreeSupport: "supported" as const,
           },
         ],
@@ -405,7 +405,9 @@ describe("shared sidebar workspace model", () => {
       ["host-a:main", "done", "main"],
       ["host-b:feature", "running", "feature/status-flow"],
     ]);
-    expect(model.projectNamesByViewKey).toEqual(new Map([["getpaseo/paseo", "getpaseo/paseo"]]));
+    expect(model.projectNamesByViewKey).toEqual(
+      new Map([["getzentic/zentic", "getzentic/zentic"]]),
+    );
   });
 
   it("preserves the collection when a retained sidebar reconnects to unchanged entries", () => {
@@ -588,16 +590,16 @@ describe("shouldShowSidebarHostLabels", () => {
     const projects = buildSidebarProjectsFromStructure({
       projects: [
         project({
-          projectKey: "getpaseo/paseo",
+          projectKey: "getzentic/zentic",
           hosts: [
             {
               serverId: "host-a",
-              iconWorkingDir: "/repo/paseo",
+              iconWorkingDir: "/repo/zentic",
               worktreeSupport: "supported" as const,
             },
             {
               serverId: "host-b",
-              iconWorkingDir: "/repo/paseo",
+              iconWorkingDir: "/repo/zentic",
               worktreeSupport: "supported" as const,
             },
           ],

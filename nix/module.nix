@@ -6,60 +6,60 @@
 }:
 
 let
-  cfg = config.services.paseo;
+  cfg = config.services.zentic;
 in
 {
   imports = [
-    (lib.mkRenamedOptionModule [ "services" "paseo" "allowedHosts" ] [ "services" "paseo" "hostnames" ])
+    (lib.mkRenamedOptionModule [ "services" "zentic" "allowedHosts" ] [ "services" "zentic" "hostnames" ])
   ];
 
-  options.services.paseo = {
-    enable = lib.mkEnableOption "Paseo, a self-hosted daemon for AI coding agents";
+  options.services.zentic = {
+    enable = lib.mkEnableOption "Zentic, a self-hosted daemon for AI coding agents";
 
-    package = lib.mkPackageOption pkgs "paseo" { };
+    package = lib.mkPackageOption pkgs "zentic" { };
 
     user = lib.mkOption {
       type = lib.types.str;
-      default = "paseo";
-      description = "User account under which Paseo runs.";
+      default = "zentic";
+      description = "User account under which Zentic runs.";
     };
 
     group = lib.mkOption {
       type = lib.types.str;
-      default = "paseo";
-      description = "Group under which Paseo runs.";
+      default = "zentic";
+      description = "Group under which Zentic runs.";
     };
 
     dataDir = lib.mkOption {
       type = lib.types.str;
       default =
-        if cfg.user == "paseo"
-        then "/var/lib/paseo"
-        else "/home/${cfg.user}/.paseo";
+        if cfg.user == "zentic"
+        then "/var/lib/zentic"
+        else "/home/${cfg.user}/.zentic";
       defaultText = lib.literalExpression ''
-        if cfg.user == "paseo"
-        then "/var/lib/paseo"
-        else "/home/''${cfg.user}/.paseo"
+        if cfg.user == "zentic"
+        then "/var/lib/zentic"
+        else "/home/''${cfg.user}/.zentic"
       '';
-      description = "Directory for Paseo state (PASEO_HOME). Stores agent data, config, and logs.";
+      description = "Directory for Zentic state (ZENTIC_HOME). Stores agent data, config, and logs.";
     };
 
     port = lib.mkOption {
       type = lib.types.port;
       default = 6767;
-      description = "Port for the Paseo daemon to listen on.";
+      description = "Port for the Zentic daemon to listen on.";
     };
 
     listenAddress = lib.mkOption {
       type = lib.types.str;
       default = "127.0.0.1";
-      description = "Address for the Paseo daemon to bind to.";
+      description = "Address for the Zentic daemon to bind to.";
     };
 
     openFirewall = lib.mkOption {
       type = lib.types.bool;
       default = false;
-      description = "Whether to open the firewall for the Paseo daemon port.";
+      description = "Whether to open the firewall for the Zentic daemon port.";
     };
 
     hostnames = lib.mkOption {
@@ -67,7 +67,7 @@ in
       default = [ ];
       example = [ ".example.com" "myhost.local" ];
       description = ''
-        Hostnames the Paseo daemon accepts in the Host header (DNS rebinding protection).
+        Hostnames the Zentic daemon accepts in the Host header (DNS rebinding protection).
         Localhost and IP addresses are always allowed by default.
 
         Use a leading dot to match a domain and all its subdomains
@@ -94,11 +94,11 @@ in
         description = ''
           How the daemon reaches the relay when `relay.enable = true`:
 
-          - `"hosted"` (default): use the upstream `app.paseo.sh` relay.
+          - `"hosted"` (default): use the upstream `app.zentic.sh` relay.
             Preserves the current behavior; no extra options needed.
           - `"remote"`: connect to a self-hosted relay at
-            `relay.host:relay.port`. Sets `PASEO_RELAY_ENDPOINT` and
-            `PASEO_RELAY_USE_TLS` for the daemon.
+            `relay.host:relay.port`. Sets `ZENTIC_RELAY_ENDPOINT` and
+            `ZENTIC_RELAY_USE_TLS` for the daemon.
 
           A `"local"` mode (running a relay on the same host as a systemd
           unit) is not yet implemented — the relay package currently only
@@ -139,12 +139,12 @@ in
 
     inheritUserEnvironment = lib.mkOption {
       type = lib.types.bool;
-      default = cfg.user != "paseo";
-      defaultText = lib.literalExpression ''cfg.user != "paseo"'';
+      default = cfg.user != "zentic";
+      defaultText = lib.literalExpression ''cfg.user != "zentic"'';
       description = ''
         Whether to include the user's profile PATH in the service environment.
 
-        When Paseo runs as a real user (not the default system user), AI agents
+        When Zentic runs as a real user (not the default system user), AI agents
         need access to the user's tools (git, ssh, etc.). This adds the user's
         NixOS profile, home-manager profile (`~/.nix-profile/bin` and
         `~/.local/state/nix/profile/bin`), and system paths so agents can use
@@ -159,10 +159,10 @@ in
       default = { };
       example = lib.literalExpression ''
         {
-          PASEO_RELAY_ENDPOINT = "relay.paseo.sh:443";
+          ZENTIC_RELAY_ENDPOINT = "relay.zentic.sh:443";
         }
       '';
-      description = "Extra environment variables for the Paseo daemon.";
+      description = "Extra environment variables for the Zentic daemon.";
     };
 
     settings = lib.mkOption {
@@ -176,14 +176,14 @@ in
             label = "My Agent";
             command = { path = "/run/current-system/sw/bin/my-acp"; };
           };
-          log.file = { level = "info"; path = "/var/lib/paseo/daemon.log"; };
+          log.file = { level = "info"; path = "/var/lib/zentic/daemon.log"; };
         }
       '';
       description = ''
-        Declarative content for `$PASEO_HOME/config.json`. Rendered to JSON
+        Declarative content for `$ZENTIC_HOME/config.json`. Rendered to JSON
         and installed on every service start.
 
-        Runtime mutations to `config.json` (e.g. via `paseo daemon set-password`
+        Runtime mutations to `config.json` (e.g. via `zentic daemon set-password`
         or the mobile app toggling MCP injection / provider overrides) are
         overwritten on the next restart. Pick one: manage via this option, or
         manage via the CLI — not both.
@@ -196,32 +196,32 @@ in
 
   config = lib.mkIf cfg.enable (
     let
-      settingsFile = (pkgs.formats.json { }).generate "paseo-config.json" cfg.settings;
+      settingsFile = (pkgs.formats.json { }).generate "zentic-config.json" cfg.settings;
     in
     {
     assertions = [
       {
         assertion = !(cfg.relay.enable && cfg.relay.mode == "remote" && cfg.relay.host == "");
         message = ''
-          services.paseo.relay.host must be set when relay.mode = "remote".
+          services.zentic.relay.host must be set when relay.mode = "remote".
         '';
       }
     ];
 
-    users.users.${cfg.user} = lib.mkIf (cfg.user == "paseo") {
+    users.users.${cfg.user} = lib.mkIf (cfg.user == "zentic") {
       isSystemUser = true;
       group = cfg.group;
       home = cfg.dataDir;
     };
 
-    users.groups.${cfg.group} = lib.mkIf (cfg.group == "paseo") { };
+    users.groups.${cfg.group} = lib.mkIf (cfg.group == "zentic") { };
 
     systemd.tmpfiles.rules = [
       "d ${cfg.dataDir} 0700 ${cfg.user} ${cfg.group} - -"
     ];
 
-    systemd.services.paseo = {
-      description = "Paseo - self-hosted daemon for AI coding agents";
+    systemd.services.zentic = {
+      description = "Zentic - self-hosted daemon for AI coding agents";
       after = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
 
@@ -230,8 +230,8 @@ in
       '';
 
       environment = {
-        PASEO_HOME = cfg.dataDir;
-        PASEO_LISTEN = "${cfg.listenAddress}:${toString cfg.port}";
+        ZENTIC_HOME = cfg.dataDir;
+        ZENTIC_LISTEN = "${cfg.listenAddress}:${toString cfg.port}";
       } // lib.optionalAttrs cfg.inheritUserEnvironment (
         let
           # Match dataDir's convention. We can't read users.users.<name>.home
@@ -244,7 +244,7 @@ in
           # so user-installed CLIs (claude, opencode, codex, ...) are reachable
           # by agent processes the daemon spawns.
           PATH = lib.mkForce (lib.concatStringsSep ":" (
-            lib.optionals (cfg.user != "paseo") [
+            lib.optionals (cfg.user != "zentic") [
               "${userHome}/.nix-profile/bin"
               "${userHome}/.local/state/nix/profile/bin"
             ]
@@ -257,14 +257,14 @@ in
           ));
         }
       ) // lib.optionalAttrs (cfg.hostnames == true) {
-        PASEO_HOSTNAMES = "true";
+        ZENTIC_HOSTNAMES = "true";
       } // lib.optionalAttrs (lib.isList cfg.hostnames && cfg.hostnames != [ ]) {
-        PASEO_HOSTNAMES = lib.concatStringsSep "," cfg.hostnames;
+        ZENTIC_HOSTNAMES = lib.concatStringsSep "," cfg.hostnames;
       } // lib.optionalAttrs (cfg.relay.enable && cfg.relay.mode == "remote") {
-        PASEO_RELAY_ENDPOINT = "${cfg.relay.host}:${toString cfg.relay.port}";
-        PASEO_RELAY_USE_TLS = if cfg.relay.useTls then "true" else "false";
+        ZENTIC_RELAY_ENDPOINT = "${cfg.relay.host}:${toString cfg.relay.port}";
+        ZENTIC_RELAY_USE_TLS = if cfg.relay.useTls then "true" else "false";
       } // lib.optionalAttrs (cfg.relay.enable && cfg.relay.mode == "remote" && cfg.relay.publicUseTls != null) {
-        PASEO_RELAY_PUBLIC_USE_TLS = if cfg.relay.publicUseTls then "true" else "false";
+        ZENTIC_RELAY_PUBLIC_USE_TLS = if cfg.relay.publicUseTls then "true" else "false";
       } // cfg.environment;
 
       serviceConfig = {
@@ -273,7 +273,7 @@ in
         Group = cfg.group;
 
         ExecStart =
-          "${cfg.package}/bin/paseo-server"
+          "${cfg.package}/bin/zentic-server"
           + lib.optionalString (!cfg.relay.enable) " --no-relay";
 
         Restart = "on-failure";

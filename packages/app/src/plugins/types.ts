@@ -1,12 +1,12 @@
-import type { PluginText } from "@getpaseo/plugin/client";
-import type { PaseoApi } from "@getpaseo/client";
+import type { PluginText } from "@getzentic/plugin/client";
+import type { ZenticApi } from "@getzentic/client";
 import type { QueryClient } from "@tanstack/react-query";
-import type { PluginRequirements } from "@getpaseo/protocol/messages";
+import type { PluginRequirements } from "@getzentic/protocol/messages";
 import type {
   PluginAttachmentSourceContribution as SDKPluginAttachmentSourceContribution,
   PluginCleanup,
   PluginThemeContribution as SDKPluginThemeContribution,
-} from "@getpaseo/plugin";
+} from "@getzentic/plugin";
 import type {
   PluginFilePanelContribution as SDKPluginFilePanelContribution,
   PluginCommandCenterItemContribution as SDKPluginCommandCenterItemContribution,
@@ -24,7 +24,7 @@ import type {
   PluginTimelineTransformerContribution,
   PluginPanelLocation,
   PluginWorkspacePanelContribution as SDKPluginWorkspacePanelContribution,
-} from "@getpaseo/plugin/client";
+} from "@getzentic/plugin/client";
 
 type PluginFilePanelContribution = SDKPluginFilePanelContribution<PluginText>;
 type PluginAttachmentSourceContribution = SDKPluginAttachmentSourceContribution<PluginText>;
@@ -76,13 +76,13 @@ export interface InstalledPlugin extends EvaluatedPlugin {
   lifetime: AbortController;
   /** Immutable presentation locale, refreshed without replacing the installation lifetime. */
   locale: string;
-  i18n: import("@getpaseo/plugin/client/host").PluginTranslationRuntime;
-  /** The plugin's one Paseo client, `usePaseo()` in every surface; disposed at teardown. */
-  paseo: PaseoApi;
+  i18n: import("@getzentic/plugin/client/host").PluginTranslationRuntime;
+  /** The plugin's one Zentic client, `useZentic()` in every surface; disposed at teardown. */
+  zentic: ZenticApi;
   /** Calls one of the plugin's server RPC methods on its host. */
   invoke(method: string, input: unknown): Promise<unknown>;
   /** Subscribes to one of the plugin's server subscriptions; released with the lifetime. */
-  subscribe: import("@getpaseo/plugin/client/host").PluginSubscribe;
+  subscribe: import("@getzentic/plugin/client/host").PluginSubscribe;
   serverId: string;
   requirements?: PluginRequirements;
   clientBundle: string;

@@ -1,0 +1,6 @@
+{
+  "id": "markdown-panel",
+  "requirements": {
+    "zentic": ">=0.13.0"
+  }
+}

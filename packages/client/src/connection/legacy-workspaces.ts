@@ -1,9 +1,9 @@
-import { AgentSnapshotPayloadSchema } from "@getpaseo/protocol/messages";
-import type { AgentSnapshotPayload, SessionOutboundMessage } from "@getpaseo/protocol/messages";
+import { AgentSnapshotPayloadSchema } from "@getzentic/protocol/messages";
+import type { AgentSnapshotPayload, SessionOutboundMessage } from "@getzentic/protocol/messages";
 import {
   deriveAgentStateBucket,
   getWorkspaceStateBucketPriority,
-} from "@getpaseo/protocol/agent-state-bucket";
+} from "@getzentic/protocol/agent-state-bucket";
 
 type AgentEntry = Extract<
   SessionOutboundMessage,
@@ -151,7 +151,7 @@ function workspaceId(entry: AgentEntry): string {
 
 function workspaceKind(checkout: AgentEntry["project"]["checkout"]): Workspace["workspaceKind"] {
   if (!checkout.isGit) return "directory";
-  if (checkout.isPaseoOwnedWorktree) return "worktree";
+  if (checkout.isZenticOwnedWorktree) return "worktree";
   return "checkout";
 }
 
@@ -168,7 +168,7 @@ function gitRuntime(checkout: AgentEntry["project"]["checkout"]): Workspace["git
   return {
     currentBranch: checkout.currentBranch,
     remoteUrl: checkout.remoteUrl,
-    isPaseoOwnedWorktree: checkout.isPaseoOwnedWorktree,
+    isZenticOwnedWorktree: checkout.isZenticOwnedWorktree,
     isDirty: null,
     aheadBehind: null,
     aheadOfOrigin: null,

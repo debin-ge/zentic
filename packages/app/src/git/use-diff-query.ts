@@ -11,7 +11,7 @@ import {
   type CheckoutDiffSnapshot,
 } from "./diff-snapshot";
 export { deriveCheckoutDiffResult } from "./diff-snapshot";
-import type { ParsedDiffFile } from "@getpaseo/protocol/messages";
+import type { ParsedDiffFile } from "@getzentic/protocol/messages";
 import { checkoutDiffQueryKey } from "@/git/query-keys";
 
 interface UseCheckoutDiffQueryOptions {

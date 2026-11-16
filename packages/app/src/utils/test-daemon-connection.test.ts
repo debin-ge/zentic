@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { DaemonClientConfig } from "@getpaseo/client/internal/daemon-client";
-import { DaemonAuthenticationError } from "@getpaseo/client/internal/daemon-client";
+import type { DaemonClientConfig } from "@getzentic/client/internal/daemon-client";
+import { DaemonAuthenticationError } from "@getzentic/client/internal/daemon-client";
 import type { DaemonConnectionDependencies, DaemonProbeClient } from "./test-daemon-connection";
 import { createHostLogger } from "@/runtime/host-logger";
 
@@ -59,9 +59,9 @@ class FakeDaemonProbe {
     createDesktopTransportFactory: () => null,
     buildDesktopTransportUrl: (target) => {
       if (target.transportType === "ssh") {
-        return `paseo+desktop://ssh?host=${encodeURIComponent(target.host)}`;
+        return `zentic+desktop://ssh?host=${encodeURIComponent(target.host)}`;
       }
-      return `paseo+desktop://${target.transportType}?path=${encodeURIComponent(target.transportPath)}`;
+      return `zentic+desktop://${target.transportType}?path=${encodeURIComponent(target.transportPath)}`;
     },
     createClient: (config) => {
       const client = new FakeDaemonClient(this, config);
@@ -121,7 +121,7 @@ describe("test-daemon-connection connectToDaemon", () => {
     {
       id: "relay:test",
       type: "relay" as const,
-      relayEndpoint: "relay.paseo.sh:443",
+      relayEndpoint: "relay.zentic.sh:443",
       daemonPublicKeyB64: "pubkey",
     },
   ])("adoptable $type probe clients use the app WebSocket factory", async (connection) => {
@@ -209,16 +209,18 @@ describe("test-daemon-connection connectToDaemon", () => {
     const { connectToDaemon } = await import("./test-daemon-connection");
     const result = await connectToDaemon(
       {
-        id: "socket:/tmp/paseo.sock",
+        id: "socket:/tmp/zentic.sock",
         type: "directSocket",
-        path: "/tmp/paseo.sock",
+        path: "/tmp/zentic.sock",
       },
       undefined,
       probe.deps,
     );
     await result.client.close();
 
-    expect(probe.createdConfigs()[0]?.url).toBe("paseo+desktop://socket?path=%2Ftmp%2Fpaseo.sock");
+    expect(probe.createdConfigs()[0]?.url).toBe(
+      "zentic+desktop://socket?path=%2Ftmp%2Fzentic.sock",
+    );
   });
 
   it("uses the desktop transport for Remote SSH connections", async () => {
@@ -226,7 +228,7 @@ describe("test-daemon-connection connectToDaemon", () => {
     const transportFactory = vi.fn();
     const result = await connectToDaemon(
       {
-        id: "ssh:deploy%40example.com:2222:%2Fkeys%2Fpaseo",
+        id: "ssh:deploy%40example.com:2222:%2Fkeys%2Fzentic",
         type: "remoteSsh",
         host: "deploy@example.com",
         sshPort: 2222,
@@ -241,7 +243,7 @@ describe("test-daemon-connection connectToDaemon", () => {
     await result.client.close();
 
     expect(probe.createdConfigs()[0]).toMatchObject({
-      url: "paseo+desktop://ssh?host=deploy%40example.com",
+      url: "zentic+desktop://ssh?host=deploy%40example.com",
       transportFactory,
     });
   });
@@ -300,9 +302,9 @@ describe("test-daemon-connection connectToDaemon", () => {
 
     const plainResult = await connectToDaemon(
       {
-        id: "relay:relay.paseo.sh:443",
+        id: "relay:relay.zentic.sh:443",
         type: "relay",
-        relayEndpoint: "relay.paseo.sh:443",
+        relayEndpoint: "relay.zentic.sh:443",
         useTls: false,
         daemonPublicKeyB64: "pubkey",
       },
@@ -312,7 +314,7 @@ describe("test-daemon-connection connectToDaemon", () => {
     await plainResult.client.close();
 
     expect(probe.createdConfigs()[0]?.url).toMatch(/^wss:\/\/\[::1\]\/ws\?/);
-    expect(probe.createdConfigs()[1]?.url).toMatch(/^ws:\/\/relay\.paseo\.sh:443\/ws\?/);
+    expect(probe.createdConfigs()[1]?.url).toMatch(/^ws:\/\/relay\.zentic\.sh:443\/ws\?/);
   });
 
   it("surfaces auth rejection as an incorrect password", async () => {

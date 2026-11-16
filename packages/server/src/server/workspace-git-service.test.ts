@@ -51,7 +51,7 @@ function createSnapshot(
       mainRepoRoot: null,
       currentBranch: "main",
       remoteUrl: "https://github.com/acme/repo.git",
-      isPaseoOwnedWorktree: false,
+      isZenticOwnedWorktree: false,
       isDirty: false,
       baseRef: "main",
       aheadBehind: { ahead: 0, behind: 0 },
@@ -151,7 +151,7 @@ function createCheckoutStatus(
     behindOfOrigin: 0,
     hasRemote: true,
     remoteUrl: "https://github.com/acme/repo.git",
-    isPaseoOwnedWorktree: false,
+    isZenticOwnedWorktree: false,
     ...overrides,
   };
 }
@@ -164,7 +164,7 @@ function createCheckoutSnapshotFacts(cwd: string): CheckoutSnapshotFacts {
     remoteUrl: "https://github.com/acme/repo.git",
     absoluteGitDir: join(cwd, ".git"),
     gitCommonDir: join(cwd, ".git"),
-    paseoWorktree: { isPaseoOwnedWorktree: false },
+    zenticWorktree: { isZenticOwnedWorktree: false },
     storedBaseRef: null,
     resolvedBaseRef: "main",
     mainRepoRoot: null,
@@ -333,7 +333,7 @@ function createService(options?: CreateServiceTestOptions) {
     });
   return new WorkspaceGitServiceImpl({
     logger: createLogger() as unknown as pino.Logger,
-    paseoHome: "/tmp/paseo-test",
+    zenticHome: "/tmp/zentic-test",
     deps,
   });
 }
@@ -572,7 +572,7 @@ describe("WorkspaceGitServiceImpl", () => {
     let reads = 0;
     const service = new WorkspaceGitServiceImpl({
       logger: createLogger() as unknown as pino.Logger,
-      paseoHome: "/tmp/paseo-test",
+      zenticHome: "/tmp/zentic-test",
       deps: {
         ...buildDefaultTestServiceDeps(),
         getPullRequestStatus: async () => {
@@ -683,7 +683,7 @@ describe("WorkspaceGitServiceImpl", () => {
   test("getSnapshot keeps plain git classification when shortstat lookup fails", async () => {
     const getCheckoutShortstat = vi.fn(async () => {
       throw new Error(
-        "Missing Paseo worktree base metadata: /tmp/repo/.git/worktrees/feature/paseo/worktree.json",
+        "Missing Zentic worktree base metadata: /tmp/repo/.git/worktrees/feature/zentic/worktree.json",
       );
     });
     const service = createService({
@@ -691,7 +691,7 @@ describe("WorkspaceGitServiceImpl", () => {
         createCheckoutStatus(cwd, {
           repoRoot: cwd,
           currentBranch: "feature/worktree",
-          isPaseoOwnedWorktree: false,
+          isZenticOwnedWorktree: false,
           mainRepoRoot: "/tmp/main-repo",
         }),
       ),
@@ -703,7 +703,7 @@ describe("WorkspaceGitServiceImpl", () => {
         git: {
           repoRoot: REPO_CWD,
           currentBranch: "feature/worktree",
-          isPaseoOwnedWorktree: false,
+          isZenticOwnedWorktree: false,
           mainRepoRoot: "/tmp/main-repo",
           diffStat: null,
         },
@@ -1945,7 +1945,7 @@ describe("WorkspaceGitServiceImpl", () => {
 
     expect(getCheckoutWorktreeState).toHaveBeenCalledWith(
       REPO_CWD,
-      expect.objectContaining({ paseoHome: "/tmp/paseo-test" }),
+      expect.objectContaining({ zenticHome: "/tmp/zentic-test" }),
     );
     expect(workspaceListener).toHaveBeenCalledWith(
       createSnapshot(REPO_CWD, {
@@ -1989,7 +1989,7 @@ describe("WorkspaceGitServiceImpl with workspace folders that no longer exist", 
   const temporaryFolders: string[] = [];
 
   async function createTemporaryFolder(): Promise<string> {
-    const folder = await mkdtemp(join(os.tmpdir(), "paseo-workspace-git-"));
+    const folder = await mkdtemp(join(os.tmpdir(), "zentic-workspace-git-"));
     temporaryFolders.push(folder);
     return folder;
   }

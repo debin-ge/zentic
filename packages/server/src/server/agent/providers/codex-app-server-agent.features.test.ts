@@ -7,7 +7,7 @@ import { describe, expect, test, vi } from "vitest";
 import { AgentManager } from "../agent-manager.js";
 import { toAgentPayload } from "../agent-projections.js";
 import { AgentStorage } from "../agent-storage.js";
-import { featuresFromControls } from "@getpaseo/protocol/option-controls";
+import { featuresFromControls } from "@getzentic/protocol/option-controls";
 import { convertLegacyOptions } from "../option-controls.js";
 import type {
   AgentClient,
@@ -193,7 +193,7 @@ describe("Codex app-server provider controls", () => {
     }
   });
 
-  test("new models and service tiers work without a Paseo catalog update", async () => {
+  test("new models and service tiers work without a Zentic catalog update", async () => {
     const { session, appServer } = await createConnectedSession(
       { model: "future-codex-model" },
       {

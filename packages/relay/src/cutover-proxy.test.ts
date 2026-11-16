@@ -68,10 +68,10 @@ describe("cutover proxy", () => {
     const originUrl = await origin.start();
 
     const response = await relayWorker.fetch(
-      new Request("https://relay.paseo.sh/ws?serverId=srv_prod&role=server&v=2", {
+      new Request("https://relay.zentic.sh/ws?serverId=srv_prod&role=server&v=2", {
         headers: { "x-relay-probe": "production" },
       }),
-      { PASEO_RELAY_UPSTREAM: originUrl } as RelayEnv,
+      { ZENTIC_RELAY_UPSTREAM: originUrl } as RelayEnv,
     );
 
     expect(origin.received()).toEqual([

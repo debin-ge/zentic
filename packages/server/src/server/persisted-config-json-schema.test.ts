@@ -7,14 +7,14 @@ import { PersistedConfigSchema } from "./persisted-config.js";
 
 const publishedSchema = JSON.parse(
   readFileSync(
-    new URL("../../../website/public/schemas/paseo.config.v1.json", import.meta.url),
+    new URL("../../../website/public/schemas/zentic.config.v1.json", import.meta.url),
     "utf8",
   ),
 );
 
 test("editors accept the daemon's browser, profile, plugin and metadata configuration", () => {
   const config = {
-    $schema: "https://paseo.sh/schemas/paseo.config.v1.json",
+    $schema: "https://zentic.sh/schemas/zentic.config.v1.json",
     version: 1,
     daemon: {
       browserTools: { enabled: true },
@@ -40,10 +40,10 @@ test("the published schema stays current with the daemon's configuration schema"
     unrepresentable: "any",
     io: "input",
   });
-  generated.title = "PaseoConfigV1";
+  generated.title = "ZenticConfigV1";
   expect(
     publishedSchema,
-    "Run npm run generate:config-schema --workspace=@getpaseo/server",
+    "Run npm run generate:config-schema --workspace=@getzentic/server",
   ).toEqual(generated);
 });
 

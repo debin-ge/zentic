@@ -1,0 +1,4 @@
+{
+  "id": "preview-deploys",
+  "requirements": { "zentic": ">=0.8.0" }
+}

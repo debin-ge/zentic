@@ -1,6 +1,9 @@
 import os from "node:os";
 
-import { ConnectionOfferV2Schema, type ConnectionOffer } from "@getpaseo/protocol/connection-offer";
+import {
+  ConnectionOfferV2Schema,
+  type ConnectionOffer,
+} from "@getzentic/protocol/connection-offer";
 
 interface BuildOfferEndpointsArgs {
   listenHost: string;
@@ -52,7 +55,7 @@ export function encodeOfferToFragmentUrl(args: {
 }
 
 function getPrimaryLanIp(): string | null {
-  const override = process.env.PASEO_PRIMARY_LAN_IP?.trim();
+  const override = process.env.ZENTIC_PRIMARY_LAN_IP?.trim();
   if (override) return override;
 
   const nets = os.networkInterfaces();

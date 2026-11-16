@@ -3,14 +3,14 @@ import path from "node:path";
 import { expect, test as base, type Page } from "../support/fixtures";
 import { connectSeedClient, seedWorkspace } from "../support/helpers/seed-client";
 import {
-  blockPaseoConfigWrites,
-  bumpPaseoConfigOnDisk,
+  blockZenticConfigWrites,
+  bumpZenticConfigOnDisk,
   chooseProjectIconImage,
   clickReloadProjectSettings,
   clickRetryProjectSettingsSave,
   clickSaveProjectSettings,
-  commitPaseoConfig,
-  corruptPaseoConfig,
+  commitZenticConfig,
+  corruptZenticConfig,
   editWorktreeSetup,
   expectEmptyScriptList,
   expectProjectHostContextHidden,
@@ -39,10 +39,10 @@ import {
   openProjectSettings,
   openProjects,
   removeProjectScript,
-  restorePaseoConfig,
+  restoreZenticConfig,
   returnToProjectsList,
   saveProjectEdits,
-  unblockPaseoConfigWrites,
+  unblockZenticConfigWrites,
 } from "../support/helpers/project-settings";
 import { gotoAppShell } from "../support/helpers/app";
 import { openCompactSettings } from "../support/helpers/settings";
@@ -77,7 +77,7 @@ interface ProjectsSettingsFixtures {
   gitlabRemoteProject: ProjectsSettingsProject;
 }
 
-const initialPaseoConfig = {
+const initialZenticConfig = {
   worktree: {
     setup: ["echo initial setup"],
     teardown: "echo cleanup",
@@ -98,7 +98,7 @@ const test = base.extend<ProjectsSettingsFixtures>({
   editableProject: async ({ page: _page }, provide) => {
     const workspace = await seedWorkspace({
       repoPrefix: "projects-settings-",
-      repo: { paseoConfig: initialPaseoConfig },
+      repo: { zenticConfig: initialZenticConfig },
     });
 
     await provide({
@@ -115,7 +115,7 @@ const test = base.extend<ProjectsSettingsFixtures>({
     const workspace = await seedWorkspace({
       repoPrefix: "projects-settings-gitlab-",
       repo: {
-        paseoConfig: initialPaseoConfig,
+        zenticConfig: initialZenticConfig,
         originUrl: "https://gitlab.com/acme/app.git",
       },
     });
@@ -143,18 +143,18 @@ async function expectProjectConfigSaved(project: ProjectsSettingsProject): Promi
     .toMatchObject({
       worktree: {
         setup: updatedSetup,
-        teardown: initialPaseoConfig.worktree.teardown,
-        customWorktreeField: initialPaseoConfig.worktree.customWorktreeField,
+        teardown: initialZenticConfig.worktree.teardown,
+        customWorktreeField: initialZenticConfig.worktree.customWorktreeField,
       },
       scripts: {
         dev: {
-          command: initialPaseoConfig.scripts.dev.command,
-          type: initialPaseoConfig.scripts.dev.type,
-          port: initialPaseoConfig.scripts.dev.port,
-          customScriptField: initialPaseoConfig.scripts.dev.customScriptField,
+          command: initialZenticConfig.scripts.dev.command,
+          type: initialZenticConfig.scripts.dev.type,
+          port: initialZenticConfig.scripts.dev.port,
+          customScriptField: initialZenticConfig.scripts.dev.customScriptField,
         },
       },
-      customTopLevelField: initialPaseoConfig.customTopLevelField,
+      customTopLevelField: initialZenticConfig.customTopLevelField,
     });
 
   const savedConfig = await readProjectConfigFile(project);
@@ -162,7 +162,7 @@ async function expectProjectConfigSaved(project: ProjectsSettingsProject): Promi
 }
 
 async function readProjectConfigFile(project: ProjectsSettingsProject): Promise<string> {
-  return readFile(path.join(project.path, "paseo.json"), "utf8");
+  return readFile(path.join(project.path, "zentic.json"), "utf8");
 }
 
 async function addProjectFromSidebar(page: Page, projectPath: string): Promise<string> {
@@ -242,7 +242,7 @@ test.describe("Projects settings", () => {
     await expectProjectConfigSaved(editableProject);
     await expectUncommittedSetupWarning(page);
 
-    commitPaseoConfig(editableProject.path);
+    commitZenticConfig(editableProject.path);
     await returnToProjectsList(page);
     await openProjectSettings(page, editableProject.name);
     await expectNoUncommittedSetupWarning(page);
@@ -370,7 +370,7 @@ test.describe("Projects settings — error UX", () => {
     await openProjectSettings(page, editableProject.name);
 
     // Bump the file on disk so the daemon detects a revision mismatch on save.
-    await bumpPaseoConfigOnDisk(editableProject.path);
+    await bumpZenticConfigOnDisk(editableProject.path);
 
     await clickSaveProjectSettings(page);
 
@@ -383,11 +383,11 @@ test.describe("Projects settings — error UX", () => {
     await expectProjectSettingsFormVisible(page);
   });
 
-  test("invalid paseo.json shows read-error callout, reload after fix shows form", async ({
+  test("invalid zentic.json shows read-error callout, reload after fix shows form", async ({
     page,
     editableProject,
   }) => {
-    await corruptPaseoConfig(editableProject.path);
+    await corruptZenticConfig(editableProject.path);
 
     await openProjects(page);
     await navigateToProjectSettings(page, editableProject.name);
@@ -396,7 +396,7 @@ test.describe("Projects settings — error UX", () => {
     await expectProjectSettingsFormHidden(page);
 
     // Restore a valid config so the reload succeeds.
-    await restorePaseoConfig(editableProject.path, initialPaseoConfig);
+    await restoreZenticConfig(editableProject.path, initialZenticConfig);
 
     await clickReloadProjectSettings(page);
 
@@ -411,7 +411,7 @@ test.describe("Projects settings — error UX", () => {
     await openProjects(page);
     await openProjectSettings(page, editableProject.name);
 
-    await blockPaseoConfigWrites(editableProject.path);
+    await blockZenticConfigWrites(editableProject.path);
 
     await clickSaveProjectSettings(page);
 
@@ -421,7 +421,7 @@ test.describe("Projects settings — error UX", () => {
     await clickRetryProjectSettingsSave(page);
     await expectProjectSettingsError(page, "write_failed");
 
-    await unblockPaseoConfigWrites(editableProject.path);
+    await unblockZenticConfigWrites(editableProject.path);
     await clickReloadProjectSettings(page);
     await expectNoProjectSettingsError(page, "write_failed");
     await expectProjectSettingsFormVisible(page);

@@ -1,4 +1,4 @@
-import { PluginTranslationRuntime } from "@getpaseo/plugin/client/host";
+import { PluginTranslationRuntime } from "@getzentic/plugin/client/host";
 import { QueryClient } from "@tanstack/react-query";
 import { describe, expect, it } from "vitest";
 import type { InstalledPlugin } from "../types";
@@ -13,7 +13,7 @@ function installed(): InstalledPlugin {
     locale: "en",
     i18n: new PluginTranslationRuntime({ getLocale: () => "en", subscribe: () => () => {} }),
     queryClient: new QueryClient(),
-    paseo: {} as InstalledPlugin["paseo"],
+    zentic: {} as InstalledPlugin["zentic"],
     invoke: async () => undefined,
     subscribe: () => {
       throw new Error("Subscriptions are not used here");

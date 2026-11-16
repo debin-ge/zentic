@@ -8,14 +8,14 @@ import {
   expectSetupStep,
   finishSetup,
   goToSetupStep,
-  hostGivesAgentsPaseoTools,
+  hostGivesAgentsZenticTools,
   openAppAsNewUser,
   openRelayPairingFromSetup,
   closeRelayPairing,
   emptyHome,
   loadingScreen,
   openTailscaleDocsFromSetup,
-  paseoToolsSwitch,
+  zenticToolsSwitch,
   pickTheme,
   projectSuggestion,
   projectSuggestionRow,
@@ -49,7 +49,7 @@ test("a new user is walked through setup once", async ({ page }, testInfo) => {
     await openAppAsNewUser(page, host);
 
     await test.step("setup opens on Appearance and a theme applies at once", async () => {
-      await expectSetupStep(page, "Welcome to Paseo");
+      await expectSetupStep(page, "Welcome to Zentic");
       await pickTheme(page, "Midnight");
       await expect(
         setupModal(page).getByText("Let's start by picking a look", { exact: true }),
@@ -79,8 +79,8 @@ test("a new user is walked through setup once", async ({ page }, testInfo) => {
 
     await test.step("Orchestration starts with its switches on", async () => {
       await continueSetup(page);
-      await expectSetupStep(page, "Let agents use Paseo");
-      await expect(paseoToolsSwitch(setupModal(page))).toBeChecked();
+      await expectSetupStep(page, "Let agents use Zentic");
+      await expect(zenticToolsSwitch(setupModal(page))).toBeChecked();
       await expect(
         setupModal(page).getByRole("switch", { name: "Orchestration skills", exact: true }),
       ).toBeChecked();
@@ -109,7 +109,7 @@ test("a new user goes from the loading screen straight into setup", async ({ pag
   try {
     await recordFirstLaunch(page);
     await openAppAsNewUser(page, host);
-    await expectSetupStep(page, "Welcome to Paseo");
+    await expectSetupStep(page, "Welcome to Zentic");
 
     const launch = await readFirstLaunch(page);
     expect(launch.appBeforeSetup).toBe(false);
@@ -127,7 +127,7 @@ test("with reduced motion, setup appears without fading in", async ({ page }) =>
     await page.emulateMedia({ reducedMotion: "reduce" });
     await recordFirstLaunch(page);
     await openAppAsNewUser(page, host);
-    await expectSetupStep(page, "Welcome to Paseo");
+    await expectSetupStep(page, "Welcome to Zentic");
 
     expect((await readFirstLaunch(page)).setupOpacityOnArrival).toBe(1);
   } finally {
@@ -140,17 +140,17 @@ test("changing the theme keeps the setup window in place on every step", async (
 
   try {
     await openAppAsNewUser(page, host);
-    await expectSetupStep(page, "Welcome to Paseo");
+    await expectSetupStep(page, "Welcome to Zentic");
     const setupWindow = await setupModal(page).elementHandle();
 
     for (const title of [
-      "Welcome to Paseo",
+      "Welcome to Zentic",
       "Your agents",
       "Add your projects",
-      "Let agents use Paseo",
+      "Let agents use Zentic",
       "Take your agents with you",
     ]) {
-      if (title !== "Welcome to Paseo") await continueSetup(page);
+      if (title !== "Welcome to Zentic") await continueSetup(page);
       await expectSetupStep(page, title);
       const heading = setupModal(page).getByRole("heading", { name: title });
       const headingNode = await heading.elementHandle();
@@ -185,7 +185,7 @@ test("the loading screen stays up while the setup host loads its workspaces", as
     await expect(emptyHome(page)).toHaveCount(0);
 
     gate.releaseHeldClientRequest();
-    await expectSetupStep(page, "Welcome to Paseo");
+    await expectSetupStep(page, "Welcome to Zentic");
     expect((await readFirstLaunch(page)).appBeforeSetup).toBe(false);
   } finally {
     await host.close();
@@ -205,7 +205,7 @@ test("a setup host that never loads its workspaces still lands on the home", asy
 
     // Setup still opens once the host answers.
     gate.releaseHeldClientRequest();
-    await expectSetupStep(page, "Welcome to Paseo");
+    await expectSetupStep(page, "Welcome to Zentic");
   } finally {
     await host.close();
   }
@@ -252,7 +252,7 @@ test("setup suggests the repos the user already ran agents in", async ({ page },
 
   try {
     await openAppAsNewUser(page, host);
-    await expectSetupStep(page, "Welcome to Paseo");
+    await expectSetupStep(page, "Welcome to Zentic");
     await goToSetupStep(page, "Projects");
     await expectSetupStep(page, "Add your projects");
 
@@ -298,7 +298,7 @@ test("setup suggests the repos the user already ran agents in", async ({ page },
     await test.step("with nothing checked, Continue moves on without adding", async () => {
       await projectSuggestion(page, scratchName).click();
       await setupPrimaryButton(page, "Continue").click();
-      await expectSetupStep(page, "Let agents use Paseo");
+      await expectSetupStep(page, "Let agents use Zentic");
       await expect(
         page.locator('[data-testid^="sidebar-project-row-"]').filter({ hasText: repoName }),
       ).toBeVisible({ timeout: 60_000 });
@@ -326,7 +326,7 @@ test("an existing user only sees setup when they ask for it", async ({ page }) =
     await expect(setupModal(page)).toHaveCount(0);
 
     await showSetupAgainFromSettings(page);
-    await expectSetupStep(page, "Welcome to Paseo");
+    await expectSetupStep(page, "Welcome to Zentic");
     await expect(setupModal(page).getByRole("tab", { name: "Appearance" })).toHaveAttribute(
       "aria-selected",
       "true",
@@ -344,12 +344,12 @@ test("setup choices carry over to Settings and the phone step pairs over relay",
 
   try {
     await openAppAsNewUser(page, host);
-    await expectSetupStep(page, "Welcome to Paseo");
+    await expectSetupStep(page, "Welcome to Zentic");
 
-    await test.step("Paseo tools start on in setup and Continue turns them on", async () => {
+    await test.step("Zentic tools start on in setup and Continue turns them on", async () => {
       await goToSetupStep(page, "Orchestration");
-      await expectSetupStep(page, "Let agents use Paseo");
-      await expect(paseoToolsSwitch(setupModal(page))).toBeChecked();
+      await expectSetupStep(page, "Let agents use Zentic");
+      await expect(zenticToolsSwitch(setupModal(page))).toBeChecked();
       await continueSetup(page);
     });
 
@@ -357,7 +357,7 @@ test("setup choices carry over to Settings and the phone step pairs over relay",
       await expectSetupStep(page, "Take your agents with you");
       await page.screenshot({ path: testInfo.outputPath("5-phone.png") });
       expect(await openTailscaleDocsFromSetup(page)).toBe(
-        "https://paseo.sh/docs/connectivity#tailscale",
+        "https://zentic.sh/docs/connectivity#tailscale",
       );
       const pairing = await openRelayPairingFromSetup(page);
       await expect(pairing.getByText("Enable relay?", { exact: true })).toBeVisible();
@@ -366,11 +366,11 @@ test("setup choices carry over to Settings and the phone step pairs over relay",
       await closeRelayPairing(pairing);
     });
 
-    await test.step("Finish closes setup and Settings shows the same Paseo tools value", async () => {
+    await test.step("Finish closes setup and Settings shows the same Zentic tools value", async () => {
       await finishSetup(page);
       await page.locator('[data-testid="sidebar-settings"]:visible').first().click();
       await openSettingsHostSection(page, host.serverId, "agents");
-      await expect(paseoToolsSwitch(page)).toBeChecked();
+      await expect(zenticToolsSwitch(page)).toBeChecked();
       await page.screenshot({ path: testInfo.outputPath("7-settings-agents.png") });
     });
   } finally {
@@ -383,9 +383,9 @@ test("with no skills picked, skills read as off and Continue moves on", async ({
 
   try {
     await openAppAsNewUser(page, host);
-    await expectSetupStep(page, "Welcome to Paseo");
+    await expectSetupStep(page, "Welcome to Zentic");
     await goToSetupStep(page, "Orchestration");
-    await expectSetupStep(page, "Let agents use Paseo");
+    await expectSetupStep(page, "Let agents use Zentic");
 
     await openSkillSelection(page);
     await chooseCustomSkills(page, []);
@@ -416,17 +416,17 @@ test("in the compact layout, Finish on Orchestration applies its switches", asyn
 
   try {
     await openAppAsNewUser(page, host);
-    await step("Welcome to Paseo");
+    await step("Welcome to Zentic");
     await primary("Continue").click();
     await step("Your agents");
     await primary("Continue").click();
     await step("Add your projects");
     await primary("Continue").click();
 
-    // The setup host starts with Paseo tools off; the switch starts on.
-    expect(await hostGivesAgentsPaseoTools(host)).toBe(false);
-    await step("Let agents use Paseo");
-    await expect(paseoToolsSwitch(page)).toBeChecked();
+    // The setup host starts with Zentic tools off; the switch starts on.
+    expect(await hostGivesAgentsZenticTools(host)).toBe(false);
+    await step("Let agents use Zentic");
+    await expect(zenticToolsSwitch(page)).toBeChecked();
     // Skills are not installed, so leaving them off has nothing to apply.
     const skillsSwitch = page.getByRole("switch", { name: "Orchestration skills", exact: true });
     await skillsSwitch.click();
@@ -436,12 +436,12 @@ test("in the compact layout, Finish on Orchestration applies its switches", asyn
 
     // While the choices apply, none of them can change.
     await gate.waitForHeldClientRequest();
-    await expect(paseoToolsSwitch(page)).toBeDisabled();
+    await expect(zenticToolsSwitch(page)).toBeDisabled();
     await expect(skillsSwitch).toBeDisabled();
     gate.releaseHeldClientRequest();
 
-    await expect.poll(() => hostGivesAgentsPaseoTools(host), { timeout: 30_000 }).toBe(true);
-    await expect(page.getByRole("heading", { name: "Let agents use Paseo" })).toHaveCount(0);
+    await expect.poll(() => hostGivesAgentsZenticTools(host), { timeout: 30_000 }).toBe(true);
+    await expect(page.getByRole("heading", { name: "Let agents use Zentic" })).toHaveCount(0);
   } finally {
     await host.close();
   }

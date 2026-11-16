@@ -49,7 +49,7 @@ export const Route = createFileRoute("/{-$locale}/download")({
 const ALL_RELEASES_COMPONENTS = {
   github: (
     <a
-      href="https://github.com/getpaseo/paseo/releases"
+      href="https://github.com/getzentic/zentic/releases"
       target="_blank"
       rel="noopener noreferrer"
       className="underline hover:text-foreground transition-colors"
@@ -119,7 +119,7 @@ function Download() {
 
           {!onBeta && (
             <PlatformRow icon={TerminalIcon} label="Homebrew">
-              <CodeBlock size="sm">brew install --cask paseo</CodeBlock>
+              <CodeBlock size="sm">brew install --cask zentic</CodeBlock>
             </PlatformRow>
           )}
 
@@ -207,16 +207,16 @@ function Download() {
           <PlatformRow icon={TerminalIcon} label="npm">
             <CodeBlock size="sm">
               {onBeta
-                ? "npm install -g @getpaseo/cli@beta && paseo"
-                : "npm install -g @getpaseo/cli && paseo"}
+                ? "npm install -g @getzentic/cli@beta && zentic"
+                : "npm install -g @getzentic/cli && zentic"}
             </CodeBlock>
           </PlatformRow>
 
           <PlatformRow icon={TerminalIcon} label="Nix">
             <CodeBlock size="sm">
               {onBeta
-                ? `nix run github:getpaseo/paseo/v${version}`
-                : "nix run github:getpaseo/paseo"}
+                ? `nix run github:getzentic/zentic/v${version}`
+                : "nix run github:getzentic/zentic"}
             </CodeBlock>
           </PlatformRow>
         </div>

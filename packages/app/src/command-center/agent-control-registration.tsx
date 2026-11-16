@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import type { AgentMode, AgentProvider, AgentSelectOption } from "@getpaseo/protocol/agent-types";
-import type { AgentProviderDefinition } from "@getpaseo/protocol/provider-manifest";
+import type { AgentMode, AgentProvider, AgentSelectOption } from "@getzentic/protocol/agent-types";
+import type { AgentProviderDefinition } from "@getzentic/protocol/provider-manifest";
 import {
   getAgentFeatureIcon,
   getAgentModeIcon,

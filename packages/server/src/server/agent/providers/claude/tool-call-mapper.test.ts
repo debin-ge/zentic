@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildToolCallDisplayModel } from "@getpaseo/protocol/tool-call-display";
+import { buildToolCallDisplayModel } from "@getzentic/protocol/tool-call-display";
 import {
   mapClaudeCanceledToolCall,
   mapClaudeCompletedToolCall,
@@ -348,7 +348,7 @@ describe("claude tool-call mapper", () => {
       mapClaudeCompletedToolCall({
         callId: "claude-glob-1",
         name: "Glob",
-        input: { pattern: "**/.claude/commands/paseo*" },
+        input: { pattern: "**/.claude/commands/zentic*" },
         output: {
           durationMs: 7,
           numFiles: 2,
@@ -363,7 +363,7 @@ describe("claude tool-call mapper", () => {
     expect(item.name).toBe("Glob");
     expect(item.detail).toEqual({
       type: "search",
-      query: "**/.claude/commands/paseo*",
+      query: "**/.claude/commands/zentic*",
       toolName: "glob",
       filePaths: ["a.txt", "b.txt"],
       numFiles: 2,
@@ -379,7 +379,7 @@ describe("claude tool-call mapper", () => {
         name: "Grep",
         input: {
           pattern: '\\\\\\"cli\\\\\\""',
-          path: "/workspaces/paseo/packages/desktop/src",
+          path: "/workspaces/zentic/packages/desktop/src",
           output_mode: "content",
           "-n": true,
         },
@@ -500,7 +500,7 @@ describe("claude tool-call mapper", () => {
     const item = expectMapped(
       mapClaudeCompletedToolCall({
         callId: "claude-speak-1",
-        name: "mcp__paseo__speak",
+        name: "mcp__zentic__speak",
         input: { text: "Voice response from Claude." },
         output: { ok: true },
       }),
@@ -518,7 +518,7 @@ describe("claude tool-call mapper", () => {
     const item = expectMapped(
       mapClaudeCompletedToolCall({
         callId: "claude-speak-2",
-        name: "mcp__paseo_voice__speak",
+        name: "mcp__zentic_voice__speak",
         input: { text: "Hey! I can hear you." },
         output: { ok: true },
       }),

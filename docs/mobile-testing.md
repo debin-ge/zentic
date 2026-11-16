@@ -7,7 +7,7 @@ Agent Device `.ad` scripts are the primary mobile E2E format. An agent discovers
 Record a flow while driving the app normally:
 
 ```bash
-agent-device open sh.paseo.debug \
+agent-device open sh.zentic.debug \
   --platform ios \
   --session terminal-author \
   --save-script ./packages/app/e2e/mobile/agent-device/terminal.ios.ad
@@ -19,7 +19,7 @@ agent-device close --session terminal-author
 
 `close` writes the script. Keep selectors based on stable app IDs. Keep assertions as `wait`, `get`, `is`, or `find` commands; screenshots are evidence, not assertions.
 
-Run the Paseo mobile suite:
+Run the Zentic mobile suite:
 
 ```bash
 npm run test:e2e:mobile
@@ -27,10 +27,10 @@ npm run test:e2e:mobile
 
 The runner uses an isolated Agent Device state directory, verifies or starts Metro for this checkout, prewarms the iOS runner, discovers each script's platform from its `context` header, and cleans its sessions, runner lease, daemon, and any Metro process it started. Attempt results, timings, logs, and failure artifacts go under `.dev/agent-device-artifacts`.
 
-Set `PASEO_MOBILE_E2E_METRO_PORT` when this worktree already has Metro on a non-default port:
+Set `ZENTIC_MOBILE_E2E_METRO_PORT` when this worktree already has Metro on a non-default port:
 
 ```bash
-PASEO_MOBILE_E2E_METRO_PORT=62093 npm run test:e2e:mobile
+ZENTIC_MOBILE_E2E_METRO_PORT=62093 npm run test:e2e:mobile
 ```
 
 [native-terminal-basic.ios.ad](../packages/app/e2e/mobile/agent-device/native-terminal-basic.ios.ad) and [native-terminal-basic.android.ad](../packages/app/e2e/mobile/agent-device/native-terminal-basic.android.ad) are the smallest examples. Each opens a fresh terminal, types a command at zero delay, submits it, and asserts its distinct output. The app must be connected to a daemon with an active workspace.
@@ -45,7 +45,7 @@ ANDROID_SERIAL=emulator-5574 node packages/app/e2e/mobile/fold/android.mjs
 The AVD must expose `CLOSED` and `OPENED` device states. The test backgrounds the app,
 changes posture, resumes immediately, and asserts compact/wide workspace controls without
 restarting the process. It writes snapshots and native failure state under
-`.dev/agent-device-artifacts/android-fold`. Set `PASEO_MOBILE_APP_ID=sh.paseo` for a
+`.dev/agent-device-artifacts/android-fold`. Set `ZENTIC_MOBILE_APP_ID=sh.zentic` for a
 production package. This needs a native rebuild when the Unistyles patch changes; a Metro
 reload cannot update it.
 
@@ -58,7 +58,7 @@ ANDROID_SERIAL=emulator-5554 node packages/app/e2e/mobile/terminal-keyboard/andr
 
 Use a real docked software keyboard. The harness taps Ctrl, Esc, and Enter and checks Android's
 focused input identity and IME hide/show events. It saves screenshots and logs under
-`.dev/agent-device-artifacts/terminal-keyboard-android`. Set `PASEO_TERMINAL_KEYBOARD_APP_ID=sh.paseo`
+`.dev/agent-device-artifacts/terminal-keyboard-android`. Set `ZENTIC_TERMINAL_KEYBOARD_APP_ID=sh.zentic`
 to test an installed production build. It never submits a chat message.
 
 `npm run test:e2e:composer-keyboard:android` preserves the chat control and
@@ -85,7 +85,7 @@ fade. The image comparison excludes the scrollbar; keyboard dismissal alone
 does not prove that native scrolling receives touches.
 Artifacts are grouped by host under
 `.dev/agent-device-artifacts/composer-keyboard-android`. Configure its daemon,
-Metro, and device through the `PASEO_COMPOSER_KEYBOARD_*` variables in
+Metro, and device through the `ZENTIC_COMPOSER_KEYBOARD_*` variables in
 `packages/app/e2e/mobile/composer-keyboard/android.sh`. Use a software keyboard;
 the headless input helper cannot verify the
 [visible composer constraints](floating-panels.md#gotcha-3--keyboard-layout-and-portal-anchors).
@@ -94,7 +94,7 @@ checks on each host, skipping the chat baseline and the growth, dismissal, and
 stream scenarios:
 
 ```bash
-PASEO_COMPOSER_KEYBOARD_SCENARIO=overlays npm run test:e2e:composer-keyboard:android
+ZENTIC_COMPOSER_KEYBOARD_SCENARIO=overlays npm run test:e2e:composer-keyboard:android
 ```
 
 `node packages/app/e2e/mobile/composer-keyboard/ios.mjs` runs the same
@@ -104,7 +104,7 @@ keyboard opens (`fill` taps and types at once), after it settles, with it closed
 and before it reopens. `test:e2e:mobile` cannot host this: its `.ad` flows assert
 accessibility state and cannot compare bounds. Run it where `agent-device`
 reaches the simulator, with the development app connected to the fixture host
-and its Claude provider available. Set `PASEO_COMPOSER_KEYBOARD_SERVER_ID`,
+and its Claude provider available. Set `ZENTIC_COMPOSER_KEYBOARD_SERVER_ID`,
 `_AGENT_ID` (an idle mock chat), and `_WORKSPACE_ID` (its workspace); `_DEVICE`,
 `_SESSION`, and `_DRAFT_ID` are optional. Artifacts go to
 `.dev/agent-device-artifacts/composer-keyboard-ios`.
@@ -242,7 +242,7 @@ For async elements, use `extendedWaitUntil`:
 
 Two reusable flows handle Expo dev client screens after launch:
 
-- `flows/launch.yaml` — handles dev launcher, dismisses dev menu, asserts "Welcome to Paseo"
+- `flows/launch.yaml` — handles dev launcher, dismisses dev menu, asserts "Welcome to Zentic"
 - `flows/dev-client.yaml` — same but without asserting a particular app route
 
 ### Reach the composer
@@ -250,7 +250,7 @@ Two reusable flows handle Expo dev client screens after launch:
 `flows/land-in-chat.yaml` is the canonical "get into a chat" primitive. It `clearState`s, runs `launch.yaml`, taps the welcome screen's direct-connection option, types `127.0.0.1:6767`, submits, and waits for `message-input-root`. Compose any composer-level fixture on top of it:
 
 ```yaml
-appId: sh.paseo
+appId: sh.zentic
 ---
 - runFlow: flows/land-in-chat.yaml
 # ...your scenario here, starting from a ready composer
@@ -285,7 +285,7 @@ New workspace scenarios should compose the reusable subflows in `packages/app/ma
 - `new-workspace-select-codex-gpt54.yaml`
 - `new-workspace-submit-and-assert-created.yaml`
 
-The workspace-create shell scripts render those subflows into a temp directory before running Maestro, which keeps nested `runFlow` paths and `${PASEO_MAESTRO_*}` placeholders working together.
+The workspace-create shell scripts render those subflows into a temp directory before running Maestro, which keeps nested `runFlow` paths and `${ZENTIC_MAESTRO_*}` placeholders working together.
 
 ### Inputs that Maestro types into
 
@@ -366,9 +366,9 @@ Verify these distinct outcomes:
   exercises denied focus during lifecycle resume, beyond an ordinary media takeover.
 
 ```bash
-# Start voice mode in an existing composer, then background Paseo.
+# Start voice mode in an existing composer, then background Zentic.
 adb emu gsm call 5551234
-# Foreground Paseo while the call is still ringing, then end the simulated call.
+# Foreground Zentic while the call is still ringing, then end the simulated call.
 adb emu gsm cancel 5551234
 ```
 
@@ -380,7 +380,7 @@ This fix requires a rebuilt native app. An OTA update on an older binary retains
 
 ### Releasing the audio session when idle
 
-Paseo must not hold the OS audio session once it is neither capturing nor playing, or the user's
+Zentic must not hold the OS audio session once it is neither capturing nor playing, or the user's
 background music stays paused. On iOS this is not just a "while recording" problem: the
 `.playAndRecord`/`.voiceChat` category is non-mixing and survives backgrounding, and iOS re-asserts
 it every time the app returns to the foreground — so one dictation turn kills music for the life of
@@ -396,7 +396,7 @@ also releases on `OnAppEntersBackground`. The native side re-guards on `isRecord
 wrappers (voice provider + dictation) and only it knows the true state.
 
 This cannot be validated by a JS test — verify on a device: play music through Bluetooth earbuds,
-open Paseo, use dictation once, stop, and confirm the music resumes at full quality; then
+open Zentic, use dictation once, stop, and confirm the music resumes at full quality; then
 background/foreground the app and confirm it keeps playing at full quality.
 
 ## Unistyles + Reanimated
@@ -483,8 +483,8 @@ APP_VARIANT=development npx expo run:ios --device
 ```
 
 `APP_VARIANT=development` is required. The `ios` npm script does not set it, and `app.config.js` defaults
-to `production` — so a bare `npm run ios` builds `sh.paseo` and collides with the App Store install instead
-of the `sh.paseo.debug` dev client. Ignore prebuild's `--non-interactive is not supported` warning; use
+to `production` — so a bare `npm run ios` builds `sh.zentic` and collides with the App Store install instead
+of the `sh.zentic.debug` dev client. Ignore prebuild's `--non-interactive is not supported` warning; use
 `CI=1` if you need non-interactive.
 
 ### Signing needs a working Apple ID token in Xcode
@@ -548,7 +548,7 @@ To verify only that native Swift compiles, skip signing entirely — the pods ha
 
 ```bash
 cd packages/app/ios
-xcodebuild -workspace PaseoDebug.xcworkspace -scheme ExpoTwoWayAudio \
+xcodebuild -workspace ZenticDebug.xcworkspace -scheme ExpoTwoWayAudio \
   -sdk iphoneos -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO build
 ```
 
@@ -575,4 +575,4 @@ xcrun simctl ui booted appearance dark     # set dark
 xcrun simctl ui booted appearance light    # set light
 ```
 
-Expo dev server logs are in the tmux pane running `npm run dev`. Daemon logs are at `$PASEO_HOME/daemon.log` (see [development.md](development.md)).
+Expo dev server logs are in the tmux pane running `npm run dev`. Daemon logs are at `$ZENTIC_HOME/daemon.log` (see [development.md](development.md)).

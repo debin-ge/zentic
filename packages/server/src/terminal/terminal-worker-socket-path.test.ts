@@ -20,7 +20,7 @@ function makeDir(prefix: string, root = tmpdir()): string {
 // A home path long enough that its socket cannot fit sun_path, with multi-byte segments so the
 // budget is measured in bytes, not characters.
 function longHome(root: string): string {
-  const home = path.join(root, "worktree-ñandú-".repeat(5), "paseo-home");
+  const home = path.join(root, "worktree-ñandú-".repeat(5), "zentic-home");
   mkdirSync(home, { recursive: true });
   return home;
 }
@@ -36,7 +36,7 @@ describe.skipIf(isPlatform("win32"))("terminal worker socket path", () => {
     // macOS $TMPDIR alone is ~50 bytes; a short root keeps the home's own path in budget.
     const home = makeDir("tw-h-", "/tmp");
     const socketPath = resolveTerminalWorkerSocketPath({
-      paseoHome: home,
+      zenticHome: home,
       recordId: "test",
       workerPid: 4242,
       platform: "darwin",
@@ -44,20 +44,20 @@ describe.skipIf(isPlatform("win32"))("terminal worker socket path", () => {
     expect(socketPath.startsWith(path.join(home, "terminal-worker", "sock"))).toBe(true);
   });
 
-  it("falls to /tmp/paseo-<uid> when the home and TMPDIR are too long, within the byte budget", () => {
+  it("falls to /tmp/zentic-<uid> when the home and TMPDIR are too long, within the byte budget", () => {
     const root = makeDir("tw-sock-long-");
     const home = longHome(root);
     const tmpDir = path.join(root, "tmp-ñandú-".repeat(6));
     mkdirSync(tmpDir, { recursive: true });
     const uid = process.getuid!();
     const socketPath = resolveTerminalWorkerSocketPath({
-      paseoHome: home,
+      zenticHome: home,
       recordId: "test",
       workerPid: 99999,
       platform: "darwin",
       tmpDir,
     });
-    expect(path.dirname(socketPath)).toBe(`/tmp/paseo-${uid}`);
+    expect(path.dirname(socketPath)).toBe(`/tmp/zentic-${uid}`);
     expect(Buffer.byteLength(socketPath, "utf8")).toBeLessThanOrEqual(103);
   });
 
@@ -68,32 +68,32 @@ describe.skipIf(isPlatform("win32"))("terminal worker socket path", () => {
     const tmpDir = makeDir("tw-");
     const target = makeDir("tw-target-");
     chmodSync(target, 0o700);
-    symlinkSync(target, path.join(tmpDir, `paseo-${uid}`));
+    symlinkSync(target, path.join(tmpDir, `zentic-${uid}`));
     // A budget check alone would accept the long-home fallback through the symlink; it must
-    // also be refused, and /tmp/paseo-<uid> takes over.
+    // also be refused, and /tmp/zentic-<uid> takes over.
     const socketPath = resolveTerminalWorkerSocketPath({
-      paseoHome: home,
+      zenticHome: home,
       recordId: "test",
       workerPid: 7,
       platform: "darwin",
       tmpDir,
     });
-    expect(path.dirname(socketPath)).toBe(`/tmp/paseo-${uid}`);
+    expect(path.dirname(socketPath)).toBe(`/tmp/zentic-${uid}`);
 
     const wideTmp = makeDir("tw-");
-    mkdirSync(path.join(wideTmp, `paseo-${uid}`), { mode: 0o755 });
-    chmodSync(path.join(wideTmp, `paseo-${uid}`), 0o755);
+    mkdirSync(path.join(wideTmp, `zentic-${uid}`), { mode: 0o755 });
+    chmodSync(path.join(wideTmp, `zentic-${uid}`), 0o755);
     expect(
       path.dirname(
         resolveTerminalWorkerSocketPath({
-          paseoHome: home,
+          zenticHome: home,
           recordId: "test",
           workerPid: 7,
           platform: "darwin",
           tmpDir: wideTmp,
         }),
       ),
-    ).toBe(`/tmp/paseo-${uid}`);
+    ).toBe(`/tmp/zentic-${uid}`);
   });
 
   it("names every rejected candidate with its byte length when none fits", () => {
@@ -104,12 +104,12 @@ describe.skipIf(isPlatform("win32"))("terminal worker socket path", () => {
     let caught: unknown;
     try {
       resolveTerminalWorkerSocketPath({
-        paseoHome: home,
+        zenticHome: home,
         recordId: "test",
         workerPid: 7,
         platform: "darwin",
         tmpDir,
-        // Another uid's /tmp/paseo-<uid> directory does not exist or is not ours; with a uid
+        // Another uid's /tmp/zentic-<uid> directory does not exist or is not ours; with a uid
         // nobody owns, the /tmp candidate's directory is created by us but owned by our real
         // uid, so it is rejected for its owner.
         uid: 2_000_000_000,
@@ -117,7 +117,7 @@ describe.skipIf(isPlatform("win32"))("terminal worker socket path", () => {
     } catch (error) {
       caught = error;
     }
-    rmSync("/tmp/paseo-2000000000", { recursive: true, force: true });
+    rmSync("/tmp/zentic-2000000000", { recursive: true, force: true });
     expect(caught).toBeInstanceOf(TerminalWorkerSocketPathError);
     const rejected = (caught as TerminalWorkerSocketPathError).rejected;
     expect(rejected).toHaveLength(3);
@@ -129,7 +129,7 @@ describe.skipIf(isPlatform("win32"))("terminal worker socket path", () => {
   it("accepts a real listen on the chosen path", async () => {
     const home = makeDir("tw-l-", "/tmp");
     const socketPath = resolveTerminalWorkerSocketPath({
-      paseoHome: home,
+      zenticHome: home,
       recordId: "test",
       workerPid: 5,
     });
@@ -143,8 +143,8 @@ describe.skipIf(isPlatform("win32"))("terminal worker socket path", () => {
 });
 
 it("uses a separate socket for each record even when its pid is reused", () => {
-  const paseoHome = makeDir("tw-id-");
-  const first = resolveTerminalWorkerSocketPath({ paseoHome, workerPid: 42, recordId: "old" });
-  const second = resolveTerminalWorkerSocketPath({ paseoHome, workerPid: 42, recordId: "new" });
+  const zenticHome = makeDir("tw-id-");
+  const first = resolveTerminalWorkerSocketPath({ zenticHome, workerPid: 42, recordId: "old" });
+  const second = resolveTerminalWorkerSocketPath({ zenticHome, workerPid: 42, recordId: "new" });
   expect(first).not.toBe(second);
 });

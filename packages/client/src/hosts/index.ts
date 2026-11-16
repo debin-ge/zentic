@@ -1,18 +1,18 @@
-import { MAX_HOST_CHANNEL_FRAME_BYTES } from "@getpaseo/protocol/binary-frames/index";
+import { MAX_HOST_CHANNEL_FRAME_BYTES } from "@getzentic/protocol/binary-frames/index";
 import { safeRandomId } from "../daemon-client-transport-utils.js";
 import { DaemonClient } from "../daemon-client.js";
 import type { DaemonTransportFactory } from "../daemon-client-transport-types.js";
 import type { OwnedSubscription } from "../connection/index.js";
-import type { PaseoApi, createPaseoApi } from "../index.js";
-import type { HostAdd, HostUpdate, HostSummary, HostDirectory } from "@getpaseo/protocol/hosts";
+import type { ZenticApi, createZenticApi } from "../index.js";
+import type { HostAdd, HostUpdate, HostSummary, HostDirectory } from "@getzentic/protocol/hosts";
 
-export interface PaseoHostActions {
+export interface ZenticHostActions {
   list(): Promise<HostDirectory>;
   observe(): OwnedSubscription<HostDirectory>;
   add(input: HostAdd): Promise<HostSummary>;
   update(registrationId: string, patch: HostUpdate): Promise<HostSummary>;
   remove(registrationId: string): Promise<void>;
-  client(serverId: string): Promise<PaseoApi>;
+  client(serverId: string): Promise<ZenticApi>;
 }
 
 export function createHostChannelTransport(
@@ -155,11 +155,11 @@ export function createHostActions(
   owner: {
     own<T extends { release(): Promise<void> }>(create: () => T): T;
     signal: AbortSignal;
-    api: typeof createPaseoApi;
+    api: typeof createZenticApi;
   },
-): PaseoHostActions {
+): ZenticHostActions {
   const assertActive = () => {
-    if (owner.signal.aborted) throw new Error("Paseo API is disposed");
+    if (owner.signal.aborted) throw new Error("Zentic API is disposed");
   };
   return {
     list: () => {

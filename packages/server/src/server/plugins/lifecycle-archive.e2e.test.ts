@@ -4,11 +4,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { expect, test } from "vitest";
 import { DaemonClient } from "../test-utils/daemon-client.js";
-import { createTestPaseoDaemon } from "../test-utils/paseo-daemon.js";
+import { createTestZenticDaemon } from "../test-utils/zentic-daemon.js";
 
 test("closing and archiving agents publish their distinct lifecycle hooks once", async () => {
-  const directory = await mkdtemp(path.join(tmpdir(), "paseo-archive-hooks-"));
-  const daemon = await createTestPaseoDaemon({ daemonVersion: "0.14.0-beta.1" });
+  const directory = await mkdtemp(path.join(tmpdir(), "zentic-archive-hooks-"));
+  const daemon = await createTestZenticDaemon({ daemonVersion: "0.14.0-beta.1" });
   const client = new DaemonClient({
     url: `ws://127.0.0.1:${daemon.port}/ws`,
     appVersion: "0.14.0-beta.1",
@@ -77,8 +77,8 @@ test("closing and archiving agents publish their distinct lifecycle hooks once",
 }, 60_000);
 
 test("daemon shutdown lets agent close hooks finish before stopping plugins", async () => {
-  const directory = await mkdtemp(path.join(tmpdir(), "paseo-close-hook-shutdown-"));
-  const daemon = await createTestPaseoDaemon({ daemonVersion: "0.14.0-beta.1" });
+  const directory = await mkdtemp(path.join(tmpdir(), "zentic-close-hook-shutdown-"));
+  const daemon = await createTestZenticDaemon({ daemonVersion: "0.14.0-beta.1" });
   const client = new DaemonClient({
     url: `ws://127.0.0.1:${daemon.port}/ws`,
     appVersion: "0.14.0-beta.1",
@@ -86,8 +86,8 @@ test("daemon shutdown lets agent close hooks finish before stopping plugins", as
   const completedFile = path.join(directory, "closed.txt");
   try {
     await writeFile(
-      path.join(directory, "paseo-plugin.json"),
-      JSON.stringify({ id: "close-hook-shutdown", requirements: { paseo: ">=0.14.0-beta.1" } }),
+      path.join(directory, "zentic-plugin.json"),
+      JSON.stringify({ id: "close-hook-shutdown", requirements: { zentic: ">=0.14.0-beta.1" } }),
     );
     await writeFile(
       path.join(directory, "index.server.ts"),

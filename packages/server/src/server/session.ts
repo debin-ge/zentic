@@ -8,20 +8,20 @@ import {
   createWorkspaceBaseBranchService,
   type WorkspaceBaseBranchService,
 } from "./session/workspace-base-branch/service.js";
-import type { WorkspaceBaseBranchSetRequest } from "@getpaseo/protocol/messages";
+import type { WorkspaceBaseBranchSetRequest } from "@getzentic/protocol/messages";
 
 import { searchTimeline } from "./agent/chat-search/index.js";
 import type { BrowserToolsBroker } from "./browser-tools/broker.js";
-import { BrowserAutomationHostCapabilitySchema } from "@getpaseo/protocol/browser-automation/capabilities";
+import { BrowserAutomationHostCapabilitySchema } from "@getzentic/protocol/browser-automation/capabilities";
 import type {
   SessionEventSubscription,
   UsageReportEntry,
   ProviderUsage,
-} from "@getpaseo/protocol/messages";
+} from "@getzentic/protocol/messages";
 import { relative } from "node:path";
 import { isAbsolute } from "node:path";
 import { CreationService, type CreatedAgent } from "./creation/index.js";
-import type { CreationSnapshot, AgentCreateRequest } from "@getpaseo/protocol/messages";
+import type { CreationSnapshot, AgentCreateRequest } from "@getzentic/protocol/messages";
 import type { MessageReceipts } from "./message-receipts/index.js";
 import type { AgentBackgroundWorkItem } from "./agent/background-work/index.js";
 import equal from "fast-deep-equal";
@@ -31,8 +31,8 @@ import { v4 as uuidv4 } from "uuid";
 import { lstat, mkdir, mkdtemp, rename, rm, stat } from "node:fs/promises";
 import { basename, join, resolve, sep } from "path";
 import { homedir } from "node:os";
-import { CLIENT_CAPS, type ClientCapability } from "@getpaseo/protocol/client-capabilities";
-import { formatPluginSourceReference } from "@getpaseo/protocol/plugin-source-reference";
+import { CLIENT_CAPS, type ClientCapability } from "@getzentic/protocol/client-capabilities";
+import { formatPluginSourceReference } from "@getzentic/protocol/plugin-source-reference";
 import {
   serializeAgentStreamEvent,
   type AgentSnapshotPayload,
@@ -56,13 +56,13 @@ import type {
   TerminalWorkspaceContributionChangedEvent,
 } from "../terminal/terminal-manager.js";
 import { TerminalSessionController } from "../terminal/terminal-session-controller.js";
-import type { TerminalActivity } from "@getpaseo/protocol/terminal-activity";
-import type { BinaryFrame } from "@getpaseo/protocol/binary-frames/index";
+import type { TerminalActivity } from "@getzentic/protocol/terminal-activity";
+import type { BinaryFrame } from "@getzentic/protocol/binary-frames/index";
 import {
   encodePluginEventFrame,
   encodePluginOutputFrame,
   PluginFrameOpcode,
-} from "@getpaseo/protocol/binary-frames/index";
+} from "@getzentic/protocol/binary-frames/index";
 import { CursorError } from "./pagination/cursor.js";
 import { SortablePager, type SortSpec } from "./pagination/sortable-pager.js";
 import { matchesAgentHistoryQuery } from "./agent-history-search.js";
@@ -95,9 +95,9 @@ import {
 } from "./session/workspace-scripts/workspace-scripts-service.js";
 import { toWireDaemonConfig, type DaemonConfigStore } from "./daemon-config-store.js";
 import { releaseWorkspaceServicePortPlan } from "./workspace-service-port-registry.js";
-import { getErrorMessage, getErrorMessageOr } from "@getpaseo/protocol/error-utils";
-import { getAgentStatusPriority } from "@getpaseo/protocol/agent-state-bucket";
-import { getParentAgentIdFromLabels } from "@getpaseo/protocol/agent-labels";
+import { getErrorMessage, getErrorMessageOr } from "@getzentic/protocol/error-utils";
+import { getAgentStatusPriority } from "@getzentic/protocol/agent-state-bucket";
+import { getParentAgentIdFromLabels } from "@getzentic/protocol/agent-labels";
 import { applyRecordPatch } from "./record-patch.js";
 import type { WorkspaceGitRuntimeSnapshot, WorkspaceGitService } from "./workspace-git-service.js";
 import type { ProjectUpdate } from "./workspace-reconciliation-service.js";
@@ -270,17 +270,17 @@ import {
 } from "./workspace-directory.js";
 import { shouldEmitPendingBootstrapUpdate } from "./workspace-bootstrap-dedupe.js";
 import {
-  createPaseoWorktree,
-  type CreatePaseoWorktreeInput,
-  type CreatePaseoWorktreeResult,
-} from "./paseo-worktree-service.js";
+  createZenticWorktree,
+  type CreateZenticWorktreeInput,
+  type CreateZenticWorktreeResult,
+} from "./zentic-worktree-service.js";
 import { WorkspaceAutoName } from "./workspace-auto-name.js";
 import {
-  createPaseoWorktreeWorkflow as createWorktreeWorkflow,
-  type CreatePaseoWorktreeWorkflowResult,
-  handleCreatePaseoWorktreeRequest as handleCreateWorktreeRequest,
-  handlePaseoWorktreeArchiveRequest as handleWorktreeArchiveRequest,
-  handlePaseoWorktreeListRequest as handleWorktreeListRequest,
+  createZenticWorktreeWorkflow as createWorktreeWorkflow,
+  type CreateZenticWorktreeWorkflowResult,
+  handleCreateZenticWorktreeRequest as handleCreateWorktreeRequest,
+  handleZenticWorktreeArchiveRequest as handleWorktreeArchiveRequest,
+  handleZenticWorktreeListRequest as handleWorktreeListRequest,
   handleWorkspaceSetupStatusRequest as handleWorkspaceSetupStatusRequestMessage,
   handleWorkspaceSetupRunRequest as handleWorkspaceSetupRunRequestMessage,
 } from "./worktree-session.js";
@@ -304,7 +304,7 @@ function resolveWorkspaceArchiveOperations(
   return operations ?? new WorkspaceArchiveOperations();
 }
 import { WorktreeRequestError, toWorktreeWireError } from "./worktree-errors.js";
-import { parseGitRemoteLocation } from "@getpaseo/protocol/git-remote";
+import { parseGitRemoteLocation } from "@getzentic/protocol/git-remote";
 import {
   createProjectDirectory,
   ProjectDirectoryRequestError,
@@ -498,7 +498,7 @@ export interface SessionOptions {
   logger: pino.Logger;
   downloadTokenStore: DownloadTokenStore;
   pushNotifications: PushNotifications;
-  paseoHome: string;
+  zenticHome: string;
   worktreesRoot?: string;
   agentManager: AgentManager;
   agentStorage: AgentStorage;
@@ -526,38 +526,38 @@ export interface SessionOptions {
     wait: import("./plugins/lifecycle/index.js").PluginLifecycle["wait"];
     before: import("./plugins/lifecycle/index.js").PluginLifecycle["before"];
     emit: import("./plugins/lifecycle/index.js").PluginLifecycle["emit"];
-    listPlugins(): Promise<import("@getpaseo/protocol/messages").PluginListItem[]>;
-    getLogs(pluginId: string): import("@getpaseo/protocol/messages").PluginLogEntry[];
+    listPlugins(): Promise<import("@getzentic/protocol/messages").PluginListItem[]>;
+    getLogs(pluginId: string): import("@getzentic/protocol/messages").PluginLogEntry[];
     installDirectory(input: {
       path: string;
       id?: string;
-    }): Promise<import("@getpaseo/protocol/messages").PluginListItem>;
+    }): Promise<import("@getzentic/protocol/messages").PluginListItem>;
     inspectDirectory(path: string): Promise<{ id: string }>;
     installSource(input: {
       source: string;
       id?: string;
       ref?: string;
-    }): Promise<import("@getpaseo/protocol/messages").PluginListItem>;
+    }): Promise<import("@getzentic/protocol/messages").PluginListItem>;
     statusSources(
       pluginId?: string,
-    ): Promise<import("@getpaseo/protocol/messages").PluginSourceStatusItem[]>;
-    listRegistry(): Promise<import("@getpaseo/protocol/plugin-registry").PluginRegistryIndex>;
+    ): Promise<import("@getzentic/protocol/messages").PluginSourceStatusItem[]>;
+    listRegistry(): Promise<import("@getzentic/protocol/plugin-registry").PluginRegistryIndex>;
     getRegistryPlugin(
       id: string,
-    ): Promise<import("@getpaseo/protocol/plugin-registry").PublishedPluginDetail>;
+    ): Promise<import("@getzentic/protocol/plugin-registry").PublishedPluginDetail>;
     previewUpdates(input: {
       pluginId?: string;
-      target?: import("@getpaseo/protocol/messages").PluginUpdateSelection;
-    }): Promise<import("@getpaseo/protocol/messages").PluginUpdatePreview[]>;
+      target?: import("@getzentic/protocol/messages").PluginUpdateSelection;
+    }): Promise<import("@getzentic/protocol/messages").PluginUpdatePreview[]>;
     applyUpdates(
-      proposals: import("@getpaseo/protocol/messages").PluginUpdateProposal[],
-    ): Promise<import("@getpaseo/protocol/messages").PluginUpdateResult[]>;
+      proposals: import("@getzentic/protocol/messages").PluginUpdateProposal[],
+    ): Promise<import("@getzentic/protocol/messages").PluginUpdateResult[]>;
     updateSources(
       pluginId?: string,
-    ): Promise<import("@getpaseo/protocol/messages").PluginSourceUpdateItem[]>;
-    reloadPlugin(pluginId: string): Promise<import("@getpaseo/protocol/messages").PluginListItem>;
-    enablePlugin(pluginId: string): Promise<import("@getpaseo/protocol/messages").PluginListItem>;
-    disablePlugin(pluginId: string): Promise<import("@getpaseo/protocol/messages").PluginListItem>;
+    ): Promise<import("@getzentic/protocol/messages").PluginSourceUpdateItem[]>;
+    reloadPlugin(pluginId: string): Promise<import("@getzentic/protocol/messages").PluginListItem>;
+    enablePlugin(pluginId: string): Promise<import("@getzentic/protocol/messages").PluginListItem>;
+    disablePlugin(pluginId: string): Promise<import("@getzentic/protocol/messages").PluginListItem>;
     removePlugin(pluginId: string): Promise<void>;
     subscribe(listener: (pluginId: string) => void): () => void;
     subscribeSettings?(listener: (pluginId: string, settingsId: string) => void): () => void;
@@ -790,7 +790,7 @@ export class Session {
     | ((workspace: PersistedWorkspaceRecord) => Promise<void>)
     | null;
   private readonly sessionLogger: pino.Logger;
-  private readonly paseoHome: string;
+  private readonly zenticHome: string;
   private readonly projectIcons: ProjectIconReader;
   private readonly worktreesRoot: string | undefined;
   private readonly rewindInitiators = new Map<string, object | undefined>();
@@ -899,7 +899,7 @@ export class Session {
       logger,
       downloadTokenStore,
       pushNotifications,
-      paseoHome,
+      zenticHome,
       worktreesRoot,
       agentManager,
       agentStorage,
@@ -963,11 +963,11 @@ export class Session {
     this.onLifecycleIntent = onLifecycleIntent ?? null;
     this.onWorkspaceRecovered = onWorkspaceRecovered ?? null;
     this.pushNotifications = pushNotifications;
-    this.paseoHome = paseoHome;
+    this.zenticHome = zenticHome;
     this.messageReceipts = options.messageReceipts;
     this.agentMessages = options.agentMessages;
     this.creationService = options.creationService;
-    this.projectIcons = new ProjectIconReader(paseoHome);
+    this.projectIcons = new ProjectIconReader(zenticHome);
     this.worktreesRoot = worktreesRoot;
     this.pluginRuntime = pluginRuntime;
     this.orchestrationSkills = orchestrationSkills;
@@ -983,7 +983,7 @@ export class Session {
         hasBinaryChannel: () => this.onBinaryMessage !== null,
       },
       downloadTokenStore,
-      paseoHome,
+      zenticHome,
       logger: this.sessionLogger,
     });
     this.agentManager = agentManager;
@@ -1000,7 +1000,7 @@ export class Session {
     this.workspaceBaseBranch =
       options.workspaceBaseBranch ??
       createWorkspaceBaseBranchService({
-        paseoHome: this.paseoHome,
+        zenticHome: this.zenticHome,
         worktreesRoot: this.worktreesRoot,
         workspaceRegistry: this.workspaceRegistry,
         workspaceGitService: this.workspaceGitService,
@@ -1029,7 +1029,7 @@ export class Session {
       logger: this.sessionLogger,
     });
     this.workspaceRecovery = createWorkspaceRecoveryService({
-      paseoHome: this.paseoHome,
+      zenticHome: this.zenticHome,
       worktreesRoot: this.worktreesRoot,
       getWorkspace: (workspaceId) => this.workspaceRegistry.get(workspaceId),
       getProject: (projectId) => this.projectRegistry.get(projectId),
@@ -1062,7 +1062,7 @@ export class Session {
         }),
         logger: this.sessionLogger,
       }),
-      paseoHome: this.paseoHome,
+      zenticHome: this.zenticHome,
       worktreesRoot: this.worktreesRoot,
       logger: this.sessionLogger,
     });
@@ -1156,7 +1156,7 @@ export class Session {
         emitLifecycleIntent: (intent) => this.emitLifecycleIntent(intent),
       },
       clientId: this.clientId,
-      paseoHome: this.paseoHome,
+      zenticHome: this.zenticHome,
       serverId,
       daemonVersion,
       daemonRuntimeConfig,
@@ -1249,14 +1249,14 @@ export class Session {
       logger: this.sessionLogger,
     });
     this.createAgentLifecycleDispatch = new CreateAgentLifecycleDispatch({
-      paseoHome: this.paseoHome,
+      zenticHome: this.zenticHome,
       worktreesRoot: this.worktreesRoot,
       agentManager: this.agentManager,
       agentStorage: this.agentStorage,
       github: this.github,
       workspaceGitService: this.workspaceGitService,
-      createPaseoWorktreeWorkflow: (input, workflowOptions) =>
-        this.createPaseoWorktreeWorkflow(input, workflowOptions),
+      createZenticWorktreeWorkflow: (input, workflowOptions) =>
+        this.createZenticWorktreeWorkflow(input, workflowOptions),
       archiveAgentForClose: (agentId) => this.archiveAgentForClose(agentId),
       findWorkspaceIdForCwd: (cwd) => this.findWorkspaceIdForCwd(cwd),
       listActiveWorkspaces: () => this.listActiveWorkspaceRefs(),
@@ -2847,7 +2847,7 @@ export class Session {
     if (!this.authorization.allowsOutbound(response)) return;
     if (!this.supports(CLIENT_CAPS.pluginBinaryPayloads) || this.onBinaryMessage === null)
       throw new Error(
-        `Update Paseo to receive the binary output of plugin RPC ${request.pluginId}.${request.method}`,
+        `Update Zentic to receive the binary output of plugin RPC ${request.pluginId}.${request.method}`,
       );
     await this.emitBinaryReply(
       encodePluginOutputFrame(request.requestId, output),
@@ -3361,12 +3361,12 @@ export class Session {
         return this.handleProjectListRequest(msg);
       case "project.suggestions.request":
         return this.handleProjectSuggestionsRequest(msg);
-      case "paseo_worktree_list_request":
-        return this.handlePaseoWorktreeListRequest(msg);
-      case "paseo_worktree_archive_request":
-        return this.handlePaseoWorktreeArchiveRequest(msg);
-      case "create_paseo_worktree_request":
-        return this.handleCreatePaseoWorktreeRequest(msg);
+      case "zentic_worktree_list_request":
+        return this.handleZenticWorktreeListRequest(msg);
+      case "zentic_worktree_archive_request":
+        return this.handleZenticWorktreeArchiveRequest(msg);
+      case "create_zentic_worktree_request":
+        return this.handleCreateZenticWorktreeRequest(msg);
       // COMPAT(desktopEditorBridge): added in v0.1.88, remove after 2026-12-03 once old clients no longer call daemon editor RPCs.
       case "list_available_editors_request":
         return this.handleLegacyListAvailableEditorsRequest(msg);
@@ -4041,7 +4041,7 @@ export class Session {
     const { projectId, requestId } = request;
     try {
       const updated = await setProjectCustomIcon({
-        paseoHome: this.paseoHome,
+        zenticHome: this.zenticHome,
         projectId,
         source: request.source,
         projects: this.projectRegistry,
@@ -4132,7 +4132,7 @@ export class Session {
 
         await this.projectRegistry.remove(resolvedProjectId);
         await removeProjectCustomIcon({
-          paseoHome: this.paseoHome,
+          zenticHome: this.zenticHome,
           projectId: resolvedProjectId,
         }).catch((error) => {
           this.sessionLogger.warn(
@@ -4341,7 +4341,7 @@ export class Session {
   ): Promise<void> {
     try {
       this.workspaceBaseBranch ??= createWorkspaceBaseBranchService({
-        paseoHome: this.paseoHome,
+        zenticHome: this.zenticHome,
         worktreesRoot: this.worktreesRoot,
         workspaceRegistry: this.workspaceRegistry,
         workspaceGitService: this.workspaceGitService,
@@ -4866,7 +4866,7 @@ export class Session {
       }`,
     );
 
-    let createdWorktreeForCleanup: CreatePaseoWorktreeWorkflowResult | null = null;
+    let createdWorktreeForCleanup: CreateZenticWorktreeWorkflowResult | null = null;
     let createdAgentId: string | null = null;
     try {
       const requestedCwd = resolve(config.cwd);
@@ -4908,7 +4908,7 @@ export class Session {
           agentManager: this.agentManager,
           agentStorage: this.agentStorage,
           logger: this.sessionLogger,
-          paseoHome: this.paseoHome,
+          zenticHome: this.zenticHome,
           worktreesRoot: this.worktreesRoot,
           providerSnapshotManager: this.providerSnapshotManager,
         },
@@ -4973,7 +4973,7 @@ export class Session {
 
   private async resolveSessionCreateAgentIntent(input: {
     request: CreateAgentRequestMessage;
-    createdWorktree: CreatePaseoWorktreeWorkflowResult | null;
+    createdWorktree: CreateZenticWorktreeWorkflowResult | null;
     workspacePromptTitle: string | null;
   }): Promise<ResolvedSessionCreateAgentIntent> {
     const { request, createdWorktree } = input;
@@ -5690,26 +5690,26 @@ export class Session {
     }
   }
 
-  private async handlePaseoWorktreeListRequest(
-    msg: Extract<SessionInboundMessage, { type: "paseo_worktree_list_request" }>,
+  private async handleZenticWorktreeListRequest(
+    msg: Extract<SessionInboundMessage, { type: "zentic_worktree_list_request" }>,
   ): Promise<void> {
     return handleWorktreeListRequest(
       {
         emit: (message) => this.emit(message),
-        paseoHome: this.paseoHome,
+        zenticHome: this.zenticHome,
         workspaceGitService: this.workspaceGitService,
       },
       msg,
     );
   }
 
-  private async handlePaseoWorktreeArchiveRequest(
-    msg: Extract<SessionInboundMessage, { type: "paseo_worktree_archive_request" }>,
+  private async handleZenticWorktreeArchiveRequest(
+    msg: Extract<SessionInboundMessage, { type: "zentic_worktree_archive_request" }>,
   ): Promise<void> {
     return handleWorktreeArchiveRequest(
       {
-        paseoHome: this.paseoHome,
-        paseoWorktreesBaseRoot: this.worktreesRoot,
+        zenticHome: this.zenticHome,
+        zenticWorktreesBaseRoot: this.worktreesRoot,
         github: this.github,
         workspaceGitService: this.workspaceGitService,
         agentManager: this.agentManager,
@@ -6127,7 +6127,7 @@ export class Session {
     }
 
     const worktreeSlug =
-      workspace.isPaseoOwnedWorktree && workspace.worktreeRoot
+      workspace.isZenticOwnedWorktree && workspace.worktreeRoot
         ? basename(workspace.worktreeRoot)
         : undefined;
 
@@ -6177,7 +6177,7 @@ export class Session {
     return {
       currentBranch: snapshot.git.currentBranch,
       remoteUrl: snapshot.git.remoteUrl,
-      isPaseoOwnedWorktree: snapshot.git.isPaseoOwnedWorktree,
+      isZenticOwnedWorktree: snapshot.git.isZenticOwnedWorktree,
       isDirty: snapshot.git.isDirty,
       aheadBehind: snapshot.git.aheadBehind,
       aheadOfOrigin: snapshot.git.aheadOfOrigin,
@@ -6223,7 +6223,7 @@ export class Session {
   }
 
   private async describeCreatedWorktreeWorkspace(
-    result: CreatePaseoWorktreeResult,
+    result: CreateZenticWorktreeResult,
   ): Promise<WorkspaceDescriptorPayload> {
     const projectRecord = await this.projectRegistry.get(result.workspace.projectId);
     return {
@@ -6263,7 +6263,7 @@ export class Session {
       gitRuntime: {
         currentBranch: result.worktree.branchName || null,
         remoteUrl: null,
-        isPaseoOwnedWorktree: true,
+        isZenticOwnedWorktree: true,
         isDirty: false,
         aheadBehind: null,
         aheadOfOrigin: null,
@@ -6472,13 +6472,13 @@ export class Session {
     await this.restoreWorkspaceAndEmit(record.workspaceId);
   }
 
-  private async createPaseoWorktree(
-    input: CreatePaseoWorktreeInput,
+  private async createZenticWorktree(
+    input: CreateZenticWorktreeInput,
     options?: {
       resolveDefaultBranch?: (repoRoot: string) => Promise<string>;
     },
-  ): Promise<CreatePaseoWorktreeResult> {
-    const result = await createPaseoWorktree(input, {
+  ): Promise<CreateZenticWorktreeResult> {
+    const result = await createZenticWorktree(input, {
       lifecycle: this.pluginRuntime,
       github: this.github,
       ...(options?.resolveDefaultBranch
@@ -6508,7 +6508,7 @@ export class Session {
         cwd: workspace.cwd,
         kind: workspace.kind,
         worktreeRoot: workspace.worktreeRoot,
-        isPaseoOwnedWorktree: workspace.isPaseoOwnedWorktree,
+        isZenticOwnedWorktree: workspace.isZenticOwnedWorktree,
         mainRepoRoot: workspace.mainRepoRoot,
       }));
   }
@@ -7429,7 +7429,7 @@ export class Session {
 
     const sourceCwd = await resolveWorktreeSourceCwd(source, this.projectRegistry);
 
-    const result = await this.createPaseoWorktreeWorkflow(
+    const result = await this.createZenticWorktreeWorkflow(
       {
         cwd: sourceCwd,
         workspaceId,
@@ -7763,7 +7763,7 @@ export class Session {
         }
       }
 
-      const cloneStagingPath = await mkdtemp(resolve(targetParent, ".paseo-clone-"));
+      const cloneStagingPath = await mkdtemp(resolve(targetParent, ".zentic-clone-"));
       try {
         await runGitCommand(["clone", repo.cloneUrl, cloneStagingPath], {
           cwd: targetParent,
@@ -7938,34 +7938,34 @@ export class Session {
     });
   }
 
-  private async handleCreatePaseoWorktreeRequest(
-    request: Extract<SessionInboundMessage, { type: "create_paseo_worktree_request" }>,
+  private async handleCreateZenticWorktreeRequest(
+    request: Extract<SessionInboundMessage, { type: "create_zentic_worktree_request" }>,
   ): Promise<void> {
     return handleCreateWorktreeRequest(
       {
-        paseoHome: this.paseoHome,
+        zenticHome: this.zenticHome,
         worktreesRoot: this.worktreesRoot,
         describeWorkspaceRecord: (result) => this.describeCreatedWorktreeWorkspace(result),
         emit: (message) => this.emit(message),
         sessionLogger: this.sessionLogger,
-        createPaseoWorktreeWorkflow: (input) => this.createPaseoWorktreeWorkflow(input),
+        createZenticWorktreeWorkflow: (input) => this.createZenticWorktreeWorkflow(input),
       },
       request,
     );
   }
 
-  private async createPaseoWorktreeWorkflow(
-    input: CreatePaseoWorktreeInput,
+  private async createZenticWorktreeWorkflow(
+    input: CreateZenticWorktreeInput,
     options?: {
       resolveDefaultBranch?: (repoRoot: string) => Promise<string>;
     },
-  ): Promise<CreatePaseoWorktreeWorkflowResult> {
+  ): Promise<CreateZenticWorktreeWorkflowResult> {
     return createWorktreeWorkflow(
       {
-        paseoHome: this.paseoHome,
+        zenticHome: this.zenticHome,
         worktreesRoot: this.worktreesRoot,
-        createPaseoWorktree: (workflowInput, serviceOptions) =>
-          this.createPaseoWorktree(workflowInput, serviceOptions),
+        createZenticWorktree: (workflowInput, serviceOptions) =>
+          this.createZenticWorktree(workflowInput, serviceOptions),
         warmWorkspaceGitData: (workspace) => this.warmWorkspaceGitDataForWorkspace(workspace),
         autoNameWorkspaceBranchForFirstAgent: (autoNameInput) =>
           this.workspaceAutoName.scheduleForWorktree(autoNameInput, {
@@ -8020,7 +8020,7 @@ export class Session {
           clearWorkspaceAutomationBlock(this.workspaceRegistry, workspaceId),
         startWorkspaceSetup: (workspaceId, operation) =>
           this.workspaceSetupRuntime.start(workspaceId, operation),
-        paseoHome: this.paseoHome,
+        zenticHome: this.zenticHome,
         worktreesRoot: this.worktreesRoot,
         emitWorkspaceUpdateForWorkspaceId: (workspaceId) =>
           this.emitWorkspaceUpdateForWorkspaceId(workspaceId),
@@ -8056,8 +8056,8 @@ export class Session {
           }
           return archiveByScope(
             {
-              paseoHome: this.paseoHome,
-              paseoWorktreesBaseRoot: this.worktreesRoot,
+              zenticHome: this.zenticHome,
+              zenticWorktreesBaseRoot: this.worktreesRoot,
               github: this.github,
               workspaceGitService: this.workspaceGitService,
               agentManager: this.agentManager,
@@ -8814,7 +8814,7 @@ export class Session {
                     timestamp: new Date().toISOString(),
                     item: {
                       type: "assistant_message",
-                      text: "Please upgrade the Paseo app to view this subagent conversation.",
+                      text: "Please upgrade the Zentic app to view this subagent conversation.",
                     },
                   },
                 ],
@@ -9325,7 +9325,7 @@ export class Session {
       ...snapshot,
       status: "failed" as const,
       error:
-        "Workspace setup is blocked pending approval of code from a fork pull request. Update Paseo to review and run setup.",
+        "Workspace setup is blocked pending approval of code from a fork pull request. Update Zentic to review and run setup.",
     };
     return message.type === "workspace_setup_progress"
       ? { ...message, payload: { ...message.payload, ...legacySnapshot } }

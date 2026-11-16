@@ -251,7 +251,7 @@ const SOCIAL_PROOF_TWEETS = [
     date: "May 28, 2026",
     avatar: "/social-proof/arnoldgamboa.jpg",
     url: "https://x.com/arnoldgamboa/status/2059832028099436921",
-    text: "Paseo is a really good interface for Pi. It’s not the only thing it does, but that’s my current use case for now.",
+    text: "Zentic is a really good interface for Pi. It’s not the only thing it does, but that’s my current use case for now.",
   },
   {
     name: "Dong",
@@ -259,7 +259,7 @@ const SOCIAL_PROOF_TWEETS = [
     date: "Apr 12, 2026",
     avatar: "/social-proof/dongnaebi.jpg",
     url: "https://x.com/dongnaebi/status/2043162391941398735",
-    text: "Paseo is the best software I've used this year. Absolutely amazing!",
+    text: "Zentic is the best software I've used this year. Absolutely amazing!",
   },
 ] as const;
 
@@ -714,8 +714,8 @@ function AutomationDetail({ kind }: { kind: AutomationKind }) {
 }
 
 const MCP_AGENT_CALLS: ToolCall[] = [
-  { kind: "paseo", label: "Create agent", detail: "Fix #412: relay handshake race" },
-  { kind: "paseo", label: "Create agent", detail: "Fix #417: menu bar icon on macOS" },
+  { kind: "zentic", label: "Create agent", detail: "Fix #412: relay handshake race" },
+  { kind: "zentic", label: "Create agent", detail: "Fix #417: menu bar icon on macOS" },
 ];
 
 function McpAutomationTranscript() {
@@ -768,7 +768,7 @@ function CliAutomationExample() {
       <div className="space-y-6">
         <div>
           <ShellPrompt>
-            <span className="text-white">paseo run</span> <span className="text-white/35">\</span>
+            <span className="text-white">zentic run</span> <span className="text-white/35">\</span>
           </ShellPrompt>
           <div className="pl-5">
             <span className="text-sky-300/75">--provider</span>{" "}
@@ -781,7 +781,7 @@ function CliAutomationExample() {
 
         <div className="space-y-1">
           <ShellPrompt>
-            <span className="text-white">paseo ls</span>
+            <span className="text-white">zentic ls</span>
           </ShellPrompt>
           <AgentListOutput />
         </div>
@@ -789,7 +789,7 @@ function CliAutomationExample() {
         <div>
           <div className="text-white/30">{t("landing.automation.otherHostComment")}</div>
           <ShellPrompt>
-            <span className="text-white">paseo ls</span>{" "}
+            <span className="text-white">zentic ls</span>{" "}
             <span className="text-sky-300/75">--host</span>{" "}
             <span className="text-white/75">devbox:6767</span>
           </ShellPrompt>
@@ -826,11 +826,11 @@ function AgentListOutput() {
 function SdkAutomationExample() {
   return (
     <pre className="overflow-x-auto font-mono text-[11px] leading-5 text-white/60">
-      <span className="text-purple-300">import</span> {"{"} createPaseoClient {"}"}{" "}
+      <span className="text-purple-300">import</span> {"{"} createZenticClient {"}"}{" "}
       <span className="text-purple-300">from</span>{" "}
-      <span className="text-emerald-300/80">{'"@getpaseo/client"'}</span>;{"\n\n"}
+      <span className="text-emerald-300/80">{'"@getzentic/client"'}</span>;{"\n\n"}
       <span className="text-purple-300">const</span> client ={" "}
-      <span className="text-sky-300">createPaseoClient</span>({"{"}
+      <span className="text-sky-300">createZenticClient</span>({"{"}
       {"\n"} url: <span className="text-emerald-300/80">{'"ws://127.0.0.1:6767/ws"'}</span>,{"\n"}
       {"}"});
       {"\n"}
@@ -842,7 +842,7 @@ function SdkAutomationExample() {
       <span className="text-sky-300">create</span>({"{"}
       {"\n"} config: {"{"} provider:{" "}
       <span className="text-emerald-300/80">{'"codex/gpt-5.6-sol"'}</span> {"}"},{"\n"} cwd:{" "}
-      <span className="text-emerald-300/80">{'"/Users/me/dev/paseo"'}</span>,{"\n"} prompt:{" "}
+      <span className="text-emerald-300/80">{'"/Users/me/dev/zentic"'}</span>,{"\n"} prompt:{" "}
       <span className="text-emerald-300/80">{'"Fix issue #412 and add tests."'}</span>,{"\n"}
       {"}"});
       {"\n\n"}
@@ -875,7 +875,7 @@ function ExtensibleSection() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-white/45">{t("landing.plugins.license")}</p>
           <a
-            href="https://github.com/getpaseo/paseo"
+            href="https://github.com/getzentic/zentic"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex shrink-0 items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -891,11 +891,11 @@ function ExtensibleSection() {
 }
 
 const PLUGIN_BUILD_CALLS: ToolCall[] = [
-  { kind: "read", detail: "paseo-plugin/SKILL.md" },
-  { kind: "shell", detail: "paseo plugin init review-queue" },
+  { kind: "read", detail: "zentic-plugin/SKILL.md" },
+  { kind: "shell", detail: "zentic plugin init review-queue" },
   { kind: "write", detail: "review-queue/index.ts" },
   { kind: "write", detail: "review-queue/review-queue.client.tsx" },
-  { kind: "shell", detail: "paseo plugin install ./review-queue" },
+  { kind: "shell", detail: "zentic plugin install ./review-queue" },
 ];
 
 // The demo plays once when it scrolls into view: the prompt, then each timeline
@@ -1042,7 +1042,7 @@ function PluginCategoryLinks() {
 
 const PLUGINS_BROWSE = PLUGINS_LINKED
   ? { href: "/plugins", external: false }
-  : { href: "https://paseo.cafe", external: true };
+  : { href: "https://zentic.cafe", external: true };
 
 function PluginActions() {
   const { t } = useTranslation();
@@ -1233,7 +1233,7 @@ function ServerInstallButton() {
       trigger={trigger}
       title={t("landing.getStarted.serverInstallTitle")}
       description={t("landing.getStarted.serverInstallDescription")}
-      command="npm install -g @getpaseo/cli && paseo"
+      command="npm install -g @getzentic/cli && zentic"
       footnote={footnote}
     />
   );

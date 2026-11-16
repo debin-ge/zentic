@@ -1,6 +1,6 @@
 ---
 title: Supported providers
-description: Every coding agent Paseo can launch, natively supported providers and the ACP catalog.
+description: Every coding agent Zentic can launch, natively supported providers and the ACP catalog.
 nav: Supported providers
 order: 21
 category: Providers
@@ -8,7 +8,7 @@ category: Providers
 
 # Supported providers
 
-For the concept and how Paseo manages providers, see [Providers](/docs/providers). To add or configure your own, see [Custom providers](/docs/custom-providers).
+For the concept and how Zentic manages providers, see [Providers](/docs/providers). To add or configure your own, see [Custom providers](/docs/custom-providers).
 
 ## Native support
 
@@ -24,23 +24,23 @@ Work out of the box once the underlying CLI is installed and authenticated.
 ### Antigravity
 
 Install the Antigravity CLI (`agy`) on your daemon host, then run `agy` once to sign in. Pick
-**Antigravity** in Paseo. The provider ships with Paseo; no separate plugin install is required.
+**Antigravity** in Zentic. The provider ships with Zentic; no separate plugin install is required.
 
 **Full access** is the only permission mode. Antigravity cannot ask for permission when another
-app drives it, so Paseo starts `agy` with `--dangerously-skip-permissions`. Every tool call,
+app drives it, so Zentic starts `agy` with `--dangerously-skip-permissions`. Every tool call,
 including shell commands, runs without asking. Each session starts with a warning explaining
 this, including when you reopen a chat. Antigravity's own policy can still deny
 an action.
 
-After a daemon restart, Antigravity remembers the conversation, but Paseo's transcript starts
+After a daemon restart, Antigravity remembers the conversation, but Zentic's transcript starts
 fresh because `agy` does not replay its history.
 
 This integration uses your installed CLI and sign-in. It is not endorsed by Google.
 
-Paseo MCP tools and steering are unavailable. Your own `agy` MCP servers still work. Attached
+Zentic MCP tools and steering are unavailable. Your own `agy` MCP servers still work. Attached
 images are passed as file references for the agent to read.
 
-If `agy` is outside your daemon's PATH, override its command in `~/.paseo/config.json`. Use `env`
+If `agy` is outside your daemon's PATH, override its command in `~/.zentic/config.json`. Use `env`
 for provider-specific environment variables:
 
 ```json
@@ -108,7 +108,7 @@ The in-app catalog is the canonical, version-pinned source. Anything not listed 
 [Install fx](https://fx.sh/docs/getting-started/installation) on your daemon host and
 [connect a provider](https://fx.sh/docs/getting-started/authentication), for example with
 `fx login`. In **Settings → Hosts → your host → Providers**, find **fx** in the catalog and
-choose **Add**. Paseo launches `fx acp` and uses your fx credentials and settings. Until fx has
+choose **Add**. Zentic launches `fx acp` and uses your fx credentials and settings. Until fx has
 credentials, the provider reports the sign-in message from fx.
 
 The model list comes from your active fx provider, so run `fx provider` to change the list a new
@@ -121,12 +121,12 @@ the arguments.
 
 Install the [Hoplite CLI](https://hoplite.sh/docs/cli) on your daemon host and run
 `hoplite login`. In **Settings → Hosts → your host → Providers**, find **Hoplite**
-in the catalog and choose **Add**. Paseo launches `hoplite acp` through the generic ACP adapter.
+in the catalog and choose **Add**. Zentic launches `hoplite acp` through the generic ACP adapter.
 
 Hoplite runs the agent in a cloud workspace. Open a repository linked to a Hoplite project,
 or set `agents.providers.hoplite.env.HOPLITE_PROJECT_ID` to use one project everywhere.
 Without a linked repository or pinned project, discovery reports `No Hoplite project`.
-Your local files and Paseo's loopback MCP tools are not available in that cloud workspace.
+Your local files and Zentic's loopback MCP tools are not available in that cloud workspace.
 
 See [Hoplite's ACP guide](https://hoplite.sh/docs/cli/acp) for authentication and project setup.
 Use a [command override](/docs/custom-providers) if `hoplite` is outside your daemon's PATH;

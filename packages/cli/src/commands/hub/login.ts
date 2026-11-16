@@ -60,8 +60,8 @@ export function addHubLoginCommand(parent: Command, dependencies: HubLoginDepend
     addHubResolutionHelp(
       parent
         .command("login")
-        .description("Log in to a Paseo Hub for CLI access")
-        .argument("[origin]", "Paseo Hub origin"),
+        .description("Log in to a Zentic Hub for CLI access")
+        .argument("[origin]", "Zentic Hub origin"),
     ),
   ).action(
     withOutput(async (...args) => {

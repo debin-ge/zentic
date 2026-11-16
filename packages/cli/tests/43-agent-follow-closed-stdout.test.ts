@@ -3,14 +3,14 @@
 /**
  * Follow commands stop when nobody reads their output
  *
- * `paseo agent logs --follow` and `paseo agent attach` stream until they are
+ * `zentic agent logs --follow` and `zentic agent attach` stream until they are
  * stopped. A program that closes its end of their stdout, as `| head` or a
  * launcher that discards output does, stops them the same way Ctrl+C does.
  */
 
 import assert from "node:assert";
 import { connectToDaemon } from "../src/utils/client.ts";
-import { runPaseoCli, startTestDaemon } from "./helpers/test-daemon.ts";
+import { runZenticCli, startTestDaemon } from "./helpers/test-daemon.ts";
 
 console.log("=== Follow Commands With Closed Stdout Tests ===\n");
 
@@ -31,9 +31,9 @@ try {
     ["agent", "logs", agent.id, "--follow"],
     ["agent", "attach", agent.id],
   ]) {
-    const label = `paseo ${args.slice(0, 2).join(" ")}`;
+    const label = `zentic ${args.slice(0, 2).join(" ")}`;
     console.log(`Test: ${label} exits when its stdout reader is gone`);
-    const result = await runPaseoCli(daemon, [...args, "--host", host], {
+    const result = await runZenticCli(daemon, [...args, "--host", host], {
       closedStdout: true,
       timeout: 20_000,
     });

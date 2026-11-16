@@ -11,9 +11,9 @@ import { githubRepositoryFromRemote } from "./init.js";
 describe("Hub init planning", () => {
   it("prints direct resumable commands for declined login continuations", () => {
     expect(hubLoginResumeCommand("connect", "https://hub.test")).toBe(
-      "paseo hub connect https://hub.test",
+      "zentic hub connect https://hub.test",
     );
-    expect(hubLoginResumeCommand("init", "https://hub.test")).toBe("paseo hub init");
+    expect(hubLoginResumeCommand("init", "https://hub.test")).toBe("zentic hub init");
   });
   it("reuses a connected daemon, waits for reconnect, and rejects a different Hub", () => {
     const status = {
@@ -46,9 +46,9 @@ describe("Hub init planning", () => {
 
 describe("Hub init scaffold", () => {
   it.each([
-    ["github", { connection: "github-getpaseo", repo: "getpaseo/paseo", user: "boudra" }],
-    ["slack", { connection: "slack-paseo", user: "U123456" }],
-    ["discord", { connection: "discord-paseo", user: "987654321" }],
+    ["github", { connection: "github-getzentic", repo: "getzentic/zentic", user: "boudra" }],
+    ["slack", { connection: "slack-zentic", user: "U123456" }],
+    ["discord", { connection: "discord-zentic", user: "987654321" }],
   ] satisfies readonly [HubInitProvider, Record<string, string>][])(
     "creates a self-contained %s organization trigger",
     (provider, providerFilters) => {
@@ -63,7 +63,7 @@ describe("Hub init scaffold", () => {
         provider,
         providerFilters,
       });
-      expect(scaffold.triggerPath).toBe(`.paseo/triggers/${provider}-help.yml`);
+      expect(scaffold.triggerPath).toBe(`.zentic/triggers/${provider}-help.yml`);
       const parsed = YAML.parse(scaffold.trigger) as {
         name: string;
         enabled: boolean;
@@ -89,9 +89,9 @@ describe("Hub init scaffold", () => {
       ]);
       const event = Object.values(parsed.on)[0]!;
       expect(event.filters.from_users).toEqual([providerFilters.user]);
-      if (provider === "github") expect(event.connection).toBe("github-getpaseo");
-      if (provider === "slack") expect(event.connection).toBe("slack-paseo");
-      if (provider === "discord") expect(event.connection).toBe("discord-paseo");
+      if (provider === "github") expect(event.connection).toBe("github-getzentic");
+      if (provider === "slack") expect(event.connection).toBe("slack-zentic");
+      if (provider === "discord") expect(event.connection).toBe("discord-zentic");
       expect(event.filters.channels).toBeUndefined();
       expect(parsed.run).toMatchObject({
         target: { daemon: "build-studio", cwd: "/workspace" },
@@ -101,7 +101,7 @@ describe("Hub init scaffold", () => {
         idle_timeout: "10m",
       });
       expect(parsed.run.prompt).toContain("hub.finish_execution");
-      expect(parsed.run.prompt).toContain("${{ paseo.prompt }}");
+      expect(parsed.run.prompt).toContain("${{ zentic.prompt }}");
       expect(parsed.run.outputs).toEqual(
         provider === "github" ? undefined : { [`${provider}.reply`]: { max: 1, required: true } },
       );
@@ -111,10 +111,10 @@ describe("Hub init scaffold", () => {
 
 describe("GitHub origin detection", () => {
   it.each([
-    ["git@github.com:getpaseo/paseo.git", "getpaseo/paseo"],
-    ["ssh://git@github.com/getpaseo/paseo.git", "getpaseo/paseo"],
-    ["https://github.com/getpaseo/paseo.git", "getpaseo/paseo"],
-    ["https://gitlab.com/getpaseo/paseo.git", undefined],
+    ["git@github.com:getzentic/zentic.git", "getzentic/zentic"],
+    ["ssh://git@github.com/getzentic/zentic.git", "getzentic/zentic"],
+    ["https://github.com/getzentic/zentic.git", "getzentic/zentic"],
+    ["https://gitlab.com/getzentic/zentic.git", undefined],
   ])("resolves %s", (remote, expected) => {
     expect(githubRepositoryFromRemote(remote)).toBe(expected);
   });

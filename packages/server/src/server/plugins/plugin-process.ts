@@ -6,18 +6,18 @@ import {
   type PluginProcessMessage,
   type PluginProcessRequest,
 } from "./plugin-process-protocol.js";
-import type { UsageSourceRegistration } from "@getpaseo/plugin/server/usage";
+import type { UsageSourceRegistration } from "@getzentic/plugin/server/usage";
 import type {
   SettingsDefinition,
   PluginRpcContract,
   PluginSubscriptionContract,
-} from "@getpaseo/plugin";
+} from "@getzentic/plugin";
 import type {
   PluginHandlerContext,
   PluginServerContext,
   PluginServerContribution,
-} from "@getpaseo/plugin/server";
-import { assertPluginWireValue } from "@getpaseo/protocol/binary-frames/index";
+} from "@getzentic/plugin/server";
+import { assertPluginWireValue } from "@getzentic/protocol/binary-frames/index";
 import {
   PluginSubscriptionHandlers,
   type PluginSubscriptionHandler,
@@ -29,9 +29,9 @@ import {
   type ProviderConnection,
   type ProviderRegistration,
   ProviderStatusSchema,
-} from "@getpaseo/plugin/server/provider";
-import { createPaseoApi, type PaseoApi } from "@getpaseo/client";
-import { DaemonClient } from "@getpaseo/client/internal/daemon-client";
+} from "@getzentic/plugin/server/provider";
+import { createZenticApi, type ZenticApi } from "@getzentic/client";
+import { DaemonClient } from "@getzentic/client/internal/daemon-client";
 import { createPluginDaemonTransportFactory } from "./daemon-transport.js";
 import { createPluginClientId } from "./plugin-session-identity.js";
 
@@ -89,7 +89,7 @@ export function createPluginWorker(options: {
   const pendingProviderConnections = new Map<string, { tombstoned: boolean }>();
   let cleanup: (() => void | Promise<void>) | null = null;
   let daemonClient: DaemonClient | null = null;
-  let paseo: PaseoApi | null = null;
+  let zentic: ZenticApi | null = null;
   let stopping = false;
   function send(message: PluginProcessMessage): void {
     channel.send(message);
@@ -314,7 +314,7 @@ export function createPluginWorker(options: {
       reconnect: { enabled: true },
       transportFactory,
     });
-    paseo = createPaseoApi(daemonClient);
+    zentic = createZenticApi(daemonClient);
     await daemonClient.connect();
     settingsStore = message.settingsDirectory
       ? new PluginSettingsStore(message.settingsDirectory, (settingsId) =>
@@ -360,7 +360,7 @@ export function createPluginWorker(options: {
   async function shutdown(): Promise<void> {
     if (stopping) return;
     stopping = true;
-    const releaseApi = paseo
+    const releaseApi = zentic
       ?.dispose()
       .catch((error) => console.error("Plugin API cleanup failed", error));
     hooks.close();
@@ -377,9 +377,9 @@ export function createPluginWorker(options: {
     await Promise.all([...providerConnections.keys()].map(closeProviderConnection));
     await releaseApi;
     await daemonClient?.close().catch(() => undefined);
-    await sendAndWait({ type: "paseo_close" });
+    await sendAndWait({ type: "zentic_close" });
     daemonClient = null;
-    paseo = null;
+    zentic = null;
     channel.disconnect();
   }
 
@@ -441,12 +441,12 @@ export function createPluginWorker(options: {
       return true;
     }
     if (message.type === "tool.call") {
-      if (!paseo) {
+      if (!zentic) {
         send({ type: "error", requestId: message.requestId, error: "Plugin API unavailable" });
         return true;
       }
       void agentTools
-        .call(message.requestId, message.agent, message.name, message.input, paseo)
+        .call(message.requestId, message.agent, message.name, message.input, zentic)
         .then((output) =>
           send({
             type: "result",
@@ -466,7 +466,7 @@ export function createPluginWorker(options: {
     message: Extract<PluginProcessRequest, { type: "subscribe" | "unsubscribe" }>,
   ): void {
     if (message.type === "unsubscribe") subscriptions.release(message.subscriptionId);
-    else if (paseo) subscriptions.start(message, paseo);
+    else if (zentic) subscriptions.start(message, zentic);
     else send({ type: "error", requestId: message.requestId, error: "Plugin API unavailable" });
   }
 
@@ -496,7 +496,7 @@ export function createPluginWorker(options: {
     if (message.type === "initialize") {
       void initialize(message).catch(async (error) => {
         send({ type: "fatal", error: describeError(error) });
-        await paseo
+        await zentic
           ?.dispose()
           .catch((failure) => console.error("Plugin API cleanup failed", failure));
         await daemonClient?.close().catch(() => undefined);
@@ -568,7 +568,7 @@ export function createPluginWorker(options: {
       void closeProviderConnection(message.connectionId);
       return;
     }
-    if (message.type === "paseo_frame" || message.type === "paseo_close") return;
+    if (message.type === "zentic_frame" || message.type === "zentic_close") return;
     if (isHookMessage(message)) {
       handleHookMessage(message);
       return;
@@ -590,8 +590,8 @@ export function createPluginWorker(options: {
     void registered.contract.input
       .parseAsync(message.input)
       .then((input) => {
-        if (!paseo) throw new Error("Plugin Paseo API is unavailable");
-        return registered.handler(input, { paseo });
+        if (!zentic) throw new Error("Plugin Zentic API is unavailable");
+        return registered.handler(input, { zentic });
       })
       .then((output: unknown) => {
         assertPluginWireValue(output, "output");
@@ -613,15 +613,15 @@ export function createPluginWorker(options: {
       return;
     }
     if (message.type === "hook") {
-      if (!paseo) {
+      if (!zentic) {
         send({
           type: "error",
           requestId: message.requestId,
-          error: "Plugin Paseo API is unavailable",
+          error: "Plugin Zentic API is unavailable",
         });
         return;
       }
-      void hooks.invoke(message.requestId, message.name, message.input, paseo).then(
+      void hooks.invoke(message.requestId, message.name, message.input, zentic).then(
         (output) => {
           return send({ type: "result", requestId: message.requestId, output });
         },

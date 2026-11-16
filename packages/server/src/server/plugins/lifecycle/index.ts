@@ -1,8 +1,8 @@
-import { validateBranchSlug } from "@getpaseo/protocol/branch-slug";
+import { validateBranchSlug } from "@getzentic/protocol/branch-slug";
 import {
   createLifecycleRegistration,
   pluginHookRegistry,
-} from "@getpaseo/plugin/internal/lifecycle";
+} from "@getzentic/plugin/internal/lifecycle";
 import { isDeepStrictEqual } from "node:util";
 import {
   serializeAgentTool,
@@ -10,24 +10,24 @@ import {
   type SessionOpenWireRequest,
   type PluginAgentTools,
 } from "../agent-tools.js";
-import type { AgentToolDefinition } from "@getpaseo/plugin/server";
+import type { AgentToolDefinition } from "@getzentic/plugin/server";
 import type { AgentStreamEvent } from "../../agent/agent-sdk-types.js";
 import { z } from "zod";
-import type { JsonValue } from "@getpaseo/protocol/agent-types";
-import { CreateAgentRequestMessageSchema } from "@getpaseo/protocol/messages";
+import type { JsonValue } from "@getzentic/protocol/agent-types";
+import { CreateAgentRequestMessageSchema } from "@getzentic/protocol/messages";
 import type {
   PluginHookAgent,
   PluginHookPayload,
   PluginHookContext,
   PluginLifecycleRegistration,
-} from "@getpaseo/plugin/server";
-import { PARENT_AGENT_ID_LABEL } from "@getpaseo/protocol/agent-labels";
+} from "@getzentic/plugin/server";
+import { PARENT_AGENT_ID_LABEL } from "@getzentic/protocol/agent-labels";
 import type {
   PluginHookRequests,
   PluginHookWorkspace,
   PluginHookEvents,
-} from "@getpaseo/plugin/server";
-import { WorkspaceCreateRequestSchema } from "@getpaseo/protocol/messages";
+} from "@getzentic/plugin/server";
+import { WorkspaceCreateRequestSchema } from "@getzentic/protocol/messages";
 import type { PersistedWorkspaceRecord } from "../../workspace-registry.js";
 
 export type PluginWireBeforeRequests = Omit<PluginHookRequests, "agent.open.before"> & {
@@ -310,7 +310,7 @@ export class PluginHookHandlers implements PluginLifecycleRegistration {
     id: string,
     name: string,
     input: unknown,
-    paseo: PluginHookContext["paseo"],
+    zentic: PluginHookContext["zentic"],
   ): Promise<unknown> {
     const controller = new AbortController();
     this.active.set(id, controller);
@@ -318,14 +318,14 @@ export class PluginHookHandlers implements PluginLifecycleRegistration {
       if (Object.hasOwn(beforeSchemas, name)) {
         const hookName = name as keyof PluginHookRequests;
         if (hookName === "agent.open.before") {
-          return await this.openSession(input, { paseo, signal: controller.signal });
+          return await this.openSession(input, { zentic, signal: controller.signal });
         }
         let request = validateBeforeRequest(hookName, input);
         for (const handler of this.handlers.get(name) ?? []) {
           controller.signal.throwIfAborted();
           const result = await handler(
             { request: structuredClone(request) },
-            { paseo, signal: controller.signal },
+            { zentic, signal: controller.signal },
           );
           if (result !== undefined) request = await validateBeforeResult(hookName, request, result);
         }
@@ -334,7 +334,7 @@ export class PluginHookHandlers implements PluginLifecycleRegistration {
       for (const handler of this.handlers.get(name) ?? []) {
         controller.signal.throwIfAborted();
         try {
-          await handler(structuredClone(input), { paseo, signal: controller.signal });
+          await handler(structuredClone(input), { zentic, signal: controller.signal });
         } catch (error) {
           if (
             Object.hasOwn(pluginHookRegistry, name) &&

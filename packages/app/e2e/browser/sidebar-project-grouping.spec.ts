@@ -29,8 +29,8 @@ const PRIMARY_HOST_LABEL = "Primary Host";
 const SECONDARY_HOST_LABEL = "Secondary Host";
 const LEGACY_PRIMARY_HOST_LABEL = "Legacy Primary Host";
 const LEGACY_SECONDARY_HOST_LABEL = "Legacy Secondary Host";
-const GROUPED_PROJECT_NAME = "paseo-e2e/grouped-project";
-const SHARED_REMOTE_URL = "https://github.com/paseo-e2e/grouped-project.git";
+const GROUPED_PROJECT_NAME = "zentic-e2e/grouped-project";
+const SHARED_REMOTE_URL = "https://github.com/zentic-e2e/grouped-project.git";
 const SUBDIRECTORY = path.join("packages", "app");
 const REPO_FILES = [{ path: path.join(SUBDIRECTORY, "package.json"), content: "{}\n" }];
 
@@ -72,7 +72,7 @@ async function createProject(
 }
 
 async function removePersistedProjectKeys(host: IsolatedHostDaemon): Promise<void> {
-  const projectsPath = path.join(host.paseoHome, "projects", "projects.json");
+  const projectsPath = path.join(host.zenticHome, "projects", "projects.json");
   const projects = JSON.parse(await readFile(projectsPath, "utf8")) as Array<
     Record<string, unknown>
   >;

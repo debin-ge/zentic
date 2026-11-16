@@ -1,5 +1,5 @@
 {
-  "name": "@getpaseo/builtin-plugins",
+  "name": "@getzentic/builtin-plugins",
   "version": "0.16.0-beta.2",
   "private": true,
   "type": "module",
@@ -8,7 +8,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@getpaseo/plugin": "*",
+    "@getzentic/plugin": "*",
     "zod": "^4.4.3"
   },
   "devDependencies": {

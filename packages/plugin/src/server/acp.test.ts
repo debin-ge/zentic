@@ -9,7 +9,7 @@ import {
 } from "@agentclientprotocol/sdk";
 import type { ProviderConnection, ProviderEvent, ProviderInput } from "./provider.js";
 import { afterEach, describe, expect, it } from "vitest";
-import { AgentTimelineItemPayloadSchema } from "@getpaseo/protocol/messages";
+import { AgentTimelineItemPayloadSchema } from "@getzentic/protocol/messages";
 import { runAcpProvider, type AcpStreamMessage } from "./acp.js";
 
 const temporaryDirectories: string[] = [];
@@ -21,7 +21,7 @@ afterEach(async () => {
 });
 
 async function fakeAcp(source: string): Promise<string> {
-  const directory = await mkdtemp(path.join(tmpdir(), "paseo-acp-test-"));
+  const directory = await mkdtemp(path.join(tmpdir(), "zentic-acp-test-"));
   temporaryDirectories.push(directory);
   const executable = path.join(directory, "agent.cjs");
   await writeFile(executable, source, "utf8");
@@ -228,7 +228,7 @@ lines.on("line", (line) => {
 describe("runAcpProvider", () => {
   it("spawns the daemon-resolved launch for probes, catalogues, listing, and sessions", async () => {
     const executable = await fakeAcp(`
-if (process.env.LAUNCH_TOKEN !== "resolved" || process.env.CLAUDECODE || process.env.PASEO_NODE_ENV) process.exit(1);
+if (process.env.LAUNCH_TOKEN !== "resolved" || process.env.CLAUDECODE || process.env.ZENTIC_NODE_ENV) process.exit(1);
 const readline = require("node:readline");
 const lines = readline.createInterface({ input: process.stdin });
 const send = (message) => process.stdout.write(JSON.stringify(message) + "\\n");

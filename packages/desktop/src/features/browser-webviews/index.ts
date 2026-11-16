@@ -1,12 +1,12 @@
 import { webContents as allWebContents, type WebContents } from "electron";
-import { PASEO_BROWSER_PROFILE_PARTITION } from "../browser-profile.js";
+import { ZENTIC_BROWSER_PROFILE_PARTITION } from "../browser-profile.js";
 import {
   BROWSER_NEW_TAB_REQUEST_EVENT,
   decideBrowserWindowOpenRequest,
   isAllowedBrowserWebviewUrl,
   PendingBrowserWindowOpenRequests,
 } from "./window-open.js";
-import { PaseoBrowserWebviewRegistry } from "./registry.js";
+import { ZenticBrowserWebviewRegistry } from "./registry.js";
 
 export {
   BROWSER_NEW_TAB_REQUEST_EVENT,
@@ -14,7 +14,7 @@ export {
   PendingBrowserWindowOpenRequests,
 };
 
-const browserRegistry = new PaseoBrowserWebviewRegistry();
+const browserRegistry = new ZenticBrowserWebviewRegistry();
 
 interface BrowserWebContentsIdentity {
   readonly id: number;
@@ -39,21 +39,21 @@ interface RegisterAttachedBrowserInput extends AttachedBrowserRegistration {
   findWebContents(webContentsId: number): RegisteredBrowserWebContents | null;
 }
 
-export function isPaseoBrowserWebviewAttach(input: { src?: string; partition?: string }): boolean {
+export function isZenticBrowserWebviewAttach(input: { src?: string; partition?: string }): boolean {
   return (
-    isAllowedBrowserWebviewUrl(input.src) && input.partition === PASEO_BROWSER_PROFILE_PARTITION
+    isAllowedBrowserWebviewUrl(input.src) && input.partition === ZENTIC_BROWSER_PROFILE_PARTITION
   );
 }
 
-export function listRegisteredPaseoBrowserIds(): string[] {
+export function listRegisteredZenticBrowserIds(): string[] {
   return browserRegistry.listBrowserIds();
 }
 
-export function getPaseoBrowserWebviewRegistry(): PaseoBrowserWebviewRegistry {
+export function getZenticBrowserWebviewRegistry(): ZenticBrowserWebviewRegistry {
   return browserRegistry;
 }
 
-export function preparePaseoBrowserWebContents(contents: RegisteredBrowserWebContents): void {
+export function prepareZenticBrowserWebContents(contents: RegisteredBrowserWebContents): void {
   const webContentsId = contents.id;
   // Preserve Chromium throttling when the host window is hidden. Browser
   // residency and screenshot capture do not require a lifetime override.
@@ -62,7 +62,7 @@ export function preparePaseoBrowserWebContents(contents: RegisteredBrowserWebCon
   });
 }
 
-export function registerAttachedPaseoBrowser(input: RegisterAttachedBrowserInput): boolean {
+export function registerAttachedZenticBrowser(input: RegisterAttachedBrowserInput): boolean {
   const guest = input.findWebContents(input.webContentsId);
   if (
     !guest ||
@@ -85,7 +85,7 @@ export function registerAttachedPaseoBrowser(input: RegisterAttachedBrowserInput
   return true;
 }
 
-export function getPaseoBrowserIdForWebContents(
+export function getZenticBrowserIdForWebContents(
   contents: BrowserWebContentsIdentity | null,
 ): string | null {
   if (!contents || contents.isDestroyed()) {
@@ -94,27 +94,30 @@ export function getPaseoBrowserIdForWebContents(
   return browserRegistry.getBrowserIdForWebContents(contents.id);
 }
 
-export function unregisterPaseoBrowser(browserId: string): void {
+export function unregisterZenticBrowser(browserId: string): void {
   browserRegistry.unregisterBrowser(browserId);
 }
 
-export function unregisterPaseoBrowserFromHost(hostWebContentsId: number, browserId: string): void {
+export function unregisterZenticBrowserFromHost(
+  hostWebContentsId: number,
+  browserId: string,
+): void {
   browserRegistry.unregisterBrowserFromHost(hostWebContentsId, browserId);
 }
 
-export function unregisterPaseoBrowserHost(hostWebContentsId: number): void {
+export function unregisterZenticBrowserHost(hostWebContentsId: number): void {
   browserRegistry.unregisterHostWebContents(hostWebContentsId);
 }
 
-export function getPaseoBrowserWorkspaceId(browserId: string): string | null {
+export function getZenticBrowserWorkspaceId(browserId: string): string | null {
   return browserRegistry.getWorkspaceId(browserId);
 }
 
-export function listRegisteredPaseoBrowserIdsForWorkspace(workspaceId: string): string[] {
+export function listRegisteredZenticBrowserIdsForWorkspace(workspaceId: string): string[] {
   return browserRegistry.listBrowserIdsForWorkspace(workspaceId);
 }
 
-export function setWorkspaceActivePaseoBrowserId(input: {
+export function setWorkspaceActiveZenticBrowserId(input: {
   hostWebContentsId: number;
   workspaceId: string;
   browserId: string | null;
@@ -122,18 +125,18 @@ export function setWorkspaceActivePaseoBrowserId(input: {
   browserRegistry.setWorkspaceActiveBrowser(input);
 }
 
-export function getWorkspaceActivePaseoBrowserId(workspaceId: string): string | null {
+export function getWorkspaceActiveZenticBrowserId(workspaceId: string): string | null {
   return browserRegistry.getMostRecentActiveBrowserIdForWorkspace(workspaceId);
 }
 
-export function getWorkspaceActivePaseoBrowserIdForHostWindow(
+export function getWorkspaceActiveZenticBrowserIdForHostWindow(
   workspaceId: string,
   hostWebContentsId: number,
 ): string | null {
   return browserRegistry.getActiveBrowserIdForWorkspaceInHostWindow(hostWebContentsId, workspaceId);
 }
 
-export function getPaseoBrowserWebContentsForHostWindow(
+export function getZenticBrowserWebContentsForHostWindow(
   browserId: string,
   hostWebContentsId: number,
 ): WebContents | null {
@@ -152,7 +155,7 @@ export function getPaseoBrowserWebContentsForHostWindow(
   return null;
 }
 
-export function getActivePaseoBrowserWebContentsForHostWindow(
+export function getActiveZenticBrowserWebContentsForHostWindow(
   hostWebContentsId: number,
 ): WebContents | null {
   const browserId = browserRegistry.getActiveBrowserIdForHostWindow(hostWebContentsId);

@@ -18,9 +18,9 @@ describe("plugin context snapshots", () => {
     expect(snapshot).toMatchObject({
       id: "workspace-1",
       projectId: "project-1",
-      projectDisplayName: "Paseo",
-      projectRootPath: "/repo/paseo",
-      directory: "/repo/paseo/review",
+      projectDisplayName: "Zentic",
+      projectRootPath: "/repo/zentic",
+      directory: "/repo/zentic/review",
       projectKind: "git",
       kind: "worktree",
       name: "Review",
@@ -54,7 +54,7 @@ describe("plugin context snapshots", () => {
       updatedAt: "2026-08-16T10:02:00.000Z",
       lastActivityAt: "2026-08-16T10:03:00.000Z",
       title: "Implement plugin panels",
-      cwd: "/repo/paseo/review",
+      cwd: "/repo/zentic/review",
       model: "gpt-5.6",
       currentModeId: "code",
       thinkingOptionId: "high",
@@ -169,7 +169,7 @@ it("preserves the host-qualified parent of a remotely delegated agent", () => {
     ...agent,
     serverId: "host-2",
     parentAgentId: null,
-    labels: { "paseo.parent-server-id": "host-1", "paseo.parent-agent-id": "parent" },
+    labels: { "zentic.parent-server-id": "host-1", "zentic.parent-agent-id": "parent" },
   };
   expect(createPluginAgentSnapshot(child, workspace.id).parentAgent).toMatchObject({
     hostId: "host-1",

@@ -1,5 +1,5 @@
-import type { PluginTheme } from "@getpaseo/plugin";
-import type { PluginWorkspaceRowBadgeItemProps } from "@getpaseo/plugin/client";
+import type { PluginTheme } from "@getzentic/plugin";
+import type { PluginWorkspaceRowBadgeItemProps } from "@getzentic/plugin/client";
 import { useMemo } from "react";
 import { withUnistyles } from "react-native-unistyles";
 import { useAppSettings } from "@/hooks/use-settings";

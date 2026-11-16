@@ -2,8 +2,8 @@
 
 ## 0.16.0-beta.2 - 2026-11-11
 
-- **后台任务**：Paseo 现在会在 Composer 上方显示 Agent 正在运行的后台任务，例如 shell 和监视器，每项都带“停止”按钮。支持 Claude Code、Codex 和 OpenCode v2。 ([#6220](https://github.com/getpaseo/paseo/pull/6220), [#9162](https://github.com/getpaseo/paseo/pull/9162)，贡献者：[@fxlelouarn](https://github.com/fxlelouarn))
-- **插件侧边栏视图**：插件可以用自己的布局替换侧边栏内容，展示所有已连接主机上的工作区、Agent、项目和终端。在“设置 → 侧边栏”中为每台设备选择视图；Paseo 的侧边栏页眉和页脚保持不变。 ([#8906](https://github.com/getpaseo/paseo/pull/8906))
+- **后台任务**：Zentic 现在会在 Composer 上方显示 Agent 正在运行的后台任务，例如 shell 和监视器，每项都带“停止”按钮。支持 Claude Code、Codex 和 OpenCode v2。 ([#6220](https://github.com/getpaseo/paseo/pull/6220), [#9162](https://github.com/getpaseo/paseo/pull/9162)，贡献者：[@fxlelouarn](https://github.com/fxlelouarn))
+- **插件侧边栏视图**：插件可以用自己的布局替换侧边栏内容，展示所有已连接主机上的工作区、Agent、项目和终端。在“设置 → 侧边栏”中为每台设备选择视图；Zentic 的侧边栏页眉和页脚保持不变。 ([#8906](https://github.com/getpaseo/paseo/pull/8906))
 - **插件 Composer 控件**：插件可以向 Composer 添加自己的控件，并读取和设置其中的提示词、附件、Provider、模型、模式和思考强度。插件还可以把光标放到任意 Agent 的 Composer 中、向“新建工作区”添加条目，并在 Agent 和工作区上保存自己的元数据。 ([#8744](https://github.com/getpaseo/paseo/pull/8744), [#9209](https://github.com/getpaseo/paseo/pull/9209), [#9207](https://github.com/getpaseo/paseo/pull/9207))
 - **更快的 diff 加载**：打开“更改”时会立即显示文件树，文件内容随后加载。大型 diff 分批到达，加载期间应用的其他部分照常响应，并且 diff 优先于 daemon 的后台 worktree 扫描。 ([#8907](https://github.com/getpaseo/paseo/pull/8907), [#9241](https://github.com/getpaseo/paseo/pull/9241), [#9243](https://github.com/getpaseo/paseo/pull/9243))
 - **细节打磨**：一轮对话结束时聊天保持不动，返回没有变化的聊天时直接显示原样，无需刷新。工具行从第一帧起就显示最终标题和图标，上下文窗口浮层打开时用量已加载完成，侧边栏悬停卡片一次只打开一个。 ([#8944](https://github.com/getpaseo/paseo/pull/8944), [#9175](https://github.com/getpaseo/paseo/pull/9175), [#9242](https://github.com/getpaseo/paseo/pull/9242), [#9248](https://github.com/getpaseo/paseo/pull/9248), [#9212](https://github.com/getpaseo/paseo/pull/9212), [#9071](https://github.com/getpaseo/paseo/pull/9071))
@@ -11,7 +11,7 @@
 - **移动端键盘快捷键**：连接键盘后，iPad 和 Android 现在可使用与桌面端相同的快捷键，包括你自定义的绑定。检测到键盘时会显示快捷键提示和“设置 → 快捷键”。在较窄的桌面端和浏览器窗口中快捷键同样可用。 ([#8625](https://github.com/getpaseo/paseo/pull/8625)，贡献者：[@jeroenfrenken](https://github.com/jeroenfrenken)、[@lstroud](https://github.com/lstroud))
 - **适合触控的平板控件**：在 iPad 和其他触屏设备上，宽屏布局现在使用适合触控尺寸的按钮、行和栏。Composer 工具栏在空间不足时会把控件收进模型菜单；在工作区上向右滑动，可将已折叠的侧边栏以浮层方式显示。 ([#8748](https://github.com/getpaseo/paseo/pull/8748), [#8885](https://github.com/getpaseo/paseo/pull/8885), [#8891](https://github.com/getpaseo/paseo/pull/8891), [#8909](https://github.com/getpaseo/paseo/pull/8909), [#9151](https://github.com/getpaseo/paseo/pull/9151), [#9238](https://github.com/getpaseo/paseo/pull/9238), [#8739](https://github.com/getpaseo/paseo/pull/8739)，贡献者：[@zeyugao](https://github.com/zeyugao))
 - **撤销工作区归档**：在应用中归档工作区时，现在会显示“Workspace 已归档”提示，持续六秒。点击“撤销”或按 Cmd/Ctrl+Z 可恢复该工作区及其标签页和 Agent。在桌面端，侧边栏的工作区行在悬停时还会显示归档按钮。 ([#8904](https://github.com/getpaseo/paseo/pull/8904), [#9104](https://github.com/getpaseo/paseo/pull/9104))
-- **返回时更少重连**：返回应用时会保留仍可用的连接，包括正在传输大型响应的连接，只在必要时重连一次。主机保存了多个连接时，Paseo 会留在可用的那个连接上。 ([#8651](https://github.com/getpaseo/paseo/pull/8651), [#9086](https://github.com/getpaseo/paseo/pull/9086), [#8855](https://github.com/getpaseo/paseo/pull/8855), [#9116](https://github.com/getpaseo/paseo/pull/9116))
+- **返回时更少重连**：返回应用时会保留仍可用的连接，包括正在传输大型响应的连接，只在必要时重连一次。主机保存了多个连接时，Zentic 会留在可用的那个连接上。 ([#8651](https://github.com/getpaseo/paseo/pull/8651), [#9086](https://github.com/getpaseo/paseo/pull/9086), [#8855](https://github.com/getpaseo/paseo/pull/8855), [#9116](https://github.com/getpaseo/paseo/pull/9116))
 
 ### 新增
 
@@ -21,7 +21,7 @@
 - 新增 fx Provider，可在“设置 → Hosts → 提供方”的 Provider 目录中添加 ([#9160](https://github.com/getpaseo/paseo/pull/9160))
 - 新增后台 Agent：Agent 或插件可通过 `background: true` 创建辅助 Agent，它不打开标签页、不发送通知，也不出现在侧边栏和默认 Agent 列表中 ([#8683](https://github.com/getpaseo/paseo/pull/8683))
 - 新增 Terraform 和 HCL 文件（`.tf`、`.tfvars`、`.hcl`）的语法高亮 ([#9106](https://github.com/getpaseo/paseo/pull/9106))
-- 在每个 Agent 的环境中新增 `PASEO_WORKSPACE_ID`，Agent 可据此识别、重命名或归档自己的工作区 ([#8939](https://github.com/getpaseo/paseo/pull/8939)，贡献者：[@DTTerastar](https://github.com/DTTerastar))
+- 在每个 Agent 的环境中新增 `ZENTIC_WORKSPACE_ID`，Agent 可据此识别、重命名或归档自己的工作区 ([#8939](https://github.com/getpaseo/paseo/pull/8939)，贡献者：[@DTTerastar](https://github.com/DTTerastar))
 
 ### 变更
 
@@ -56,7 +56,7 @@
 - 修复侧边栏用量摘要只在打开“使用情况”时才更新的问题 ([#7806](https://github.com/getpaseo/paseo/pull/7806)，贡献者：[@ragokan](https://github.com/ragokan))
 - 修复 Android 上位于触发元素上方的提示和菜单在打开后内容变多时短暂盖住触发元素的问题 ([#9247](https://github.com/getpaseo/paseo/pull/9247))
 - 修复在“历史”页面刷新网页版后显示“无法加载历史”的问题 ([#9029](https://github.com/getpaseo/paseo/pull/9029))
-- 修复 HTML 文件预览中的章节链接把预览替换成 Paseo 应用、而不是在文件内滚动的问题 ([#8559](https://github.com/getpaseo/paseo/pull/8559)，贡献者：[@3ae3ae](https://github.com/3ae3ae))
+- 修复 HTML 文件预览中的章节链接把预览替换成 Zentic 应用、而不是在文件内滚动的问题 ([#8559](https://github.com/getpaseo/paseo/pull/8559)，贡献者：[@3ae3ae](https://github.com/3ae3ae))
 - 修复“文件”刷新期间文件夹处于折叠状态时，新建的文件一直不显示的问题 ([#8582](https://github.com/getpaseo/paseo/pull/8582)，贡献者：[@hadan8977](https://github.com/hadan8977))
 - 修复分支仍在加载或请求失败时，分支切换器显示“没有找到分支。”的问题 ([#8938](https://github.com/getpaseo/paseo/pull/8938))
 - 修复文件被移到上一级目录时，提交历史显示双斜杠、没有重命名状态也没有 diff 的问题 ([#8509](https://github.com/getpaseo/paseo/pull/8509)，贡献者：[@hadan8977](https://github.com/hadan8977))
@@ -87,7 +87,7 @@
 - 修复向进程已退出的 ACP Agent 发送提示词后一直停留在运行中、而不是报错失败的问题 ([#8406](https://github.com/getpaseo/paseo/pull/8406)，贡献者：[@DAnaeto](https://github.com/DAnaeto))
 - 修复 ACP Agent 放弃审批请求并结束轮次后一直卡在“waiting for permission”的问题 ([#8548](https://github.com/getpaseo/paseo/pull/8548)，贡献者：[@3ae3ae](https://github.com/3ae3ae))
 - 修复 ACP Agent 发送配置更新后，更改其模式因 `invalid_params` 失败的问题 ([#8912](https://github.com/getpaseo/paseo/pull/8912)，贡献者：[@a-sh](https://github.com/a-sh))
-- 修复在运行中的 ACP Agent 上选择不可用的模型后，Paseo 仍显示并保存该模型的问题 ([#8957](https://github.com/getpaseo/paseo/pull/8957))
+- 修复在运行中的 ACP Agent 上选择不可用的模型后，Zentic 仍显示并保存该模型的问题 ([#8957](https://github.com/getpaseo/paseo/pull/8957))
 - 修复导入会话时把它从自身的模型切换为 Provider 默认模型的问题 ([#8948](https://github.com/getpaseo/paseo/pull/8948))
 - 修复来自其他 Agent 的消息在你作答之前取消接收方待处理的提问或审批的问题 ([#8453](https://github.com/getpaseo/paseo/pull/8453)，贡献者：[@DAnaeto](https://github.com/DAnaeto))
 - 修复向已连接主机上已关闭或已归档的 Agent 发送提示词后，发送方 Agent 一直收不到完成通知的问题 ([#8575](https://github.com/getpaseo/paseo/pull/8575))
@@ -101,7 +101,7 @@
 - 修复 daemon 网页界面对不存在的 `/.well-known/*` 请求返回应用页面而非 404 的问题 ([#8622](https://github.com/getpaseo/paseo/pull/8622)，贡献者：[@HomicideZero](https://github.com/HomicideZero))
 - 修复定时任务接受单个数字后的 cron 步长（例如 `0/15 * * * *`）并按每小时运行的问题；现在会拒绝这类表达式 ([#8607](https://github.com/getpaseo/paseo/pull/8607)，贡献者：[@Mar-garet](https://github.com/Mar-garet))
 - 修复同时设置了日期和星期的 cron 定时任务只在两者都匹配时运行、而不是任一匹配即运行的问题 ([#8611](https://github.com/getpaseo/paseo/pull/8611)，贡献者：[@Mar-garet](https://github.com/Mar-garet))
-- 修复 `paseo logs --json` 输出纯文本对话记录而非 JSON 的问题 ([#8589](https://github.com/getpaseo/paseo/pull/8589)，贡献者：[@hadan8977](https://github.com/hadan8977))
+- 修复 `zentic logs --json` 输出纯文本对话记录而非 JSON 的问题 ([#8589](https://github.com/getpaseo/paseo/pull/8589)，贡献者：[@hadan8977](https://github.com/hadan8977))
 - 修复 `create_agent` 工具没有告知 Agent 在其他 Provider 上创建 Agent 需要指定模式的问题 ([#8483](https://github.com/getpaseo/paseo/pull/8483)，贡献者：[@guerinnoah](https://github.com/guerinnoah))
 - 修复在 Windows PowerShell 无法运行 `Get-CimInstance` 的 Windows 机器上终端无法打开的问题 ([#8818](https://github.com/getpaseo/paseo/pull/8818))
 - 修复程序查询终端版本时，终端把版本应答输入到 shell 中的问题 ([#8419](https://github.com/getpaseo/paseo/pull/8419)，贡献者：[@DAnaeto](https://github.com/DAnaeto))
@@ -122,7 +122,7 @@
 - 修复主机的 npm 使用镜像源时，从插件库安装插件因“npm artifact changed since review”失败的问题 ([#8756](https://github.com/getpaseo/paseo/pull/8756)，贡献者：[@tlipoca9](https://github.com/tlipoca9))
 - 修复 daemon 因无效消息终止插件后，该插件仍留在列表中且未报告退出的问题 ([#9285](https://github.com/getpaseo/paseo/pull/9285)，贡献者：[@Brandon168](https://github.com/Brandon168))
 - 修复 ACP Provider 插件丢弃 Agent 在提示词响应中报告的 token 用量的问题 ([#9396](https://github.com/getpaseo/paseo/pull/9396)，贡献者：[@Myasuka](https://github.com/Myasuka))
-- 修复已发布的 `@getpaseo/*` npm 包未声明许可证的问题；现在声明为 Apache-2.0 ([#7816](https://github.com/getpaseo/paseo/pull/7816)，贡献者：[@mdlawson](https://github.com/mdlawson)、[@ragokan](https://github.com/ragokan))
+- 修复已发布的 `@getzentic/*` npm 包未声明许可证的问题；现在声明为 Apache-2.0 ([#7816](https://github.com/getpaseo/paseo/pull/7816)，贡献者：[@mdlawson](https://github.com/mdlawson)、[@ragokan](https://github.com/ragokan))
 - 修复插件更新了自己的某张时间线卡片后，从较早的回复分叉因“This checkpoint changed after it was created”失败的问题 ([#8746](https://github.com/getpaseo/paseo/pull/8746)，贡献者：[@monarchmaisuriya](https://github.com/monarchmaisuriya))
 - 修复由插件渲染最终回复时，“折叠轮次”让轮次保持展开或折叠到较早回复的问题 ([#8811](https://github.com/getpaseo/paseo/pull/8811)，贡献者：[@geoqiao](https://github.com/geoqiao))
 - 修复应用刷新后插件目录仍在加载时，插件页面显示“This plugin surface is unavailable”的问题 ([#8123](https://github.com/getpaseo/paseo/pull/8123)，贡献者：[@vs-tahir](https://github.com/vs-tahir))
@@ -154,7 +154,7 @@
 
 ### 新增
 
-- 在 Paseo 桌面版和网页版新增首次运行引导，依次带新用户设置主题、提供商、项目、Agent 编排和移动端应用，并可通过“设置 → 通用 → Show setup again”重新打开 ([#8363](https://github.com/getpaseo/paseo/pull/8363))
+- 在 Zentic 桌面版和网页版新增首次运行引导，依次带新用户设置主题、提供商、项目、Agent 编排和移动端应用，并可通过“设置 → 通用 → Show setup again”重新打开 ([#8363](https://github.com/getpaseo/paseo/pull/8363))
 - 在引导的“项目”步骤中，根据你运行过 Claude Code、Codex、OpenCode 或 Pi 的文件夹推荐项目 ([#8363](https://github.com/getpaseo/paseo/pull/8363))
 
 ### 改进
@@ -171,7 +171,7 @@
 
 ### 修复
 
-- 修复终端工作进程无法读取自身进程标识时 daemon 无法启动的问题；此前在 Windows PowerShell 5.1 无法运行 `Get-CimInstance` 的 Windows 机器上，Paseo 桌面版因此没有可用的 daemon ([#8810](https://github.com/getpaseo/paseo/pull/8810))
+- 修复终端工作进程无法读取自身进程标识时 daemon 无法启动的问题；此前在 Windows PowerShell 5.1 无法运行 `Get-CimInstance` 的 Windows 机器上，Zentic 桌面版因此没有可用的 daemon ([#8810](https://github.com/getpaseo/paseo/pull/8810))
 
 ## 0.15.0 - 2026-11-03
 
@@ -227,7 +227,7 @@ worktree 初始化支持复制被忽略的文件，并在 Agent 启动前使用�
 - 在直接连接的主机字段中支持 host:port 和粘贴的 URL ([#8223](https://github.com/getpaseo/paseo/pull/8223)，贡献者：[@DaydreamCoding](https://github.com/DaydreamCoding))
 - 修复了非 Mac 键盘通过普通 HTTP 访问网页终端时 Ctrl+V 无法粘贴的问题 ([#8230](https://github.com/getpaseo/paseo/pull/8230)，贡献者：[@DaydreamCoding](https://github.com/DaydreamCoding))
 - 停止在历史加载失败后反复重新打开 Provider，可在聊天中手动重试 ([#8278](https://github.com/getpaseo/paseo/pull/8278))
-- 修复了 Paseo 添加自身启动设置时丢弃 Claude 设置文件的问题 ([#8148](https://github.com/getpaseo/paseo/pull/8148)，贡献者：[@yayugu](https://github.com/yayugu))
+- 修复了 Zentic 添加自身启动设置时丢弃 Claude 设置文件的问题 ([#8148](https://github.com/getpaseo/paseo/pull/8148)，贡献者：[@yayugu](https://github.com/yayugu))
 - 修复了引导消息替换尚在启动的轮次并丢失原始提示词的问题 ([#6192](https://github.com/getpaseo/paseo/pull/6192))
 - 修复了 Pi 工具结果中的图片在流式输出和重新打开聊天后缺失的问题 ([#8280](https://github.com/getpaseo/paseo/pull/8280)，贡献者：[@duyiliu](https://github.com/duyiliu))
 - 修复了 `edxeth/pi-subagents` 子 Agent 完成后仍显示为工作中的问题 ([#8176](https://github.com/getpaseo/paseo/pull/8176)，贡献者：[@Zeno2019](https://github.com/Zeno2019))
@@ -312,7 +312,7 @@ worktree 初始化支持复制被忽略的文件，并在 Agent 启动前使用�
 - 语音模式默认关闭，可在语音设置中启用
 - 如果通过环境变量选择 OpenAI 语音，请将仅保存在旧版 `providers.openai` 中的密钥和服务地址移至语音设置
 - 降级至 0.13.2 前，请恢复备份的 `config.json` 或转换 0.14.0 保存的语音凭据和空闲清理设置
-- 安装可选的 [Claude Code entrypoint 插件](https://paseo.sh/plugins/getpaseo/claude-code-entrypoint-env)，即可使用 `CLAUDE_CODE_ENTRYPOINT=Paseo` 启动 Claude 会话；这是针对订阅额度消耗过快问题的社区变通方案 ([#7976](https://github.com/getpaseo/paseo/pull/7976), [#8164](https://github.com/getpaseo/paseo/pull/8164) by [@david828019-oss](https://github.com/david828019-oss))
+- 安装可选的 [Claude Code entrypoint 插件](https://zentic.sh/plugins/getzentic/claude-code-entrypoint-env)，即可使用 `CLAUDE_CODE_ENTRYPOINT=Zentic` 启动 Claude 会话；这是针对订阅额度消耗过快问题的社区变通方案 ([#7976](https://github.com/getpaseo/paseo/pull/7976), [#8164](https://github.com/getpaseo/paseo/pull/8164) by [@david828019-oss](https://github.com/david828019-oss))
 
 ## 0.13.2 - 2026-10-26
 
@@ -336,16 +336,16 @@ worktree 初始化支持复制被忽略的文件，并在 Agent 启动前使用�
 将你的 daemon 连接到另一台机器，然后让 Agent 把工作委派过去：
 
 ```sh
-paseo host add 192.168.1.20:6767 --label studio
-paseo host add 'ssh://me@build-box' --label build-box
-paseo host add 'relay://...' --label laptop
+zentic host add 192.168.1.20:6767 --label studio
+zentic host add 'ssh://me@build-box' --label build-box
+zentic host add 'relay://...' --label laptop
 ```
 
 ### 新增
 
 - 新增对 iPhone Duo 等折叠屏手机的支持，展开后切换到宽屏布局 ([#7424](https://github.com/getpaseo/paseo/pull/7424), [#7705](https://github.com/getpaseo/paseo/pull/7705))
 - 新增已连接主机，Agent 可以在其他机器上创建、提示和监控 Agent，并在 Subagents 中查看它们 ([#7370](https://github.com/getpaseo/paseo/pull/7370), [#7593](https://github.com/getpaseo/paseo/pull/7593))
-- 新增简体中文版 paseo.sh，地址为 [paseo.sh/zh-CN](https://paseo.sh/zh-CN) ([#7373](https://github.com/getpaseo/paseo/pull/7373))
+- 新增简体中文版 zentic.sh，地址为 [zentic.sh/zh-CN](https://zentic.sh/zh-CN) ([#7373](https://github.com/getpaseo/paseo/pull/7373))
 - Changes 窗格新增 All changes 并设为默认，在一个 diff 中显示自分支基点以来已提交和未提交的工作 ([#7576](https://github.com/getpaseo/paseo/pull/7576))
 - 如果进入 Plan 前开启了 Auto，Claude 计划审批新增 Implement with Auto mode ([#7453](https://github.com/getpaseo/paseo/pull/7453))
 - 新增在终端中粘贴图片和拖放文件，Claude Code、Codex 等 Agent TUI 可以读取它们，远程主机同样适用 ([#3795](https://github.com/getpaseo/paseo/pull/3795) by [@gerardbalaoro](https://github.com/gerardbalaoro))
@@ -372,13 +372,13 @@ paseo host add 'relay://...' --label laptop
 
 ### 插件
 
-- 新增[文件面板](https://paseo.sh/zh-CN/docs/plugins/reference#file-panels)，插件可以在文件标签页中打开匹配的文件，例如 PDF 查看器或富文本 Markdown 编辑器 ([#7411](https://github.com/getpaseo/paseo/pull/7411), [#7366](https://github.com/getpaseo/paseo/pull/7366), [#7614](https://github.com/getpaseo/paseo/pull/7614))
+- 新增[文件面板](https://zentic.sh/zh-CN/docs/plugins/reference#file-panels)，插件可以在文件标签页中打开匹配的文件，例如 PDF 查看器或富文本 Markdown 编辑器 ([#7411](https://github.com/getpaseo/paseo/pull/7411), [#7366](https://github.com/getpaseo/paseo/pull/7366), [#7614](https://github.com/getpaseo/paseo/pull/7614))
 - 新增 `useTabState`，用于保存每个标签页的面板状态并在重新加载后恢复，并新增 `addAgentPanel`；工作区、Agent 和文件面板共用 `workspaceId`、`params`、`revision` 和 `tab` 属性 ([#7685](https://github.com/getpaseo/paseo/pull/7685))
-- 新增[插件翻译](https://paseo.sh/zh-CN/docs/plugins/reference#runtime-translations)，插件内容和标签会跟随应用的语言 ([#7478](https://github.com/getpaseo/paseo/pull/7478))
-- 新增插件列表翻译，可通过 `paseo-plugin.json` 中的 `translations` 和 `OVERVIEW.zh-CN.md` 提供 ([#7373](https://github.com/getpaseo/paseo/pull/7373))
-- `@getpaseo/plugin/client/ui` 新增 `Markdown`，可使用 Paseo 的渲染器渲染 Markdown ([#7579](https://github.com/getpaseo/paseo/pull/7579))
+- 新增[插件翻译](https://zentic.sh/zh-CN/docs/plugins/reference#runtime-translations)，插件内容和标签会跟随应用的语言 ([#7478](https://github.com/getpaseo/paseo/pull/7478))
+- 新增插件列表翻译，可通过 `zentic-plugin.json` 中的 `translations` 和 `OVERVIEW.zh-CN.md` 提供 ([#7373](https://github.com/getpaseo/paseo/pull/7373))
+- `@getzentic/plugin/client/ui` 新增 `Markdown`，可使用 Zentic 的渲染器渲染 Markdown ([#7579](https://github.com/getpaseo/paseo/pull/7579))
 - 所有插件 `icon` 新增对内联 SVG 和组件图标的支持 ([#7368](https://github.com/getpaseo/paseo/pull/7368))
-- 所有插件 UI 导入改为 `@getpaseo/plugin/client/ui`；原入口（包括 `useRevealedText`）仍可使用，但已弃用 ([#7474](https://github.com/getpaseo/paseo/pull/7474), [#7780](https://github.com/getpaseo/paseo/pull/7780) by [@luoph](https://github.com/luoph), [@RRD-dev](https://github.com/RRD-dev), [@mcowger](https://github.com/mcowger))
+- 所有插件 UI 导入改为 `@getzentic/plugin/client/ui`；原入口（包括 `useRevealedText`）仍可使用，但已弃用 ([#7474](https://github.com/getpaseo/paseo/pull/7474), [#7780](https://github.com/getpaseo/paseo/pull/7780) by [@luoph](https://github.com/luoph), [@RRD-dev](https://github.com/RRD-dev), [@mcowger](https://github.com/mcowger))
 - 弃用面板的 `context` 和 `agentId` 属性，以及 `addWorkspacePanel` 的 `context` 字段；请改用 `params.agentId` 和 `addAgentPanel` ([#7685](https://github.com/getpaseo/paseo/pull/7685))
 - turn-ended hook 现在发送空的 `timeline`；请改用 `timeline.refetch` 获取最近的历史记录 ([#7477](https://github.com/getpaseo/paseo/pull/7477))
 - 修复了插件标题栏按钮在手机和窄窗口中不显示的问题；它们现在显示在工作区的 ··· 菜单中 ([#7630](https://github.com/getpaseo/paseo/pull/7630))
@@ -413,7 +413,7 @@ paseo host add 'relay://...' --label laptop
 - 修复了 Android 上键盘遮挡已聚焦的设置字段的问题 ([#7362](https://github.com/getpaseo/paseo/pull/7362))
 - 修复了紧凑 Changes 菜单中 Pull 或 Push 出现两次的问题 ([#7355](https://github.com/getpaseo/paseo/pull/7355) by [@az33zy](https://github.com/az33zy))
 - 修复了“跳转到标签”和“跳转到 workspace”可以保存不以数字结尾的快捷键的问题 ([#7365](https://github.com/getpaseo/paseo/pull/7365))
-- 修复了 `paseo agent archive` 对前 200 个之后的 Agent 报告 `AGENT_NOT_FOUND` 的问题 ([#7535](https://github.com/getpaseo/paseo/pull/7535) by [@L4XB](https://github.com/L4XB), [@hteo1337](https://github.com/hteo1337))
+- 修复了 `zentic agent archive` 对前 200 个之后的 Agent 报告 `AGENT_NOT_FOUND` 的问题 ([#7535](https://github.com/getpaseo/paseo/pull/7535) by [@L4XB](https://github.com/L4XB), [@hteo1337](https://github.com/hteo1337))
 - 修复了读取历史记录后已归档的 Agent 重新出现在 MCP `list_agents` 中的问题 ([#7532](https://github.com/getpaseo/paseo/pull/7532) by [@thomasvan](https://github.com/thomasvan))
 - 修复了使用 `notifyOnFinish` 创建的分离 Agent 从不通知其创建者的问题 ([#7528](https://github.com/getpaseo/paseo/pull/7528) by [@thomasvan](https://github.com/thomasvan))
 - 修复了 OpenCode Agent 被告知 `notifyOnFinish` 默认关闭的问题 ([#7383](https://github.com/getpaseo/paseo/pull/7383) by [@gszep](https://github.com/gszep))
@@ -425,7 +425,7 @@ paseo host add 'relay://...' --label laptop
 
 后台工作区、新的 Markdown 渲染器（手机上可跨段落选择文本）、重新设计的手机布局，以及超过 120 项修复。
 
-**升级前须知**：`paseo run --background` 已弃用，请改用 `--no-wait`；当 daemon 在 15 秒内未确认时，`paseo permit allow` 和 `deny` 现在会以非零状态退出
+**升级前须知**：`zentic run --background` 已弃用，请改用 `--no-wait`；当 daemon 在 15 秒内未确认时，`zentic permit allow` 和 `deny` 现在会以非零状态退出
 
 ### 新增
 
@@ -435,7 +435,7 @@ paseo host add 'relay://...' --label laptop
 - 一个 Agent 发给另一个 Agent 的消息现在会显示发送者的名称 ([#6373](https://github.com/getpaseo/paseo/pull/6373))
 - 当已安装的 Claude Code 提供 Claude Mythos 5.1 时新增该模型 ([#6403](https://github.com/getpaseo/paseo/pull/6403))
 - Claude 问题卡片新增选项预览 ([#6171](https://github.com/getpaseo/paseo/pull/6171) by [@gabrielgiordan](https://github.com/gabrielgiordan))
-- 新增 `paseo usage`，可在 CLI 中查看账号配额、余额和重置时间 ([#6474](https://github.com/getpaseo/paseo/pull/6474))
+- 新增 `zentic usage`，可在 CLI 中查看账号配额、余额和重置时间 ([#6474](https://github.com/getpaseo/paseo/pull/6474))
 
 ### 改进
 
@@ -449,9 +449,9 @@ paseo host add 'relay://...' --label laptop
 - 手机上的 diff 评论改为在底部面板中打开，而不是在代码中嵌入编辑器 ([#6455](https://github.com/getpaseo/paseo/pull/6455))
 - 手机上的 Settings 改为大图块，并分为 App 和 Host 两组 ([#7129](https://github.com/getpaseo/paseo/pull/7129))
 - Command Center 现在按匹配度和最近使用对工作区和 Agent 排序，并显示时间戳、项目图标和高亮的匹配内容 ([#7277](https://github.com/getpaseo/paseo/pull/7277))
-- 子 Agent 列表中每个 Paseo 子 Agent 的标题下方新增其模型、思考、模式和上下文 ([#7290](https://github.com/getpaseo/paseo/pull/7290))
+- 子 Agent 列表中每个 Zentic 子 Agent 的标题下方新增其模型、思考、模式和上下文 ([#7290](https://github.com/getpaseo/paseo/pull/7290))
 - 手机上 Subagents 面板中的子 Agent 行更高了，其归档和分离按钮也使用了标准的按压高亮 ([#7364](https://github.com/getpaseo/paseo/pull/7364))
-- 聊天中的 Paseo 工具调用现在以操作及其上下文开头，例如 Send message · 提示词的第一行 ([#7283](https://github.com/getpaseo/paseo/pull/7283))
+- 聊天中的 Zentic 工具调用现在以操作及其上下文开头，例如 Send message · 提示词的第一行 ([#7283](https://github.com/getpaseo/paseo/pull/7283))
 - 手机上的 New workspace 表单改为全宽字段，Import session 移到了标题栏 ([#7239](https://github.com/getpaseo/paseo/pull/7239))
 - 减少了回复流式输出时长聊天的渲染工作量 ([#7052](https://github.com/getpaseo/paseo/pull/7052) by [@colonelpanic8](https://github.com/colonelpanic8), [#7342](https://github.com/getpaseo/paseo/pull/7342))
 - 重新打开侧边栏的速度提升约 45% ([#7157](https://github.com/getpaseo/paseo/pull/7157))
@@ -461,11 +461,11 @@ paseo host add 'relay://...' --label laptop
 
 ### 插件
 
-- 修复了导入 Paseo 协议类型的插件安装失败并提示 "Could not resolve type dependency" 的问题 ([#7023](https://github.com/getpaseo/paseo/pull/7023))
+- 修复了导入 Zentic 协议类型的插件安装失败并提示 "Could not resolve type dependency" 的问题 ([#7023](https://github.com/getpaseo/paseo/pull/7023))
 - 修复了移动应用上的插件中 `providers.waitForReady` 抛出错误的问题 ([#6760](https://github.com/getpaseo/paseo/pull/6760) by [@GeorgeR](https://github.com/GeorgeR))
 - 修复了聊天大纲无法跳转到由时间线插件渲染的提示词的问题 ([#6690](https://github.com/getpaseo/paseo/pull/6690) by [@lukeRRD](https://github.com/lukeRRD))
 - 修复了按 Escape 会停止正在运行的 Agent，而不是先关闭打开的插件预览的问题 ([#7110](https://github.com/getpaseo/paseo/pull/7110) by [@RRD-dev](https://github.com/RRD-dev), [@luoph](https://github.com/luoph))
-- 修复了 `paseo plugin reload` 在重新加载仍在进行时因 60 秒超时而失败的问题 ([#6306](https://github.com/getpaseo/paseo/pull/6306) by [@Mtuchel](https://github.com/Mtuchel))
+- 修复了 `zentic plugin reload` 在重新加载仍在进行时因 60 秒超时而失败的问题 ([#6306](https://github.com/getpaseo/paseo/pull/6306) by [@Mtuchel](https://github.com/Mtuchel))
 - 修复了插件 ACP Agent 运行期间发送的后续消息失败并提示 "Provider does not support prompt.steer" 的问题 ([#7270](https://github.com/getpaseo/paseo/pull/7270) by [@simonepri](https://github.com/simonepri))
 - 修复了 Find 在时间线插件绘制的提示词文本中找不到匹配的问题 ([#7253](https://github.com/getpaseo/paseo/pull/7253) by [@a-grasso](https://github.com/a-grasso))
 - 修复了重新打开聊天后，延迟加载的 Composer 插件胶囊遮挡 Copy 和 Fork 的问题 ([#7341](https://github.com/getpaseo/paseo/pull/7341) by [@sholiday](https://github.com/sholiday))
@@ -498,8 +498,8 @@ paseo host add 'relay://...' --label laptop
 - 修复了保存的模式不被 Provider 提供时 New workspace 失败并提示 "Invalid mode" 的问题 ([#5847](https://github.com/getpaseo/paseo/pull/5847) by [@mcowger](https://github.com/mcowger))
 - 修复了回答 OpenCode v2 的多选问题失败并提示 "Invalid answer" 的问题 ([#6149](https://github.com/getpaseo/paseo/pull/6149) by [@gammons](https://github.com/gammons))
 - 修复了 OpenCode v2 Agent 上浏览器截图导致回合失败的问题 ([#6330](https://github.com/getpaseo/paseo/pull/6330))
-- 修复了 OpenCode v2 Agent 收到 "HTTP 500" 而不是 Paseo 工具错误的问题 ([#6519](https://github.com/getpaseo/paseo/pull/6519))
-- 修复了 OpenCode Agent 使用无效参数或未知名称调用 Paseo 工具时收到 "HTTP 500" 而不是可读错误的问题 ([#7183](https://github.com/getpaseo/paseo/pull/7183))
+- 修复了 OpenCode v2 Agent 收到 "HTTP 500" 而不是 Zentic 工具错误的问题 ([#6519](https://github.com/getpaseo/paseo/pull/6519))
+- 修复了 OpenCode Agent 使用无效参数或未知名称调用 Zentic 工具时收到 "HTTP 500" 而不是可读错误的问题 ([#7183](https://github.com/getpaseo/paseo/pull/7183))
 - 修复了 Provider 设置了 `CLAUDE_CONFIG_DIR` 时回退 Claude 对话失败并提示 "Session not found" 的问题 ([#6325](https://github.com/getpaseo/paseo/pull/6325))
 - 修复了先修改正在运行的 Claude Agent 的思考级别、再修改其模式会终止其正在运行的命令的问题 ([#7179](https://github.com/getpaseo/paseo/pull/7179))
 - 修复了 Provider 命令是包装脚本时需要较新 Claude Code 的 Claude 模型被隐藏的问题 ([#7209](https://github.com/getpaseo/paseo/pull/7209) by [@SulthanZahran1](https://github.com/SulthanZahran1))
@@ -521,8 +521,8 @@ paseo host add 'relay://...' --label laptop
 - 修复了 Changes 丢失以 `--` 开头的删除行（例如 SQL 注释）的问题 ([#6569](https://github.com/getpaseo/paseo/pull/6569) by [@Mar-garet](https://github.com/Mar-garet))
 - 修复了干净的工作区在第一次编辑后 Diff 标签页一直转圈的问题 ([#6745](https://github.com/getpaseo/paseo/pull/6745))
 - 修复了在添加时还不是 Git 仓库的项目中运行 `git init` 后创建 worktree 失败的问题 ([#6785](https://github.com/getpaseo/paseo/pull/6785))
-- 修复了新 worktree 在设置完成后不打开 `paseo.json` 中配置的终端的问题 ([#6999](https://github.com/getpaseo/paseo/pull/6999) by [@davidyang](https://github.com/davidyang))
-- 修复了新添加到 `paseo.json` 的服务在 daemon 重启之前无法启动的问题 ([#6542](https://github.com/getpaseo/paseo/pull/6542))
+- 修复了新 worktree 在设置完成后不打开 `zentic.json` 中配置的终端的问题 ([#6999](https://github.com/getpaseo/paseo/pull/6999) by [@davidyang](https://github.com/davidyang))
+- 修复了新添加到 `zentic.json` 的服务在 daemon 重启之前无法启动的问题 ([#6542](https://github.com/getpaseo/paseo/pull/6542))
 - 修复了服务只监听 IPv6 localhost 时工作区服务 URL 返回 502 的问题 ([#6753](https://github.com/getpaseo/paseo/pull/6753) by [@marcelocastrobarbosa](https://github.com/marcelocastrobarbosa))
 - 修复了命令缺失或立即退出时终端无法关闭的问题 ([#6792](https://github.com/getpaseo/paseo/pull/6792) by [@KiraPC](https://github.com/KiraPC))
 - 修复了 MCP 终端按键命令输入方向键和修饰键的名称，而不是发送这些按键的问题 ([#7343](https://github.com/getpaseo/paseo/pull/7343) by [@Aling33](https://github.com/Aling33))
@@ -552,7 +552,7 @@ paseo host add 'relay://...' --label laptop
 - 修复了 Light 主题下以及系统主题变化后 Android 状态栏图标难以辨认的问题 ([#6707](https://github.com/getpaseo/paseo/pull/6707) by [@terayang](https://github.com/terayang))
 - 修复了 iOS 和 Android 上配对二维码被裁切的问题 ([#6758](https://github.com/getpaseo/paseo/pull/6758) by [@fdkevin0](https://github.com/fdkevin0))
 - 修复了启动器停止读取控制台输出时 Linux 桌面端出现 `write EPIPE` 错误对话框的问题 ([#6639](https://github.com/getpaseo/paseo/pull/6639))
-- 修复了通过 SSH 执行 `paseo permit allow` 和 `deny` 时报告成功但请求仍处于待处理状态的问题 ([#6607](https://github.com/getpaseo/paseo/pull/6607) by [@budivoogt](https://github.com/budivoogt))
+- 修复了通过 SSH 执行 `zentic permit allow` 和 `deny` 时报告成功但请求仍处于待处理状态的问题 ([#6607](https://github.com/getpaseo/paseo/pull/6607) by [@budivoogt](https://github.com/budivoogt))
 - 修复了名称以两个点开头的文件和文件夹（例如 `..notes.txt`）被隐藏和拒绝的问题 ([#6604](https://github.com/getpaseo/paseo/pull/6604), [#6720](https://github.com/getpaseo/paseo/pull/6720) by [@Mar-garet](https://github.com/Mar-garet))
 - 修复了 Markdown 预览在非 HTML 的 `<`（例如 `List<Item>`）之后丢失表格行的问题 ([#6370](https://github.com/getpaseo/paseo/pull/6370) by [@gengjiawen](https://github.com/gengjiawen))
 - 修复了 HTML 标题包含带链接的图片时显示字面标题标签的问题 ([#6650](https://github.com/getpaseo/paseo/pull/6650))
@@ -569,21 +569,21 @@ paseo host add 'relay://...' --label laptop
 - 修复了起始 ref 选择器无法按编号找到 GitLab 合并请求和 issue 的问题 ([#6525](https://github.com/getpaseo/paseo/pull/6525))
 - 修复了起始 ref 选择器隐藏只在描述中匹配的变更请求的问题 ([#6558](https://github.com/getpaseo/paseo/pull/6558))
 - 修复了 @ 提及找不到 `.cursor/plans` 下的计划文件的问题 ([#6641](https://github.com/getpaseo/paseo/pull/6641) by [@chyendongnhanh338](https://github.com/chyendongnhanh338))
-- 修复了保存设置时 Paseo 把作为符号链接的 `config.json` 替换为普通文件的问题 ([#6023](https://github.com/getpaseo/paseo/pull/6023))
+- 修复了保存设置时 Zentic 把作为符号链接的 `config.json` 替换为普通文件的问题 ([#6023](https://github.com/getpaseo/paseo/pull/6023))
 - 修复了发布的配置 schema 拒绝 `agentProfiles` 和 `plugins` 等有效设置的问题 ([#6621](https://github.com/getpaseo/paseo/pull/6621) by [@ragokan](https://github.com/ragokan))
 - 修复了复制文件夹会把其中的相对符号链接变成指向原始位置的绝对链接的问题 ([#6771](https://github.com/getpaseo/paseo/pull/6771) by [@Mar-garet](https://github.com/Mar-garet))
 - 修复了当某个已跟踪文件把未跟踪文件（例如 `[id].tsx`）当作模式匹配时，重命名该文件失败的问题 ([#6573](https://github.com/getpaseo/paseo/pull/6573) by [@Mar-garet](https://github.com/Mar-garet))
 - 修复了保存名称较长的工作区文件时以 `ENAMETOOLONG` 失败的问题 ([#6658](https://github.com/getpaseo/paseo/pull/6658) by [@Mar-garet](https://github.com/Mar-garet))
 - 修复了文件夹名称以空格结尾的项目创建 worktree 和使用 Changes 失败的问题 ([#6686](https://github.com/getpaseo/paseo/pull/6686))
 - 修复了基础分支的 worktree 路径包含换行符或以空格结尾时合并 worktree 的问题 ([#6668](https://github.com/getpaseo/paseo/pull/6668) by [@Mar-garet](https://github.com/Mar-garet))
-- 修复了 `paseo agent ls` 只列出前 200 个 Agent 的问题 ([#6033](https://github.com/getpaseo/paseo/pull/6033) by [@hteo1337](https://github.com/hteo1337))
-- 修复了 `paseo worktree ls` 和 `paseo worktree archive` 失败并提示 "cwd or repoRoot is required" 的问题 ([#6467](https://github.com/getpaseo/paseo/pull/6467) by [@jasonhnd](https://github.com/jasonhnd))
-- 修复了 `paseo worktree ls` 在最多 15 秒内仍列出已归档 worktree 的问题 ([#6545](https://github.com/getpaseo/paseo/pull/6545) by [@Mar-garet](https://github.com/Mar-garet))
-- 修复了 `paseo logs --since` 输出请求时间戳之前的活动的问题 ([#6514](https://github.com/getpaseo/paseo/pull/6514) by [@Mar-garet](https://github.com/Mar-garet))
-- 修复了 `paseo logs --follow` 在文本流式输出时把单词拆到多行的问题 ([#6528](https://github.com/getpaseo/paseo/pull/6528) by [@fiorelorenzo](https://github.com/fiorelorenzo))
-- 修复了 `paseo logs` 把推理内容输出在其后的回复之后的问题 ([#6546](https://github.com/getpaseo/paseo/pull/6546))
+- 修复了 `zentic agent ls` 只列出前 200 个 Agent 的问题 ([#6033](https://github.com/getpaseo/paseo/pull/6033) by [@hteo1337](https://github.com/hteo1337))
+- 修复了 `zentic worktree ls` 和 `zentic worktree archive` 失败并提示 "cwd or repoRoot is required" 的问题 ([#6467](https://github.com/getpaseo/paseo/pull/6467) by [@jasonhnd](https://github.com/jasonhnd))
+- 修复了 `zentic worktree ls` 在最多 15 秒内仍列出已归档 worktree 的问题 ([#6545](https://github.com/getpaseo/paseo/pull/6545) by [@Mar-garet](https://github.com/Mar-garet))
+- 修复了 `zentic logs --since` 输出请求时间戳之前的活动的问题 ([#6514](https://github.com/getpaseo/paseo/pull/6514) by [@Mar-garet](https://github.com/Mar-garet))
+- 修复了 `zentic logs --follow` 在文本流式输出时把单词拆到多行的问题 ([#6528](https://github.com/getpaseo/paseo/pull/6528) by [@fiorelorenzo](https://github.com/fiorelorenzo))
+- 修复了 `zentic logs` 把推理内容输出在其后的回复之后的问题 ([#6546](https://github.com/getpaseo/paseo/pull/6546))
 - 修复了取消 HTTP 下载后 daemon 仍保持文件打开的问题 ([#6567](https://github.com/getpaseo/paseo/pull/6567) by [@Mar-garet](https://github.com/Mar-garet))
-- 修复了 Linux 桌面窗口显示通用图标而不是 Paseo 图标的问题 ([#6645](https://github.com/getpaseo/paseo/pull/6645) by [@whme](https://github.com/whme), [@panta82](https://github.com/panta82))
+- 修复了 Linux 桌面窗口显示通用图标而不是 Zentic 图标的问题 ([#6645](https://github.com/getpaseo/paseo/pull/6645) by [@whme](https://github.com/whme), [@panta82](https://github.com/panta82))
 - 修复了 Google Play 把没有摄像头的 Android 设备列为不兼容的问题 ([#6339](https://github.com/getpaseo/paseo/pull/6339))
 - 修复了在内存少于 15 GB 的 Mac 上 `nix build .#desktop` 内存耗尽的问题 ([#6537](https://github.com/getpaseo/paseo/pull/6537) by [@truelecter](https://github.com/truelecter))
 - 修复了 Refresh all 之后用量 Provider 的位置互换的问题 ([#6947](https://github.com/getpaseo/paseo/pull/6947) by [@sleroq](https://github.com/sleroq))
@@ -595,7 +595,7 @@ paseo host add 'relay://...' --label laptop
 
 ## 0.11.4 - 2026-10-15
 
-[Hoplite](https://hoplite.sh) 通过企业赞助计划成为 Paseo 的第一家赞助商。Hoplite 构建云端编码 Agent，可以把来自 GitHub、Linear、Slack 等的任务变成拉取请求。感谢 Hoplite 团队对 Paseo 的支持。
+[Hoplite](https://hoplite.sh) 通过企业赞助计划成为 Zentic 的第一家赞助商。Hoplite 构建云端编码 Agent，可以把来自 GitHub、Linear、Slack 等的任务变成拉取请求。感谢 Hoplite 团队对 Zentic 的支持。
 
 ### 修复
 
@@ -636,9 +636,9 @@ paseo host add 'relay://...' --label laptop
 
 ## 0.11.0 - 2026-10-07
 
-Paseo 0.11 新增对[插件注册表](https://paseo.sh/plugins)的支持。你可以在那里浏览社区插件，用 `paseo plugin add owner/slug` 安装插件，或者[提交你自己的插件](https://paseo.sh/docs/plugins/publishing#plugin-registry)。
+Zentic 0.11 新增对[插件注册表](https://zentic.sh/plugins)的支持。你可以在那里浏览社区插件，用 `zentic plugin add owner/slug` 安装插件，或者[提交你自己的插件](https://zentic.sh/docs/plugins/publishing#plugin-registry)。
 
-**升级前须知**：`paseo plugin add owner/repo` 现在从注册表安装，因此直接从 GitHub 安装请使用 `github:owner/repo`，安装本地目录请使用 `./path`。
+**升级前须知**：`zentic plugin add owner/repo` 现在从注册表安装，因此直接从 GitHub 安装请使用 `github:owner/repo`，安装本地目录请使用 `./path`。
 
 ### 新增
 
@@ -660,15 +660,15 @@ Paseo 0.11 新增对[插件注册表](https://paseo.sh/plugins)的支持。你�
 
 ### 插件
 
-- `paseo plugin add owner/slug` 现在从插件注册表安装经过审核的插件，因此本地目录需要使用 `./slug` 这样的路径，直接从 GitHub 安装需要使用 `github:owner/repo` ([#6224](https://github.com/getpaseo/paseo/pull/6224))
-- 插件 SDK 新增[界面以及侧边栏顶部和底部项](https://paseo.sh/docs/plugins/reference#screens-and-sidebar-items) ([#5685](https://github.com/getpaseo/paseo/pull/5685))
+- `zentic plugin add owner/slug` 现在从插件注册表安装经过审核的插件，因此本地目录需要使用 `./slug` 这样的路径，直接从 GitHub 安装需要使用 `github:owner/repo` ([#6224](https://github.com/getpaseo/paseo/pull/6224))
+- 插件 SDK 新增[界面以及侧边栏顶部和底部项](https://zentic.sh/docs/plugins/reference#screens-and-sidebar-items) ([#5685](https://github.com/getpaseo/paseo/pull/5685))
 - 插件 SDK 新增用量来源 ([#5465](https://github.com/getpaseo/paseo/pull/5465), [#5876](https://github.com/getpaseo/paseo/pull/5876))
 - 插件 SDK 新增 `spawnProcess()`、`execCommand()` 和 `terminateProcess()`，用于启动 CLI，包括 Windows 的 `.cmd` 和 `.bat` 脚本 ([#6151](https://github.com/getpaseo/paseo/pull/6151))
 - 插件 SDK 新增 `client.playAudio()`，用于在每个客户端上播放音频 ([#5976](https://github.com/getpaseo/paseo/pull/5976))
 - 新增 `agent.closed` 插件生命周期事件 ([#5971](https://github.com/getpaseo/paseo/pull/5971) by [@ilteoood](https://github.com/ilteoood))
 - 插件 Provider 新增命令和环境变量覆盖以及可用性诊断 ([#5707](https://github.com/getpaseo/paseo/pull/5707))
 - 插件 manifest 新增显示名称、图标、截图和视频 ([#6263](https://github.com/getpaseo/paseo/pull/6263))
-- `paseo plugin init` 新增用于插件注册表列表的 `OVERVIEW.md` 模板 ([#6226](https://github.com/getpaseo/paseo/pull/6226))
+- `zentic plugin init` 新增用于插件注册表列表的 `OVERVIEW.md` 模板 ([#6226](https://github.com/getpaseo/paseo/pull/6226))
 
 ### 变更
 
@@ -682,7 +682,7 @@ Paseo 0.11 新增对[插件注册表](https://paseo.sh/plugins)的支持。你�
 - 新安装时侧边栏工作区行默认显示最近活动 ([#6087](https://github.com/getpaseo/paseo/pull/6087))
 - 紧凑侧边栏底部按钮的点击区域改为 44×44 ([#6044](https://github.com/getpaseo/paseo/pull/6044))
 - 从 `origin/main` 或其他远程分支创建的新工作区现在会先获取该分支 ([#5788](https://github.com/getpaseo/paseo/pull/5788) by [@odoo-mvds](https://github.com/odoo-mvds))
-- Paseo 内部用于生成分支名、提交消息和 PR 文本的 Claude Agent 现在在禁用 Claude hooks 的情况下运行 ([#5750](https://github.com/getpaseo/paseo/pull/5750))
+- Zentic 内部用于生成分支名、提交消息和 PR 文本的 Claude Agent 现在在禁用 Claude hooks 的情况下运行 ([#5750](https://github.com/getpaseo/paseo/pull/5750))
 - OMP 审批模式的更改现在在下一次空闲重启时生效，并且在回合进行中会被拒绝 ([#5550](https://github.com/getpaseo/paseo/pull/5550))
 - Agent、定时任务和 Import session 行中的相对时间戳现在在显示期间会持续更新 ([#5340](https://github.com/getpaseo/paseo/pull/5340))
 
@@ -707,25 +707,25 @@ Paseo 0.11 新增对[插件注册表](https://paseo.sh/plugins)的支持。你�
 - 修复了 `omp` 进程崩溃后 OMP Agent 仍绑定在已失效进程上的问题 ([#5550](https://github.com/getpaseo/paseo/pull/5550) by [@viet-initx](https://github.com/viet-initx))
 - 修复了 OMP 多选问题显示单选按钮并为每个选项分别提问的问题 ([#5550](https://github.com/getpaseo/paseo/pull/5550))
 - 修复了 OMP 上的 `/compact` 在 OMP 仍在压缩时于 60 秒后报告失败的问题 ([#5550](https://github.com/getpaseo/paseo/pull/5550) by [@Kh05ifr4nD](https://github.com/Kh05ifr4nD))
-- 修复了 `paseo import --provider omp` 使用默认模型而不是会话的模型启动 Agent 的问题 ([#5550](https://github.com/getpaseo/paseo/pull/5550) by [@alloevil](https://github.com/alloevil))
+- 修复了 `zentic import --provider omp` 使用默认模型而不是会话的模型启动 Agent 的问题 ([#5550](https://github.com/getpaseo/paseo/pull/5550) by [@alloevil](https://github.com/alloevil))
 - 修复了重新加载后 OMP 注入的行显示 `[custom_message]` 前缀的问题 ([#5550](https://github.com/getpaseo/paseo/pull/5550) by [@jegork](https://github.com/jegork))
 - 修复了 OMP 工具行对失败的工具、Task、Wait、网页搜索和抓取显示原始对象或通用标签的问题 ([#5550](https://github.com/getpaseo/paseo/pull/5550))
 - 修复了 OMP `xd://` 写入的结果从时间线中消失的问题 ([#5550](https://github.com/getpaseo/paseo/pull/5550) by [@kasrakhosravi](https://github.com/kasrakhosravi))
 - 修复了 OMP 模型回退后 Composer 仍显示旧模型的问题 ([#5550](https://github.com/getpaseo/paseo/pull/5550) by [@gray-graff](https://github.com/gray-graff))
 - 修复了打开已归档的 OMP Agent 会启动一个持续运行的 `omp` 进程的问题 ([#5550](https://github.com/getpaseo/paseo/pull/5550) by [@thomasvan](https://github.com/thomasvan))
-- 修复了运行中包含 Paseo 不显示的消息（例如 OMP 规则提醒）时 OMP 回合一直处于运行中的问题 ([#6112](https://github.com/getpaseo/paseo/pull/6112))
+- 修复了运行中包含 Zentic 不显示的消息（例如 OMP 规则提醒）时 OMP 回合一直处于运行中的问题 ([#6112](https://github.com/getpaseo/paseo/pull/6112))
 - 修复了被 OMP 拒绝的提示词（例如缺少 API 密钥）以没有错误的已完成回合结束的问题 ([#6110](https://github.com/getpaseo/paseo/pull/6110), [#6115](https://github.com/getpaseo/paseo/pull/6115))
 - 修复了重新打开的 OMP 聊天对压缩和 OMP 自行写入的其他条目显示 "Custom message" 行的问题 ([#6198](https://github.com/getpaseo/paseo/pull/6198), [#6215](https://github.com/getpaseo/paseo/pull/6215))
 - 修复了模型已被移除的 Pi 和 OMP 会话无法导入或重新打开的问题 ([#6061](https://github.com/getpaseo/paseo/pull/6061))
-- 修复了未安装 `pi-mcp-adapter` 时 Pi 0.99 上的 Pi Agent 启动时没有 Paseo 的 MCP 服务器的问题 ([#5762](https://github.com/getpaseo/paseo/pull/5762) by [@ArietidsZ](https://github.com/ArietidsZ))
+- 修复了未安装 `pi-mcp-adapter` 时 Pi 0.99 上的 Pi Agent 启动时没有 Zentic 的 MCP 服务器的问题 ([#5762](https://github.com/getpaseo/paseo/pull/5762) by [@ArietidsZ](https://github.com/ArietidsZ))
 - 修复了正在运行的 Pi 子 Agent 在完成之前显示空白记录的问题 ([#5755](https://github.com/getpaseo/paseo/pull/5755))
 - 修复了分组的 Tintinweb pi-subagents 完成时只把第一个 Agent 标记为已完成，其余仍显示为工作中的问题 ([#5826](https://github.com/getpaseo/paseo/pull/5826))
-- 修复了针对 `paseo_*` 工具的 OpenCode `ask` 规则不经提示就运行工具的问题 ([#5801](https://github.com/getpaseo/paseo/pull/5801) by [@ymarcus93](https://github.com/ymarcus93))
+- 修复了针对 `zentic_*` 工具的 OpenCode `ask` 规则不经提示就运行工具的问题 ([#5801](https://github.com/getpaseo/paseo/pull/5801) by [@ymarcus93](https://github.com/ymarcus93))
 - 修复了 OpenCode 服务器就绪较慢时第一条 OpenCode 提示词要等到事件流超时的问题 ([#5873](https://github.com/getpaseo/paseo/pull/5873) by [@axsuul](https://github.com/axsuul))
 - 修复了问题被关闭或工具权限被拒绝后 OpenCode v2 Agent 仍处于运行中的问题 ([#6177](https://github.com/getpaseo/paseo/pull/6177), [#6188](https://github.com/getpaseo/paseo/pull/6188))
 - 修复了 Nix 包无法启动 daemon 和打开终端的问题 ([#5523](https://github.com/getpaseo/paseo/pull/5523) by [@wongcallum](https://github.com/wongcallum))
 - 修复了 OpenCode v2 Agent 在 Nix 包上无法启动的问题 ([#5988](https://github.com/getpaseo/paseo/pull/5988))
-- 修复了每个 Paseo 技能在 Codex 的技能列表中出现两次的问题 ([#5827](https://github.com/getpaseo/paseo/pull/5827) by [@3ae3ae](https://github.com/3ae3ae))
+- 修复了每个 Zentic 技能在 Codex 的技能列表中出现两次的问题 ([#5827](https://github.com/getpaseo/paseo/pull/5827) by [@3ae3ae](https://github.com/3ae3ae))
 - 修复了 Codex 图片生成失败后聊天中没有留下任何行的问题 ([#5810](https://github.com/getpaseo/paseo/pull/5810) by [@3ae3ae](https://github.com/3ae3ae))
 - 修复了被拒绝的 Codex 命令或文件编辑在回合结束后仍显示运行中图标的问题 ([#5717](https://github.com/getpaseo/paseo/pull/5717) by [@3ae3ae](https://github.com/3ae3ae))
 - 修复了在 Codex 0.156 及更新版本上回退旧版 Codex 聊天失败并提示 `unknown variant thread/rollback` 的问题 ([#5711](https://github.com/getpaseo/paseo/pull/5711) by [@3ae3ae](https://github.com/3ae3ae))
@@ -752,14 +752,14 @@ Paseo 0.11 新增对[插件注册表](https://paseo.sh/plugins)的支持。你�
 - 修复了在桌面布局的触摸屏上打开 Agent 时弹出屏幕键盘的问题 ([#5477](https://github.com/getpaseo/paseo/pull/5477) by [@dinhphieu](https://github.com/dinhphieu))
 - 修复了 macOS 终端中 Option+方向键、Cmd+方向键和 Cmd+Backspace 的行编辑 ([#3339](https://github.com/getpaseo/paseo/pull/3339) by [@gpambrozio](https://github.com/gpambrozio))
 - 修复了 Add Project 的目录搜索遇到读取永不返回的文件夹时 daemon 冻结的问题 ([#6029](https://github.com/getpaseo/paseo/pull/6029), [#6041](https://github.com/getpaseo/paseo/pull/6041) by [@lardissone](https://github.com/lardissone))
-- 修复了 `paseo.json` 无法解析时新的 worktree 工作区被归档的问题 ([#6036](https://github.com/getpaseo/paseo/pull/6036) by [@3ae3ae](https://github.com/3ae3ae))
+- 修复了 `zentic.json` 无法解析时新的 worktree 工作区被归档的问题 ([#6036](https://github.com/getpaseo/paseo/pull/6036) by [@3ae3ae](https://github.com/3ae3ae))
 - 修复了工作区脚本状态在其他已连接的客户端中不更新的问题 ([#6007](https://github.com/getpaseo/paseo/pull/6007) by [@swbiggart](https://github.com/swbiggart))
 - 修复了 Agent 和终端继承语音库路径，导致 Windows 上 Git Bash 的 PATH 被截断的问题 ([#5987](https://github.com/getpaseo/paseo/pull/5987) by [@hanh9898](https://github.com/hanh9898))
 - 修复了 daemon 在解压本地语音模型时停止后，语音输入一直失败直到手动删除该模型的问题 ([#6210](https://github.com/getpaseo/paseo/pull/6210) by [@3ae3ae](https://github.com/3ae3ae))
 - 修复了网络不提供主机名时 macOS 主机显示为 `UNKNOWN` 的问题 ([#5922](https://github.com/getpaseo/paseo/pull/5922))
-- 修复了主机从睡眠中唤醒后 `paseo daemon status` 把 Linux 虚拟机中的 daemon 报告为已停止的问题 ([#6279](https://github.com/getpaseo/paseo/pull/6279))
+- 修复了主机从睡眠中唤醒后 `zentic daemon status` 把 Linux 虚拟机中的 daemon 报告为已停止的问题 ([#6279](https://github.com/getpaseo/paseo/pull/6279))
 - 修复了中继连接在握手之前停滞后，中继重新连接被忽略的问题 ([#5648](https://github.com/getpaseo/paseo/pull/5648) by [@3ae3ae](https://github.com/3ae3ae))
-- 修复了启动 `paseo daemon run` 的程序停止读取其输出时，它以 "Daemon failed to start" 退出的问题 ([#6117](https://github.com/getpaseo/paseo/pull/6117))
+- 修复了启动 `zentic daemon run` 的程序停止读取其输出时，它以 "Daemon failed to start" 退出的问题 ([#6117](https://github.com/getpaseo/paseo/pull/6117))
 - 修复了输出不再被读取时 CLI 命令因 `EPIPE` 崩溃，以及 Windows 桌面应用显示错误对话框的问题 ([#6097](https://github.com/getpaseo/paseo/pull/6097))
 - 修复了以链接方式全局安装时 daemon 自更新给出错误的拒绝原因的问题 ([#6095](https://github.com/getpaseo/paseo/pull/6095))
 - 修复了 npm 安装在非 npm 全局前缀下时 daemon 自更新失败的问题 ([#5649](https://github.com/getpaseo/paseo/pull/5649) by [@3ae3ae](https://github.com/3ae3ae))
@@ -777,18 +777,18 @@ Paseo 0.11 新增对[插件注册表](https://paseo.sh/plugins)的支持。你�
 - 修复了应用缩放时浏览器标注截图截取错误区域的问题 ([#5703](https://github.com/getpaseo/paseo/pull/5703))
 - 修复了没有本地 daemon 运行时桌面应用每秒启动一个 `daemon status` 进程的问题 ([#5636](https://github.com/getpaseo/paseo/pull/5636))
 - 修复了在选择项目或模型之前，草稿中的 `/` 菜单列出 `/clear` 和 `/exit` 的问题 ([#5594](https://github.com/getpaseo/paseo/pull/5594) by [@colonelpanic8](https://github.com/colonelpanic8))
-- 修复了 `paseo agent delete --all` 和 `--cwd` 遗留已归档 Agent 的问题 ([#6027](https://github.com/getpaseo/paseo/pull/6027) by [@3ae3ae](https://github.com/3ae3ae))
-- 修复了 `paseo agent` 命令对未知的 Agent ID 报告通用失败而不是 `AGENT_NOT_FOUND` 的问题 ([#6053](https://github.com/getpaseo/paseo/pull/6053))
-- 修复了 `paseo agent open` 对不存在的 Agent 打开 Desktop 并以 0 退出的问题 ([#5727](https://github.com/getpaseo/paseo/pull/5727))
-- 修复了 Provider 检查耗时超过一秒时 `paseo restart` 以 `RESTART_NOT_CONFIRMED` 退出的问题 ([#6009](https://github.com/getpaseo/paseo/pull/6009))
-- 修复了 `paseo schedule update --no-max-runs` 和 `--no-expires-in` 在到达 daemon 之前就失败的问题 ([#5973](https://github.com/getpaseo/paseo/pull/5973) by [@Mar-garet](https://github.com/Mar-garet))
+- 修复了 `zentic agent delete --all` 和 `--cwd` 遗留已归档 Agent 的问题 ([#6027](https://github.com/getpaseo/paseo/pull/6027) by [@3ae3ae](https://github.com/3ae3ae))
+- 修复了 `zentic agent` 命令对未知的 Agent ID 报告通用失败而不是 `AGENT_NOT_FOUND` 的问题 ([#6053](https://github.com/getpaseo/paseo/pull/6053))
+- 修复了 `zentic agent open` 对不存在的 Agent 打开 Desktop 并以 0 退出的问题 ([#5727](https://github.com/getpaseo/paseo/pull/5727))
+- 修复了 Provider 检查耗时超过一秒时 `zentic restart` 以 `RESTART_NOT_CONFIRMED` 退出的问题 ([#6009](https://github.com/getpaseo/paseo/pull/6009))
+- 修复了 `zentic schedule update --no-max-runs` 和 `--no-expires-in` 在到达 daemon 之前就失败的问题 ([#5973](https://github.com/getpaseo/paseo/pull/5973) by [@Mar-garet](https://github.com/Mar-garet))
 - 修复了恢复的 Claude Agent 的对话记录缺失或无法读取时 `daemon.log` 中没有任何记录的问题 ([#5818](https://github.com/getpaseo/paseo/pull/5818) by [@gabrielgiordan](https://github.com/gabrielgiordan))
 - 修复了重新加载插件会在其 Provider 的已完成聊天中添加 `[System Error] Provider connection closed` 的问题 ([#5579](https://github.com/getpaseo/paseo/pull/5579))
-- 修复了 `paseo plugin add .` 在 daemon 的目录而不是 CLI 的目录中查找插件的问题 ([#6239](https://github.com/getpaseo/paseo/pull/6239))
+- 修复了 `zentic plugin add .` 在 daemon 的目录而不是 CLI 的目录中查找插件的问题 ([#6239](https://github.com/getpaseo/paseo/pull/6239))
 - 修复了桌面端的插件设置界面无法返回 Plugins 页面的问题 ([#5620](https://github.com/getpaseo/paseo/pull/5620))
 - 修复了插件客户端代码无法导入只声明了 `main` 或 `module` 的 npm 包的问题 ([#5838](https://github.com/getpaseo/paseo/pull/5838))
 - 修复了 SDK 的 `send()` 和 `run()` 在 TypeScript 中拒绝 `activeTurnBehavior` 的问题 ([#5605](https://github.com/getpaseo/paseo/pull/5605) by [@wjxdy](https://github.com/wjxdy))
-- 修复了从 npm 打包 `@getpaseo/client` 时失败并提示 `Could not resolve "@getpaseo/relay/e2ee"` 的问题 ([#5815](https://github.com/getpaseo/paseo/pull/5815))
+- 修复了从 npm 打包 `@getzentic/client` 时失败并提示 `Could not resolve "@getzentic/relay/e2ee"` 的问题 ([#5815](https://github.com/getpaseo/paseo/pull/5815))
 
 ## 0.10.3 - 2026-10-02
 
@@ -815,7 +815,7 @@ Paseo 0.11 新增对[插件注册表](https://paseo.sh/plugins)的支持。你�
 ### 修复
 
 - 修复了切换到不支持所选思考级别的模型后 OpenCode 聊天失败并提示 "Variant unavailable" 的问题 ([#5587](https://github.com/getpaseo/paseo/pull/5587))
-- 修复了回退 Codex 聊天会丢失其自定义 Provider 和 Paseo 工具的问题 ([#5345](https://github.com/getpaseo/paseo/pull/5345) by [@zbaibg](https://github.com/zbaibg))
+- 修复了回退 Codex 聊天会丢失其自定义 Provider 和 Zentic 工具的问题 ([#5345](https://github.com/getpaseo/paseo/pull/5345) by [@zbaibg](https://github.com/zbaibg))
 - 修复了流式回复在聊天重新加载之前把代码块和 Mermaid 图表的行连在一起的问题 ([#5577](https://github.com/getpaseo/paseo/pull/5577))
 - 修复了从拆分窗格打开的子 Agent 在另一个窗格中打开的问题 ([#5451](https://github.com/getpaseo/paseo/pull/5451))
 - 修复了归档自定义 Codex Provider 的 Agent 后其会话仍留在 Import session 中的问题 ([#5572](https://github.com/getpaseo/paseo/pull/5572))
@@ -834,7 +834,7 @@ Paseo 0.11 新增对[插件注册表](https://paseo.sh/plugins)的支持。你�
 - Pi 聊天新增 rpiv-ask-user-question 对话框，以一个问题表单的形式显示 ([#5309](https://github.com/getpaseo/paseo/pull/5309))
 - 中继连接新增密码校验，会拒绝错误的 daemon 密码；后续版本将强制要求密码 ([#5393](https://github.com/getpaseo/paseo/pull/5393))
 - Add host、配对链接和二维码配对新增密码字段，用于受密码保护的 daemon ([#5393](https://github.com/getpaseo/paseo/pull/5393))
-- `paseo daemon pair` 新增 `relay://` 连接字符串 ([#5393](https://github.com/getpaseo/paseo/pull/5393))
+- `zentic daemon pair` 新增 `relay://` 连接字符串 ([#5393](https://github.com/getpaseo/paseo/pull/5393))
 - 在 OMP 17.4.2 及更新版本上，问题卡片新增 OMP Ask 选项描述 ([#3628](https://github.com/getpaseo/paseo/pull/3628) by [@joeshull](https://github.com/joeshull))
 
 ### 变更
@@ -854,7 +854,7 @@ Paseo 0.11 新增对[插件注册表](https://paseo.sh/plugins)的支持。你�
 - 修复了使用自己 `CLAUDE_CONFIG_DIR` 的自定义 Claude Provider 上的 Agent 在 daemon 重启后打开为空白聊天的问题 ([#5437](https://github.com/getpaseo/paseo/pull/5437))
 - 修复了自定义 Codex Provider 的会话不出现在 Import session 中的问题 ([#5446](https://github.com/getpaseo/paseo/pull/5446))
 - 修复了 Provider 的版本检查耗时超过 1.5 秒时主机设置中的 Update daemon 和 Restart 失败的问题 ([#5372](https://github.com/getpaseo/paseo/pull/5372))
-- 修复了在 Agent 会话内执行 `paseo --host <other daemon> run` 失败并提示 "Caller agent not found" 的问题 ([#5392](https://github.com/getpaseo/paseo/pull/5392))
+- 修复了在 Agent 会话内执行 `zentic --host <other daemon> run` 失败并提示 "Caller agent not found" 的问题 ([#5392](https://github.com/getpaseo/paseo/pull/5392))
 - 修复了之前回退过之后，Pi 聊天回退到比所选消息更早位置的问题 ([#5383](https://github.com/getpaseo/paseo/pull/5383))
 - 修复了 daemon 重启时 Pi 聊天的回退被撤销的问题 ([#5432](https://github.com/getpaseo/paseo/pull/5432))
 - 修复了未指定模型启动的 Pi Agent 忽略 Pi 配置的默认模型的问题 ([#5343](https://github.com/getpaseo/paseo/pull/5343))
@@ -862,10 +862,10 @@ Paseo 0.11 新增对[插件注册表](https://paseo.sh/plugins)的支持。你�
 - 修复了自定义 ACP Provider 上新 Agent 的 `/` 菜单中缺少斜杠命令的问题 ([#5411](https://github.com/getpaseo/paseo/pull/5411))
 - 修复了向正在运行的子 Agent 发送提示词后父 Agent 收到两次子 Agent 完成通知的问题 ([#5407](https://github.com/getpaseo/paseo/pull/5407))
 - 修复了超过 30 秒等待时间的阻塞式 `send_agent_prompt` 在子 Agent 完成时从不通知调用方的问题 ([#5347](https://github.com/getpaseo/paseo/pull/5347))
-- 修复了 OSC 8 终端链接显示导航提示并打开空白 Paseo 窗口的问题 ([#5388](https://github.com/getpaseo/paseo/pull/5388) by [@liujin0506](https://github.com/liujin0506))
+- 修复了 OSC 8 终端链接显示导航提示并打开空白 Zentic 窗口的问题 ([#5388](https://github.com/getpaseo/paseo/pull/5388) by [@liujin0506](https://github.com/liujin0506))
 - 修复了插件主题超出窗口时 Theme 菜单无法滚动的问题 ([#5374](https://github.com/getpaseo/paseo/pull/5374))
 - 修复了上周同一星期几的消息只显示星期几而不显示日期的问题 ([#5341](https://github.com/getpaseo/paseo/pull/5341))
-- 修复了 stdin 不是终端时 `paseo daemon set-password` 静默退出的问题 ([#5358](https://github.com/getpaseo/paseo/pull/5358))
+- 修复了 stdin 不是终端时 `zentic daemon set-password` 静默退出的问题 ([#5358](https://github.com/getpaseo/paseo/pull/5358))
 
 ## 0.9.2 - 2026-09-24
 
@@ -886,7 +886,7 @@ Paseo 0.11 新增对[插件注册表](https://paseo.sh/plugins)的支持。你�
 - 修复了 Agent 界面先于侧边栏打开时工作区标签缺失的问题 ([#5079](https://github.com/getpaseo/paseo/pull/5079) by [@morven-ai](https://github.com/morven-ai))
 - 修复了工作区所在的磁盘或网络共享不可用时工作区消失的问题 ([#5227](https://github.com/getpaseo/paseo/pull/5227))
 - 修复了会话导入失败导致已归档的 worktree 无法恢复的问题 ([#5238](https://github.com/getpaseo/paseo/pull/5238))
-- 修复了 Paseo 移除 worktree 后已归档 Agent 的日志读取失败的问题 ([#5229](https://github.com/getpaseo/paseo/pull/5229))
+- 修复了 Zentic 移除 worktree 后已归档 Agent 的日志读取失败的问题 ([#5229](https://github.com/getpaseo/paseo/pull/5229))
 - 修复了新创建的分支通过继承的上游推送到默认分支的问题 ([#5249](https://github.com/getpaseo/paseo/pull/5249))
 - 修复了刷新后 fork 检出的拉取请求从工作区中消失的问题 ([#5221](https://github.com/getpaseo/paseo/pull/5221))
 - 修复了 Agent 创建的本地工作区接受不存在的路径或文件的问题 ([#5322](https://github.com/getpaseo/paseo/pull/5322))
@@ -912,14 +912,14 @@ Paseo 0.11 新增对[插件注册表](https://paseo.sh/plugins)的支持。你�
 - 修复了插件 Provider 请求失败导致 daemon 崩溃的问题 ([#5298](https://github.com/getpaseo/paseo/pull/5298))
 - 修复了 Hub 执行无法为其创建的工作区设置标题的问题 ([#5302](https://github.com/getpaseo/paseo/pull/5302))
 - 修复了无效的定时任务文件导致 daemon 无法启动的问题 ([#5301](https://github.com/getpaseo/paseo/pull/5301))
-- 修复了空的 `paseo.pid` 导致 daemon 无法启动的问题 ([#5306](https://github.com/getpaseo/paseo/pull/5306))
+- 修复了空的 `zentic.pid` 导致 daemon 无法启动的问题 ([#5306](https://github.com/getpaseo/paseo/pull/5306))
 - 修复了重启后被复用的 daemon PID 导致无法启动的问题 ([#5277](https://github.com/getpaseo/paseo/pull/5277))
 - 修复了 `config.json` 带有 UTF-8 BOM 时 daemon 启动失败的问题 ([#5315](https://github.com/getpaseo/paseo/pull/5315))
 - 修复了后台 daemon 的启动错误没有出现在报告的日志文件中的问题 ([#5332](https://github.com/getpaseo/paseo/pull/5332))
 - 修复了针对无效 `config.json` 的 CLI 错误没有指出文件和出错字段的问题 ([#5337](https://github.com/getpaseo/paseo/pull/5337))
 - 修复了密码被拒绝后 CLI 仍建议启动 daemon 的问题 ([#5310](https://github.com/getpaseo/paseo/pull/5310))
 - 修复了受密码保护的桌面 daemon 缺少 Open in editor 的问题 ([#5335](https://github.com/getpaseo/paseo/pull/5335))
-- 修复了 `paseo permit ls --json` 截短了 `permit allow` 和 `permit deny` 所需的请求 ID 的问题 ([#5305](https://github.com/getpaseo/paseo/pull/5305))
+- 修复了 `zentic permit ls --json` 截短了 `permit allow` 和 `permit deny` 所需的请求 ID 的问题 ([#5305](https://github.com/getpaseo/paseo/pull/5305))
 - 修复了副本缓存的存储持续拒绝写入时读取一直空转的问题 ([#5290](https://github.com/getpaseo/paseo/pull/5290))
 - 修复了 MiniMax 卡片对未激活的 token 订阅显示原始错误的问题 ([#5258](https://github.com/getpaseo/paseo/pull/5258))
 - 修复了带修饰键的 Backspace 无法设为自定义快捷键的问题 ([#5224](https://github.com/getpaseo/paseo/pull/5224))
@@ -955,11 +955,11 @@ Paseo 0.11 新增对[插件注册表](https://paseo.sh/plugins)的支持。你�
 ### 插件
 
 - 新增从 npm 安装插件，包括有作用域的包、版本、标签和范围 ([#4975](https://github.com/getpaseo/paseo/pull/4975))
-- 新增 `paseo plugin update`，支持 `--all`、`--check` 和 `--yes`，并在批准之前显示当前和拟更新的修订版本 ([#4975](https://github.com/getpaseo/paseo/pull/4975))
+- 新增 `zentic plugin update`，支持 `--all`、`--check` 和 `--yes`，并在批准之前显示当前和拟更新的修订版本 ([#4975](https://github.com/getpaseo/paseo/pull/4975))
 - Settings → Plugins 新增每个插件的描述、来源和已安装的修订版本 ([#4975](https://github.com/getpaseo/paseo/pull/4975))
 - `navigation.openAgent()` 和 `navigation.openWorkspace()` 新增可选的 `serverId` ([#4942](https://github.com/getpaseo/paseo/pull/4942))
-- 新增通过 `useHosts()` 发现主机，以及通过 `getPaseoClient(serverId)` 获取指定主机的 SDK 客户端 ([#4971](https://github.com/getpaseo/paseo/pull/4971))
-- 新增 `openExternalUrl()` 和 `<ExternalLink>`，用于在 Paseo 之外打开 URL ([#4972](https://github.com/getpaseo/paseo/pull/4972))
+- 新增通过 `useHosts()` 发现主机，以及通过 `getZenticClient(serverId)` 获取指定主机的 SDK 客户端 ([#4971](https://github.com/getpaseo/paseo/pull/4971))
+- 新增 `openExternalUrl()` 和 `<ExternalLink>`，用于在 Zentic 之外打开 URL ([#4972](https://github.com/getpaseo/paseo/pull/4972))
 - 新增 `navigation.openBrowser()`，用于在桌面端的工作区浏览器中打开 URL ([#4972](https://github.com/getpaseo/paseo/pull/4972))
 - `registerSettings()` 现在返回一个带有 `read()` 和 `subscribe()` 的服务端设置句柄 ([#4674](https://github.com/getpaseo/paseo/pull/4674) by [@mcowger](https://github.com/mcowger))
 - `assistant_message` 转换器现在在每次更新时都会收到完整的累计消息 ([#4675](https://github.com/getpaseo/paseo/pull/4675) by [@mcowger](https://github.com/mcowger), [@jegork](https://github.com/jegork))
@@ -975,7 +975,7 @@ Paseo 0.11 新增对[插件注册表](https://paseo.sh/plugins)的支持。你�
 - 工作区的 Restore 现在保持选中已归档的 Agent，并提供单独的 Unarchive 操作 ([#4736](https://github.com/getpaseo/paseo/pull/4736))
 - 工作区错误界面的 Retry 改为 Reload，会重新打开到项目选择器 ([#4598](https://github.com/getpaseo/paseo/pull/4598))
 - 关闭最后一个内容标签页后现在会留下 New 启动器，而不是一个无法使用的窗格 ([#4844](https://github.com/getpaseo/paseo/pull/4844))
-- `paseo daemon start` 现在读取持久化的配置；已移除的配置标志会失败并给出迁移说明 ([#4575](https://github.com/getpaseo/paseo/pull/4575))
+- `zentic daemon start` 现在读取持久化的配置；已移除的配置标志会失败并给出迁移说明 ([#4575](https://github.com/getpaseo/paseo/pull/4575))
 
 ### 改进
 
@@ -1002,7 +1002,7 @@ Paseo 0.11 新增对[插件注册表](https://paseo.sh/plugins)的支持。你�
 - 修复了 Android 上 Paste image 在附件到达 Composer 之前就失败的问题 ([#4758](https://github.com/getpaseo/paseo/pull/4758))
 - 修复了 Android 平板上 Provider 和模型选择器没有响应的问题 ([#4845](https://github.com/getpaseo/paseo/pull/4845) by [@cjcrjc](https://github.com/cjcrjc), [@mkuhl](https://github.com/mkuhl))
 - 修复了 Linux 桌面包在没有 Chromium 沙箱的情况下启动的问题 ([#4447](https://github.com/getpaseo/paseo/pull/4447))
-- 修复了 `paseo daemon stop` 关闭了所选 daemon 之外的 daemon 的问题 ([#4575](https://github.com/getpaseo/paseo/pull/4575))
+- 修复了 `zentic daemon stop` 关闭了所选 daemon 之外的 daemon 的问题 ([#4575](https://github.com/getpaseo/paseo/pull/4575))
 - 修复了恢复的已归档工作区显示空的 Changes 和 Commits 的问题 ([#4926](https://github.com/getpaseo/paseo/pull/4926))
 - 修复了被拒绝的计划显示在拒绝它的后续消息下方的问题 ([#4756](https://github.com/getpaseo/paseo/pull/4756))
 - 修复了 Composer 获得焦点时 Cmd/Ctrl+F 无法打开聊天 Find 的问题 ([#4991](https://github.com/getpaseo/paseo/pull/4991))
@@ -1022,9 +1022,9 @@ Paseo 0.11 新增对[插件注册表](https://paseo.sh/plugins)的支持。你�
 
 ## 0.8.0 - 2026-09-10
 
-Paseo 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天组件，同时修复了桌面端更新和移动端键盘的问题。
+Zentic 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天组件，同时修复了桌面端更新和移动端键盘的问题。
 
-**升级前须知**：macOS 桌面应用现在需要 macOS 13 或更新版本；Linux 和 Windows 的支持不变。为 0.7 编写的插件需要参考 [0.8 迁移指南](https://paseo.sh/docs/plugins/v0.8/migration)，包括分离的客户端/服务端入口以及修订后的 Composer 胶囊 API。
+**升级前须知**：macOS 桌面应用现在需要 macOS 13 或更新版本；Linux 和 Windows 的支持不变。为 0.7 编写的插件需要参考 [0.8 迁移指南](https://zentic.sh/docs/plugins/v0.8/migration)，包括分离的客户端/服务端入口以及修订后的 Composer 胶囊 API。
 
 ### 新增
 
@@ -1038,7 +1038,7 @@ Paseo 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天
 - Web 和桌面端新增全屏 Mermaid 查看器 ([#4107](https://github.com/getpaseo/paseo/pull/4107) by [@gengjiawen](https://github.com/gengjiawen))
 - Web diff 的右键菜单新增 Copy、Copy line 和 Select all ([#4229](https://github.com/getpaseo/paseo/pull/4229))
 - ACP Provider 目录新增 Gajae Code ([#3471](https://github.com/getpaseo/paseo/pull/3471) by [@Yeachan-Heo](https://github.com/Yeachan-Heo))
-- 新增按 Provider 禁用全部或部分 Paseo 工具的控制 ([#4277](https://github.com/getpaseo/paseo/pull/4277) by [@mcowger](https://github.com/mcowger))
+- 新增按 Provider 禁用全部或部分 Zentic 工具的控制 ([#4277](https://github.com/getpaseo/paseo/pull/4277) by [@mcowger](https://github.com/mcowger))
 - 在 fork 拉取请求的工作区中运行设置、自动终端或脚本之前新增显式批准 ([#4215](https://github.com/getpaseo/paseo/pull/4215))
 - 新增 Hub 对现有 Agent 的后续消息，包括恢复已归档的工作区 ([#4354](https://github.com/getpaseo/paseo/pull/4354))
 - Hub 执行新增 Provider 目录发现 ([#4242](https://github.com/getpaseo/paseo/pull/4242))
@@ -1055,21 +1055,21 @@ Paseo 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天
 - 新增标题栏按钮和 Composer 胶囊，支持操作、菜单、自定义弹出框和实时更新 ([#4577](https://github.com/getpaseo/paseo/pull/4577))
 - 新增自定义弹窗主体，支持滚动、感知键盘的输入框和剪贴板操作 ([#4392](https://github.com/getpaseo/paseo/pull/4392))
 - SDK 新增终端的创建、输入、捕获和管理 ([#4358](https://github.com/getpaseo/paseo/pull/4358))
-- 新增通过 `paseo.projects.subscribe()` 实时订阅项目 ([#3983](https://github.com/getpaseo/paseo/pull/3983) by [@omercnet](https://github.com/omercnet))
+- 新增通过 `zentic.projects.subscribe()` 实时订阅项目 ([#3983](https://github.com/getpaseo/paseo/pull/3983) by [@omercnet](https://github.com/omercnet))
 - 新增通过 `agent.respondToPermission()` 响应权限请求 ([#3985](https://github.com/getpaseo/paseo/pull/3985) by [@omercnet](https://github.com/omercnet))
 - 新增通过 `providers.listUsage()` 查询 Provider 用量 ([#4062](https://github.com/getpaseo/paseo/pull/4062) by [@ivanbrykov](https://github.com/ivanbrykov))
-- 插件 manifest 新增支持的 Paseo 版本要求 ([#4430](https://github.com/getpaseo/paseo/pull/4430))
+- 插件 manifest 新增支持的 Zentic 版本要求 ([#4430](https://github.com/getpaseo/paseo/pull/4430))
 - 插件现在分为客户端和服务端入口，并使用针对各自运行时的 SDK 导入 ([#4347](https://github.com/getpaseo/paseo/pull/4347) by [@liujin0506](https://github.com/liujin0506), [@panrafal](https://github.com/panrafal))
 - Composer 胶囊注册改为使用 `button`、`registration.update()` 和 `registration.remove()` ([#4577](https://github.com/getpaseo/paseo/pull/4577))
-- `paseo plugin ls` 现在显示运行时状态、已安装的提交和加载错误，而无需联系远程 ([#4265](https://github.com/getpaseo/paseo/pull/4265))
+- `zentic plugin ls` 现在显示运行时状态、已安装的提交和加载错误，而无需联系远程 ([#4265](https://github.com/getpaseo/paseo/pull/4265))
 - 修复了 Explorer 菜单中缺少工作区插件面板的问题 ([#4446](https://github.com/getpaseo/paseo/pull/4446))
 
 ### 变更
 
 - 桌面应用现在需要 macOS 13 或更新版本；macOS 12 将不再收到桌面端更新 ([#4322](https://github.com/getpaseo/paseo/pull/4322))
-- `--host` 改为全局 CLI 选项：`paseo --host <target> <command>` ([#4238](https://github.com/getpaseo/paseo/pull/4238))
+- `--host` 改为全局 CLI 选项：`zentic --host <target> <command>` ([#4238](https://github.com/getpaseo/paseo/pull/4238))
 - 侧边栏底部的 Home 按钮改为 Import session ([#4216](https://github.com/getpaseo/paseo/pull/4216))
-- `paseo hub init` 和默认的 `paseo hub deploy` 现在使用 `.paseo/triggers/` 中的组织触发器 ([#4517](https://github.com/getpaseo/paseo/pull/4517))
+- `zentic hub init` 和默认的 `zentic hub deploy` 现在使用 `.zentic/triggers/` 中的组织触发器 ([#4517](https://github.com/getpaseo/paseo/pull/4517))
 - Codex Fast 的可用性改为基于受支持的模型列表，包括 GPT-6 Astra ([#4640](https://github.com/getpaseo/paseo/pull/4640))
 - CLI 安装现在解析到打过补丁的 React 19.1.x 版本 ([#4100](https://github.com/getpaseo/paseo/pull/4100) by [@liujin0506](https://github.com/liujin0506))
 
@@ -1086,7 +1086,7 @@ Paseo 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天
 
 - 修复了 macOS 桌面端更新关闭应用却没有安装新版本的问题 ([#4322](https://github.com/getpaseo/paseo/pull/4322))
 - 修复了发布清单可用之前桌面更新程序就报告已是最新的问题 ([#4201](https://github.com/getpaseo/paseo/pull/4201))
-- 修复了在 Linux `.deb`、RPM 和 tarball 安装中，从桌面端安装的 CLI 执行 `paseo restart` 失败的问题 ([#4207](https://github.com/getpaseo/paseo/pull/4207))
+- 修复了在 Linux `.deb`、RPM 和 tarball 安装中，从桌面端安装的 CLI 执行 `zentic restart` 失败的问题 ([#4207](https://github.com/getpaseo/paseo/pull/4207))
 - 修复了打包后的 macOS Dock 图标显示过大的问题 ([#4389](https://github.com/getpaseo/paseo/pull/4389))
 - 修复了使用工具栏按键或 Enter 时移动端终端键盘关闭又重新打开的问题 ([#4469](https://github.com/getpaseo/paseo/pull/4469))
 - 修复了加载期间收到实时更新时缓存的对话和工作区列表无法显示的问题 ([#4436](https://github.com/getpaseo/paseo/pull/4436))
@@ -1159,7 +1159,7 @@ Paseo 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天
 - Command Center 新增工作区管理和布局操作 ([#3013](https://github.com/getpaseo/paseo/pull/3013) by [@cleiter](https://github.com/cleiter))
 - 新增插件的上下文相关 Composer 胶囊贡献 ([#3956](https://github.com/getpaseo/paseo/pull/3956))
 - 新增面向客户端插件的宿主 UI 基础组件 ([#3967](https://github.com/getpaseo/paseo/pull/3967))
-- Paseo 工具调用新增可读的提示词、详情和结果 ([#4066](https://github.com/getpaseo/paseo/pull/4066))
+- Zentic 工具调用新增可读的提示词、详情和结果 ([#4066](https://github.com/getpaseo/paseo/pull/4066))
 - 工作区图片和助手时间线预览新增缩放和平移 ([#4032](https://github.com/getpaseo/paseo/pull/4032), [#4049](https://github.com/getpaseo/paseo/pull/4049), [#4064](https://github.com/getpaseo/paseo/pull/4064))
 - 新增直接在首选的桌面编辑器中打开子文件夹 ([#3615](https://github.com/getpaseo/paseo/pull/3615) by [@caikovsky](https://github.com/caikovsky))
 - 新增从插件界面导航到 Agent 和工作区 ([#3901](https://github.com/getpaseo/paseo/pull/3901) by [@omercnet](https://github.com/omercnet))
@@ -1273,9 +1273,9 @@ Paseo 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天
 - 新增用于侧边栏组织和过滤的工作区标签 ([#3510](https://github.com/getpaseo/paseo/pull/3510) by [@cleiter](https://github.com/cleiter))
 - 在活动 Agent 的 Composer 上方新增实时的工作区更改计数 ([#3682](https://github.com/getpaseo/paseo/pull/3682))
 - Command Center 新增工作区面板、标签页和窗格操作 ([#3685](https://github.com/getpaseo/paseo/pull/3685))
-- 新增 `paseo project`，可在终端中创建、列出、重命名和删除项目 ([#3460](https://github.com/getpaseo/paseo/pull/3460))
-- 新增 `paseo reload`，无需重启 daemon 即可应用可在运行时安全生效的 `config.json` 更改 ([#3365](https://github.com/getpaseo/paseo/pull/3365))
-- Host → Agents 新增 Paseo 技能管理，包括远程主机 ([#3451](https://github.com/getpaseo/paseo/pull/3451))
+- 新增 `zentic project`，可在终端中创建、列出、重命名和删除项目 ([#3460](https://github.com/getpaseo/paseo/pull/3460))
+- 新增 `zentic reload`，无需重启 daemon 即可应用可在运行时安全生效的 `config.json` 更改 ([#3365](https://github.com/getpaseo/paseo/pull/3365))
+- Host → Agents 新增 Zentic 技能管理，包括远程主机 ([#3451](https://github.com/getpaseo/paseo/pull/3451))
 - 侧边栏显示菜单新增按项目过滤 ([#3563](https://github.com/getpaseo/paseo/pull/3563) by [@cleiter](https://github.com/cleiter))
 - 工作区行新增可选显示的分支和项目名称 ([#3445](https://github.com/getpaseo/paseo/pull/3445))
 - 新增拖放调整已固定工作区的顺序 ([#3341](https://github.com/getpaseo/paseo/pull/3341))
@@ -1323,7 +1323,7 @@ Paseo 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天
 - 修复了自动重试成功期间 Pi 聊天以错误状态结束的问题 ([#3639](https://github.com/getpaseo/paseo/pull/3639))
 - 修复了 macOS 钥匙串中有多个凭据项时 Claude 用量显示为不可用的问题 ([#3597](https://github.com/getpaseo/paseo/pull/3597) by [@t-benoit](https://github.com/t-benoit))
 - 修复了 Provider 用量检查覆盖 Claude 或 Codex 凭据文件的问题 ([#3442](https://github.com/getpaseo/paseo/pull/3442) by [@danberindei](https://github.com/danberindei))
-- 修复了原生线程在 Paseo 之外被归档后活动的 Codex Agent 无法打开的问题 ([#3334](https://github.com/getpaseo/paseo/pull/3334))
+- 修复了原生线程在 Zentic 之外被归档后活动的 Codex Agent 无法打开的问题 ([#3334](https://github.com/getpaseo/paseo/pull/3334))
 - 修复了 Provider 已经结束回合后 Agent 仍然无法停止的问题 ([#3742](https://github.com/getpaseo/paseo/pull/3742))
 - 修复了创建 worktree 时拒绝包含大写字母、下划线或点的合法 Git 分支名的问题 ([#3591](https://github.com/getpaseo/paseo/pull/3591))
 - 修复了 New Workspace 中项目图标显示过时图片的问题 ([#3600](https://github.com/getpaseo/paseo/pull/3600))
@@ -1336,7 +1336,7 @@ Paseo 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天
 
 ### 破坏性变更
 
-- 移除了 `paseo chat` 和 `paseo loop` ([#3053](https://github.com/getpaseo/paseo/pull/3053))
+- 移除了 `zentic chat` 和 `zentic loop` ([#3053](https://github.com/getpaseo/paseo/pull/3053))
 
 ### 新增
 
@@ -1346,7 +1346,7 @@ Paseo 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天
 - 聊天和 Markdown 预览新增可交互的 Mermaid 图表 ([#2306](https://github.com/getpaseo/paseo/pull/2306) by [@dmeledon](https://github.com/dmeledon))
 - 在 Composer 上方和时间线中新增实时任务进度 ([#3227](https://github.com/getpaseo/paseo/pull/3227))
 - 新增用于生成工作区标题、分支名、提交和拉取请求草稿的模型设置 ([#3215](https://github.com/getpaseo/paseo/pull/3215))
-- 新增受支持的 `@getpaseo/client` TypeScript SDK ([#3141](https://github.com/getpaseo/paseo/pull/3141))
+- 新增受支持的 `@getzentic/client` TypeScript SDK ([#3141](https://github.com/getpaseo/paseo/pull/3141))
 - CLI 新增 Provider 安装诊断 ([#3243](https://github.com/getpaseo/paseo/pull/3243))
 - CLI 新增工作区重命名 ([#3209](https://github.com/getpaseo/paseo/pull/3209) by [@martinhanzik](https://github.com/martinhanzik))
 
@@ -1367,7 +1367,7 @@ Paseo 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天
 - 修复了连接中断期间语音输入录音丢失的问题 ([#3159](https://github.com/getpaseo/paseo/pull/3159))
 - 修复了新工作区复用已有 worktree 的问题 ([#3224](https://github.com/getpaseo/paseo/pull/3224))
 - 修复了新 worktree 忽略 Project Settings 中保存的设置命令的问题 ([#3233](https://github.com/getpaseo/paseo/pull/3233))
-- 修复了所选基础分支包含不同的 `paseo.json` 时新 worktree 变脏的问题 ([#3311](https://github.com/getpaseo/paseo/pull/3311))
+- 修复了所选基础分支包含不同的 `zentic.json` 时新 worktree 变脏的问题 ([#3311](https://github.com/getpaseo/paseo/pull/3311))
 - 修复了已移除的主机仍继续收到推送通知的问题 ([#3176](https://github.com/getpaseo/paseo/pull/3176))
 - 修复了权限提示或工作区关闭后委派 Agent 的通知停止的问题 ([#3177](https://github.com/getpaseo/paseo/pull/3177), [#3192](https://github.com/getpaseo/paseo/pull/3192) by [@thomasvan](https://github.com/thomasvan), [@wilgon456](https://github.com/wilgon456))
 - 修复了模型目录超过 protocol-v1 帧大小限制时 OMP Agent 无法启动的问题 ([#3184](https://github.com/getpaseo/paseo/pull/3184) by [@pi3123](https://github.com/pi3123))
@@ -1379,7 +1379,7 @@ Paseo 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天
 - 修复了持久化缓存不兼容时崩溃的问题 ([#3289](https://github.com/getpaseo/paseo/pull/3289))
 - 修复了打开的委派 Agent 随其父 Agent 一起被归档的问题 ([#3279](https://github.com/getpaseo/paseo/pull/3279))
 - 修复了配置包含所选 Provider 不支持的模式时创建 Agent 的问题 ([#3331](https://github.com/getpaseo/paseo/pull/3331))
-- 修复了 Claude Agent 需要等待 Paseo 十分钟 MCP 超时的问题 ([#3315](https://github.com/getpaseo/paseo/pull/3315))
+- 修复了 Claude Agent 需要等待 Zentic 十分钟 MCP 超时的问题 ([#3315](https://github.com/getpaseo/paseo/pull/3315))
 - 修复了 Hermes Agent 的 Copy resume command ([#3300](https://github.com/getpaseo/paseo/pull/3300) by [@desmond-rai](https://github.com/desmond-rai))
 
 ## 0.3.1 - 2026-08-09
@@ -1427,7 +1427,7 @@ Paseo 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天
 - 可以在聊天中的提示词之间跳转 ([#2792](https://github.com/getpaseo/paseo/pull/2792))
 - 可以预览 HTML 文件 ([#2712](https://github.com/getpaseo/paseo/pull/2712) by [@nicholas-salgueiro-britecore](https://github.com/nicholas-salgueiro-britecore), [@nickmaglowsch](https://github.com/nickmaglowsch))
 - 可以在子 Agent 栏中查看 Claude workflow ([#2933](https://github.com/getpaseo/paseo/pull/2933))
-- 可以选择 Paseo 安装哪些编排技能 ([#2680](https://github.com/getpaseo/paseo/pull/2680))
+- 可以选择 Zentic 安装哪些编排技能 ([#2680](https://github.com/getpaseo/paseo/pull/2680))
 - 可以用一个设置批准所有 ACP 工具调用 ([#2752](https://github.com/getpaseo/paseo/pull/2752))
 - 可以为直接主机连接添加自定义 HTTP 头 ([#2922](https://github.com/getpaseo/paseo/pull/2922))
 - 可以选择本地分支或其对应的 origin 分支作为新 worktree 的基础 ([#2328](https://github.com/getpaseo/paseo/pull/2328) by [@mcowger](https://github.com/mcowger))
@@ -1439,7 +1439,7 @@ Paseo 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天
 - 最近的聊天在后台保持实时，切换回去时立即显示最新消息 ([#2842](https://github.com/getpaseo/paseo/pull/2842))
 - 从 Settings 返回工作区更快 ([#2791](https://github.com/getpaseo/paseo/pull/2791))
 - 大型仓库中的工作区 Git 状态保持响应 ([#2979](https://github.com/getpaseo/paseo/pull/2979))
-- 在繁忙的机器上 Paseo 运行更少的 git 进程 ([#2797](https://github.com/getpaseo/paseo/pull/2797))
+- 在繁忙的机器上 Zentic 运行更少的 git 进程 ([#2797](https://github.com/getpaseo/paseo/pull/2797))
 - 复制助手回复的一部分时保留其列表、链接和格式 ([#2808](https://github.com/getpaseo/paseo/pull/2808), [#2930](https://github.com/getpaseo/paseo/pull/2930), [#2935](https://github.com/getpaseo/paseo/pull/2935) by [@cleiter](https://github.com/cleiter))
 - 可以查看原生 Claude 子 Agent 的完整对话 ([#2498](https://github.com/getpaseo/paseo/pull/2498) by [@ebg1223](https://github.com/ebg1223), [#2760](https://github.com/getpaseo/paseo/pull/2760))
 - OpenCode 子 Agent 显示其任务、类型、模型和 token 用量 ([#2909](https://github.com/getpaseo/paseo/pull/2909) by [@BrianAguilarWasco](https://github.com/BrianAguilarWasco))
@@ -1457,7 +1457,7 @@ Paseo 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天
 - 文件变化或被删除时，文件查看器显示一个准确的状态 ([#2670](https://github.com/getpaseo/paseo/pull/2670), [#2694](https://github.com/getpaseo/paseo/pull/2694))
 - Nix 桌面包更小 ([#2550](https://github.com/getpaseo/paseo/pull/2550) by [@colonelpanic8](https://github.com/colonelpanic8))
 - Nix 桌面应用在 Linux 和 macOS 上使用正确的图标 ([#2506](https://github.com/getpaseo/paseo/pull/2506), [#2783](https://github.com/getpaseo/paseo/pull/2783) by [@colonelpanic8](https://github.com/colonelpanic8))
-- 可以在 macOS 上通过 Nix flake 构建 Paseo Desktop ([#2556](https://github.com/getpaseo/paseo/pull/2556) by [@colonelpanic8](https://github.com/colonelpanic8))
+- 可以在 macOS 上通过 Nix flake 构建 Zentic Desktop ([#2556](https://github.com/getpaseo/paseo/pull/2556) by [@colonelpanic8](https://github.com/colonelpanic8))
 
 ### 修复
 
@@ -1518,7 +1518,7 @@ Paseo 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天
 - 中断 Pi 不再显示流错误 ([#2311](https://github.com/getpaseo/paseo/pull/2311) by [@mcowger](https://github.com/mcowger))
 - Settings 中重新显示 Grok 用量 ([#2353](https://github.com/getpaseo/paseo/pull/2353) by [@jasonhnd](https://github.com/jasonhnd))
 - 不报告上下文窗口的 OMP 模型现在可以加载 ([#2406](https://github.com/getpaseo/paseo/pull/2406) by [@astartsky](https://github.com/astartsky))
-- Paseo 自己的工具可以直接在 OMP 中使用 ([#2418](https://github.com/getpaseo/paseo/pull/2418) by [@perezd](https://github.com/perezd))
+- Zentic 自己的工具可以直接在 OMP 中使用 ([#2418](https://github.com/getpaseo/paseo/pull/2418) by [@perezd](https://github.com/perezd))
 - Codex 可以找到项目中定义的技能 ([#2423](https://github.com/getpaseo/paseo/pull/2423) by [@dwyanewang](https://github.com/dwyanewang))
 - 包含 HTML 的拉取请求评论可以正确渲染 ([#2432](https://github.com/getpaseo/paseo/pull/2432) by [@mcowger](https://github.com/mcowger))
 - 自托管 forge 链接保留其端口 ([#2478](https://github.com/getpaseo/paseo/pull/2478) by [@muzhi1991](https://github.com/muzhi1991))
@@ -1577,7 +1577,7 @@ Paseo 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天
 - 可以直接从 Files 和 Changes 把文件添加到聊天 ([#2275](https://github.com/getpaseo/paseo/pull/2275) by [@nikuscs](https://github.com/nikuscs))
 - 可以在 Changes 中浏览工作区的提交历史并打开单个提交的 diff ([#1534](https://github.com/getpaseo/paseo/pull/1534), [#2146](https://github.com/getpaseo/paseo/pull/2146), [#2312](https://github.com/getpaseo/paseo/pull/2312) by [@adradr](https://github.com/adradr))
 - 可以从 Command Center 为活动的 Agent 和新草稿切换模型 ([#2147](https://github.com/getpaseo/paseo/pull/2147) by [@kedrzu](https://github.com/kedrzu))
-- 可以从 Paseo 链接或 CLI 打开已有的 Agent ([#2324](https://github.com/getpaseo/paseo/pull/2324))
+- 可以从 Zentic 链接或 CLI 打开已有的 Agent ([#2324](https://github.com/getpaseo/paseo/pull/2324))
 - 可以用固定范围或外部分配器配置工作区服务端口 ([#2165](https://github.com/getpaseo/paseo/pull/2165) by [@mcowger](https://github.com/mcowger))
 - 可以按操作、说明或按键组合搜索键盘快捷键 ([#2160](https://github.com/getpaseo/paseo/pull/2160))
 - 可以为支持的 Claude 模型关闭思考 ([#2257](https://github.com/getpaseo/paseo/pull/2257))
@@ -1628,7 +1628,7 @@ Paseo 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天
 - 重新打开紧凑侧边栏时已固定的工作区不再短暂消失 ([#2210](https://github.com/getpaseo/paseo/pull/2210))
 - 焦点或可见性变化后终端窗格不再停留在 80x24 ([#2059](https://github.com/getpaseo/paseo/pull/2059), [#2154](https://github.com/getpaseo/paseo/pull/2154) by [@cleiter](https://github.com/cleiter))
 - 桌面浏览器中的登录弹窗现在可以顺利完成 ([#2137](https://github.com/getpaseo/paseo/pull/2137))
-- 在浏览器中输入和使用快捷键不再提交当前的 Paseo 提示词 ([#1982](https://github.com/getpaseo/paseo/pull/1982))
+- 在浏览器中输入和使用快捷键不再提交当前的 Zentic 提示词 ([#1982](https://github.com/getpaseo/paseo/pull/1982))
 - 切换工作区后 Agent 的浏览器标签页仍可控制 ([#2156](https://github.com/getpaseo/paseo/pull/2156))
 - 已归档的工作区现在显示正确的 Unarchive 或 Restore 操作 ([#2002](https://github.com/getpaseo/paseo/pull/2002))
 - 可以把已归档的会话重新导入当前工作区 ([#2123](https://github.com/getpaseo/paseo/pull/2123), [#2265](https://github.com/getpaseo/paseo/pull/2265) by [@nikuscs](https://github.com/nikuscs))
@@ -1644,11 +1644,11 @@ Paseo 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天
 
 > **重要更新通知**
 >
-> 如果你安装的是 Paseo Desktop 0.1.108，需要[手动下载并重新安装 Paseo](https://paseo.sh/download) 才能获得此修复。0.1.108 中的缺陷导致其自动更新程序无法安装 0.1.109。使用 0.1.107 或更早版本的用户可以正常更新。
+> 如果你安装的是 Zentic Desktop 0.1.108，需要[手动下载并重新安装 Zentic](https://zentic.sh/download) 才能获得此修复。0.1.108 中的缺陷导致其自动更新程序无法安装 0.1.109。使用 0.1.107 或更早版本的用户可以正常更新。
 
 ### 修复
 
-- Paseo Desktop 更新后不再卡在连接中或丢失原生窗口控件 ([#2111](https://github.com/getpaseo/paseo/pull/2111) by [@cleiter](https://github.com/cleiter))
+- Zentic Desktop 更新后不再卡在连接中或丢失原生窗口控件 ([#2111](https://github.com/getpaseo/paseo/pull/2111) by [@cleiter](https://github.com/cleiter))
 
 ## 0.1.108 - 2026-07-16
 
@@ -1673,16 +1673,16 @@ Paseo 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天
 ### 修复
 
 - 切换项目或主机时，New Workspace 保留你的提示词和附件 ([#2030](https://github.com/getpaseo/paseo/pull/2030), [#2036](https://github.com/getpaseo/paseo/pull/2036))
-- OpenCode 会话关闭时不再导致 Paseo 崩溃 ([#2027](https://github.com/getpaseo/paseo/pull/2027) by [@mcowger](https://github.com/mcowger))
+- OpenCode 会话关闭时不再导致 Zentic 崩溃 ([#2027](https://github.com/getpaseo/paseo/pull/2027) by [@mcowger](https://github.com/mcowger))
 - Pi 斜杠命令不再让聊天卡在运行中 ([#2066](https://github.com/getpaseo/paseo/pull/2066) by [@ebg1223](https://github.com/ebg1223))
 - 后台 Agent 的更新现在显示在主回复之后 ([#2058](https://github.com/getpaseo/paseo/pull/2058) by [@1254087415](https://github.com/1254087415))
 - Codex 子 Agent 不再从 Subagents 栏中消失 ([#2068](https://github.com/getpaseo/paseo/pull/2068))
 - fork 的聊天在新标签页中打开后即可编辑 ([#2038](https://github.com/getpaseo/paseo/pull/2038))
-- 关机被中断后 Paseo Desktop 可以正常打开 ([#1962](https://github.com/getpaseo/paseo/pull/1962))
+- 关机被中断后 Zentic Desktop 可以正常打开 ([#1962](https://github.com/getpaseo/paseo/pull/1962))
 - 键盘快捷键现在可以使用 `-`、`=`、`;` 和 `'` ([#2047](https://github.com/getpaseo/paseo/pull/2047) by [@OnCloud125252](https://github.com/OnCloud125252))
 - Codebuddy Code 模型现在出现在模型选择器中 ([#1979](https://github.com/getpaseo/paseo/pull/1979) by [@park0er](https://github.com/park0er))
 - 工作区搜索现在包含 OpenCode 命令和 workflow ([#2049](https://github.com/getpaseo/paseo/pull/2049))
-- Nix 安装现在包含 Paseo Web 应用 ([#1978](https://github.com/getpaseo/paseo/pull/1978) by [@liamdiprose](https://github.com/liamdiprose))
+- Nix 安装现在包含 Zentic Web 应用 ([#1978](https://github.com/getpaseo/paseo/pull/1978) by [@liamdiprose](https://github.com/liamdiprose))
 
 ## 0.1.107 - 2026-07-13
 
@@ -1713,7 +1713,7 @@ Paseo 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天
 
 ### 新增
 
-- 可以在 Paseo 中批准 Codex MCP 权限请求 ([#2001](https://github.com/getpaseo/paseo/pull/2001))
+- 可以在 Zentic 中批准 Codex MCP 权限请求 ([#2001](https://github.com/getpaseo/paseo/pull/2001))
 
 ### 改进
 
@@ -1724,7 +1724,7 @@ Paseo 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天
 - 减少了 Agent 流式输出时切换工作区导致的移动端聊天冻结和白屏 ([#1989](https://github.com/getpaseo/paseo/pull/1989))
 - OpenCode 会话可以可靠地启动，不再偶尔丢失第一个回合 ([#2015](https://github.com/getpaseo/paseo/pull/2015) by [@mcowger](https://github.com/mcowger))
 - 在工作区之间切换不再闪白屏
-- Paseo 添加自己的 MCP 工具时，Pi 保留你已有的 MCP 工具和设置 ([#1990](https://github.com/getpaseo/paseo/pull/1990) by [@mcowger](https://github.com/mcowger))
+- Zentic 添加自己的 MCP 工具时，Pi 保留你已有的 MCP 工具和设置 ([#1990](https://github.com/getpaseo/paseo/pull/1990) by [@mcowger](https://github.com/mcowger))
 
 ## 0.1.105 - 2026-07-10
 
@@ -1772,7 +1772,7 @@ Paseo 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天
 - Agent 打开的浏览器标签页会保持在后台，直到你切换过去 ([#1875](https://github.com/getpaseo/paseo/pull/1875))
 - Agent 提问时的卡片更清晰 ([#1643](https://github.com/getpaseo/paseo/pull/1643) by [@cleiter](https://github.com/cleiter))
 - 诊断报告包含桌面应用日志 ([#1914](https://github.com/getpaseo/paseo/pull/1914))
-- Paseo 的内置工具占用更少的上下文 ([#1939](https://github.com/getpaseo/paseo/pull/1939))
+- Zentic 的内置工具占用更少的上下文 ([#1939](https://github.com/getpaseo/paseo/pull/1939))
 
 ### 修复
 
@@ -1801,7 +1801,7 @@ Paseo 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天
 - 可以把聊天 fork 到新标签页或新 worktree ([#1788](https://github.com/getpaseo/paseo/pull/1788))
 - 可以查看所有已连接主机上的工作区 ([#1538](https://github.com/getpaseo/paseo/pull/1538), [#1775](https://github.com/getpaseo/paseo/pull/1775), [#1825](https://github.com/getpaseo/paseo/pull/1825))
 - daemon 现在可以提供 Web UI ([#1635](https://github.com/getpaseo/paseo/pull/1635), [#1739](https://github.com/getpaseo/paseo/pull/1739))
-- 可以使用官方 Docker 镜像运行 Paseo ([#1740](https://github.com/getpaseo/paseo/pull/1740) by [@Herbrant](https://github.com/Herbrant))
+- 可以使用官方 Docker 镜像运行 Zentic ([#1740](https://github.com/getpaseo/paseo/pull/1740) by [@Herbrant](https://github.com/Herbrant))
 - 可以从应用远程更新 daemon ([#1513](https://github.com/getpaseo/paseo/pull/1513) by [@thedavidweng](https://github.com/thedavidweng))
 - 可以为语音转文字和文字转语音分别配置 OpenAI 端点 ([#1823](https://github.com/getpaseo/paseo/pull/1823))
 - 可以把文件拖放到任何 Composer 中 ([#1750](https://github.com/getpaseo/paseo/pull/1750), [#1801](https://github.com/getpaseo/paseo/pull/1801))
@@ -1828,7 +1828,7 @@ Paseo 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天
 - 流式输出的聊天图片保持顺序 ([#1805](https://github.com/getpaseo/paseo/pull/1805))
 - 聊天操作保持在工具输出下方 ([#1827](https://github.com/getpaseo/paseo/pull/1827))
 - Claude 子 Agent 的旁白不再出现在聊天中 ([#1807](https://github.com/getpaseo/paseo/pull/1807))
-- Kiro 的斜杠命令和技能出现在 Paseo 中 ([#1792](https://github.com/getpaseo/paseo/pull/1792) by [@park0er](https://github.com/park0er))
+- Kiro 的斜杠命令和技能出现在 Zentic 中 ([#1792](https://github.com/getpaseo/paseo/pull/1792) by [@park0er](https://github.com/park0er))
 - 存在过时的项目记录时 Agent 列表仍可正常显示 ([#1812](https://github.com/getpaseo/paseo/pull/1812))
 - Windows 图片预览可以处理带盘符的路径 ([#1811](https://github.com/getpaseo/paseo/pull/1811))
 - OpenCode 在 Windows 上可以正常关闭 ([#1771](https://github.com/getpaseo/paseo/pull/1771) by [@agamotto](https://github.com/agamotto))
@@ -1836,7 +1836,7 @@ Paseo 0.8 新增插件标题栏按钮、自定义 Provider 和更丰富的聊天
 - Claude Code 清理时会终止子进程 ([#1540](https://github.com/getpaseo/paseo/pull/1540) by [@TommyLike](https://github.com/TommyLike))
 - OpenCode 不再索引你的主目录 ([#1704](https://github.com/getpaseo/paseo/pull/1704) by [@rex-chang](https://github.com/rex-chang))
 - 打包的 macOS CLI daemon 不再显示额外的 Dock 图标 ([#1759](https://github.com/getpaseo/paseo/pull/1759) by [@yzim](https://github.com/yzim))
-- `paseo daemon status` 无需加载 Agent 即可工作 ([#1810](https://github.com/getpaseo/paseo/pull/1810))
+- `zentic daemon status` 无需加载 Agent 即可工作 ([#1810](https://github.com/getpaseo/paseo/pull/1810))
 - PR worktree 正确显示已推送状态 ([#1804](https://github.com/getpaseo/paseo/pull/1804))
 
 ## 0.1.101 - 2026-06-26
@@ -2036,7 +2036,7 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 
 ### 修复
 
-- 新的 Paseo worktree 分支可以推送其第一批提交
+- 新的 Zentic worktree 分支可以推送其第一批提交
 - 导入的会话不再打开为空白或打开到错误的工作区
 - Windows 资源管理器打开所选的工作区而不是 Documents ([#1412](https://github.com/getpaseo/paseo/pull/1412) by [@bjspi](https://github.com/bjspi))
 - 以命令 shim 方式安装的 Windows 编辑器快捷方式可以正确启动 ([#1387](https://github.com/getpaseo/paseo/pull/1387) by [@Peter7896](https://github.com/Peter7896))
@@ -2085,7 +2085,7 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 - 新工作区界面不再在移动端侧边栏后面打开
 - 全局 Agent 列表恢复正常 ([#1420](https://github.com/getpaseo/paseo/pull/1420))
 - OpenCode 压缩摘要不再出现在聊天中
-- 共享同一工作区的 OpenCode Agent 各自保留自己的 Paseo 工具
+- 共享同一工作区的 OpenCode Agent 各自保留自己的 Zentic 工具
 
 ## 0.1.90 - 2026-06-04
 
@@ -2095,7 +2095,7 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 - **无需先选择项目，即可从全局侧边栏按钮开始一个新工作区** ([#1324](https://github.com/getpaseo/paseo/pull/1324))
 - **直接在编辑器、文件管理器或 GitHub 中打开当前文件，而不只是打开工作区根目录** ([#1285](https://github.com/getpaseo/paseo/pull/1285) by [@aaronzhongg](https://github.com/aaronzhongg))
 - **可以在主机设置中开启：PR 合并后自动归档干净的 PR 工作区** ([#1313](https://github.com/getpaseo/paseo/pull/1313))
-- **安装较新的桌面构建后，桌面端管理的 Paseo 技能保持最新** ([#1309](https://github.com/getpaseo/paseo/pull/1309))
+- **安装较新的桌面构建后，桌面端管理的 Zentic 技能保持最新** ([#1309](https://github.com/getpaseo/paseo/pull/1309))
 - **Dart 文件和 Dart 代码块现在支持语法高亮** ([#1326](https://github.com/getpaseo/paseo/pull/1326))
 
 ### 改进
@@ -2105,7 +2105,7 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 - 定时运行的 Agent 打开时显示真实的提示词和标题，而不是看起来空空的 ([#1316](https://github.com/getpaseo/paseo/pull/1316))
 - Git 控件优先提供让已就绪的分支得以发布的操作 ([#1316](https://github.com/getpaseo/paseo/pull/1316))
 - 多个 Agent 问题逐个显示
-- 带有自由填写答案的 OpenCode 问题会在 Paseo 中显示输入的回复
+- 带有自由填写答案的 OpenCode 问题会在 Zentic 中显示输入的回复
 - 委派的 Agent 活动在父工作区中可见
 - 会话按最近活动排序
 - 更新了 ACP Provider 目录中 Claude Agent、Cline、Codebuddy Code、Factory Droid 和 Qoder 的条目
@@ -2176,7 +2176,7 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 
 ### 新增
 
-- OpenCode 子 Agent 的权限提示现在会在 Paseo 中显示，以便你批准或拒绝
+- OpenCode 子 Agent 的权限提示现在会在 Zentic 中显示，以便你批准或拒绝
 
 ### 修复
 
@@ -2227,10 +2227,10 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 
 ### 改进
 
-- 可以复制 OpenCode 的恢复命令，在 Paseo 之外继续该会话
+- 可以复制 OpenCode 的恢复命令，在 Zentic 之外继续该会话
 - 模型选择器列出所有已启用的 Provider，某个 Provider 加载失败时提供 Retry 按钮
 - Provider 设置更易于搜索和管理
-- 通过 MCP 连接到 Paseo 的其他 Agent 看到的 Provider、模型和模式与应用中一致 ([#1198](https://github.com/getpaseo/paseo/pull/1198))
+- 通过 MCP 连接到 Zentic 的其他 Agent 看到的 Provider、模型和模式与应用中一致 ([#1198](https://github.com/getpaseo/paseo/pull/1198))
 - OpenCode Edit 工具调用渲染为内联 diff
 - 输入斜杠命令时最佳匹配排在最前面
 - 在包含许多 git 文件夹的工作区中 daemon 启动更快
@@ -2291,8 +2291,8 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 
 ### 新增
 
-- **现在可以从支持的浏览器把 Paseo 安装为 Web 应用** ([#1144](https://github.com/getpaseo/paseo/pull/1144))
-- **Pi 扩展对话框现在以 Paseo 权限提示的形式出现** ([#1134](https://github.com/getpaseo/paseo/pull/1134) by [@yuruiz](https://github.com/yuruiz))
+- **现在可以从支持的浏览器把 Zentic 安装为 Web 应用** ([#1144](https://github.com/getpaseo/paseo/pull/1144))
+- **Pi 扩展对话框现在以 Zentic 权限提示的形式出现** ([#1134](https://github.com/getpaseo/paseo/pull/1134) by [@yuruiz](https://github.com/yuruiz))
 - 侧边栏新增社区链接和主页按钮
 
 ### 改进
@@ -2326,7 +2326,7 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 
 - **Pi 全面改版，获得一流支持**
   - 通过你已安装的 Pi CLI 运行，因此你的 Pi 扩展和配置都会沿用
-  - 安装了 Pi MCP 扩展后，Pi Agent 可以调用 Paseo 工具
+  - 安装了 Pi MCP 扩展后，Pi Agent 可以调用 Zentic 工具
   - 可以导入你在终端中启动的 Pi 会话
   - 可以从任意 Agent 复制 Pi 的恢复命令，在终端中继续该会话
   - Windows：通过符号链接和目录联接访问的工作区路径中，Pi 会话能正确匹配
@@ -2343,7 +2343,7 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 ### 改进
 
 - **过时的主机连接会自动恢复，无需手动刷新**
-- Paseo 会打开到你上次使用时所在的工作区 ([#1101](https://github.com/getpaseo/paseo/pull/1101))
+- Zentic 会打开到你上次使用时所在的工作区 ([#1101](https://github.com/getpaseo/paseo/pull/1101))
 - 工作区会记住你用哪个编辑器打开它们
 - 过时的 daemon 在收到无法理解的命令时会建议升级
 - Agent 运行时隐藏语音模式
@@ -2431,7 +2431,7 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 - Claude Code 现在会读取 `~/.claude/settings.json` 中的模型，因此自定义的模型列表会显示在模型选择器中
 - 本地的 Claude Code 设置（`.claude/settings.local.json`）按工作区生效
 - 通用 ACP Provider 的诊断信息显示在模型选择器中
-- 可以为 Paseo 子 Agent 设置 fast 模式 ([#909](https://github.com/getpaseo/paseo/pull/909), [#910](https://github.com/getpaseo/paseo/pull/910) by [@kongjiadongyuan](https://github.com/kongjiadongyuan))
+- 可以为 Zentic 子 Agent 设置 fast 模式 ([#909](https://github.com/getpaseo/paseo/pull/909), [#910](https://github.com/getpaseo/paseo/pull/910) by [@kongjiadongyuan](https://github.com/kongjiadongyuan))
 
 ### 改进
 
@@ -2482,7 +2482,7 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 
 ### 修复
 
-- **OpenCode Agent 的回合不再停滞** Paseo 现在跟随 OpenCode 的全局事件流，因此回合能可靠地流式输出，而不会退回到脆弱的恢复路径 ([#916](https://github.com/getpaseo/paseo/pull/916))
+- **OpenCode Agent 的回合不再停滞** Zentic 现在跟随 OpenCode 的全局事件流，因此回合能可靠地流式输出，而不会退回到脆弱的恢复路径 ([#916](https://github.com/getpaseo/paseo/pull/916))
 
 ## 0.1.73 - 2026-05-10
 
@@ -2513,10 +2513,10 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 
 ### 新增
 
-- **把已有的 Claude、Codex 和 OpenCode 会话导入** Paseo——在终端中开始的对话可以在应用中继续，并保留完整的时间线 ([#766](https://github.com/getpaseo/paseo/pull/766), [#833](https://github.com/getpaseo/paseo/pull/833))
+- **把已有的 Claude、Codex 和 OpenCode 会话导入** Zentic——在终端中开始的对话可以在应用中继续，并保留完整的时间线 ([#766](https://github.com/getpaseo/paseo/pull/766), [#833](https://github.com/getpaseo/paseo/pull/833))
 - **子 Agent 现在显示在 Composer 上方的可折叠区域中**，方便你跳转到主 Agent 创建的 Agent ([#532](https://github.com/getpaseo/paseo/pull/532))
 - 直接从检出窗格合并拉取请求 ([#814](https://github.com/getpaseo/paseo/pull/814))
-- 自定义 Paseo 按项目用于自动生成 Agent 标题、分支名、提交信息和拉取请求描述的提示词 ([#836](https://github.com/getpaseo/paseo/pull/836))
+- 自定义 Zentic 按项目用于自动生成 Agent 标题、分支名、提交信息和拉取请求描述的提示词 ([#836](https://github.com/getpaseo/paseo/pull/836))
 - 无需先输入提示词即可打开空工作区 ([#834](https://github.com/getpaseo/paseo/pull/834))
 - 项目设置现在分组显示，并带有指向相关文档的行内链接 ([#837](https://github.com/getpaseo/paseo/pull/837))
 - 桌面端提供丰富的上下文菜单——复制链接、复制图片和拼写检查建议
@@ -2542,7 +2542,7 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 
 ### 破坏性变更
 
-- **Claude Agent 现在要求 `claude` 位于 PATH 中** 运行 Claude Agent 之前请全局安装 Claude Code（`npm install -g @anthropic-ai/claude-code`）——Paseo 不再附带内置的回退二进制。这与 Codex 和 OpenCode 的做法一致，并让每个平台的桌面安装包缩小约 210 MB
+- **Claude Agent 现在要求 `claude` 位于 PATH 中** 运行 Claude Agent 之前请全局安装 Claude Code（`npm install -g @anthropic-ai/claude-code`）——Zentic 不再附带内置的回退二进制。这与 Codex 和 OpenCode 的做法一致，并让每个平台的桌面安装包缩小约 210 MB
 
 ### 新增
 
@@ -2550,9 +2550,9 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 - Codex `/goal` 斜杠命令——在 Codex Agent 运行时于回合中途设置或更新目标
 - 模型选择器中现在可以选择 Claude 的 Sonnet 4.6 1M 上下文模型
 - 识别粘贴到 Composer 搜索中的 GitHub issue 和 PR URL
-- `paseo worktree create` CLI 命令，功能与 MCP `create_worktree` 工具对等
-- `paseo schedule update` 可以原地编辑定时任务，无需重新创建
-- 用于 cron 式触发的 `paseo schedule run-once`，以及 `schedule` 和 `loop` 上的 `--mode`。后台运行现在默认使用无人值守模式
+- `zentic worktree create` CLI 命令，功能与 MCP `create_worktree` 工具对等
+- `zentic schedule update` 可以原地编辑定时任务，无需重新创建
+- 用于 cron 式触发的 `zentic schedule run-once`，以及 `schedule` 和 `loop` 上的 `--mode`。后台运行现在默认使用无人值守模式
 - 项目设置现在列出来自任意远程仓库的工作区——GitLab、Gitea、Bitbucket、自托管和 SSH 风格的 URL，而不只是 GitHub ([#681](https://github.com/getpaseo/paseo/pull/681) by [@krumpyzoid](https://github.com/krumpyzoid))
 
 ### 改进
@@ -2576,7 +2576,7 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 - 检出的简要统计现在会计入未跟踪的文件 ([#608](https://github.com/getpaseo/paseo/issues/608), [#762](https://github.com/getpaseo/paseo/pull/762) by [@somus](https://github.com/somus))
 - 端口 443 上的中继端点会自动使用 TLS ([#774](https://github.com/getpaseo/paseo/pull/774) by [@caoer](https://github.com/caoer))
 - 桌面端 CLI 透传的 TTY 处理——从桌面应用启动的交互式命令现在行为正确
-- CLI 会遵循 `PASEO_PASSWORD` 环境变量来连接受密码保护的 daemon
+- CLI 会遵循 `ZENTIC_PASSWORD` 环境变量来连接受密码保护的 daemon
 - daemon 关闭时使用 tree-kill 干净地终止所有子进程
 - Agent 启动路径能更可靠地处理缺失的可执行文件和非常规的安装布局
 - OpenCode 现在会转发 Provider 的重试错误，而不是静默吞掉
@@ -2592,15 +2592,15 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 - 在已注册工作区的子目录中创建 Agent 现在会在该子目录中运行，而不是跳到父目录 ([#551](https://github.com/getpaseo/paseo/issues/551))
 - 非 GitHub 项目的显示名称取自远程仓库的 owner/repo，而不是本地路径
 - 桌面端 IPC 封装进共享的 mutation/query hook，修复了过时状态和间歇性失败 ([#761](https://github.com/getpaseo/paseo/issues/761))
-- `paseo schedule create --host` 现在要求 `--cwd`，以免在错误的目录中运行定时任务
-- `paseo schedule create --every` 默认立即运行一次，之后按配置的间隔运行
+- `zentic schedule create --host` 现在要求 `--cwd`，以免在错误的目录中运行定时任务
+- `zentic schedule create --every` 默认立即运行一次，之后按配置的间隔运行
 - MCP `create_agent` 会校验所请求的模式，并拒绝静默的跨 Provider 继承
 
 ## 0.1.69 - 2026-05-05
 
 ### 修复
 
-- 内部 daemon 进程崩溃时 Paseo 现在会自动恢复——你的 Agent 保持连接而不会卡住，你也无需重启任何东西
+- 内部 daemon 进程崩溃时 Zentic 现在会自动恢复——你的 Agent 保持连接而不会卡住，你也无需重启任何东西
 - 回答 Claude Agent 的交互式问题现在能正确送达 Claude，而不会被丢弃 ([#760](https://github.com/getpaseo/paseo/pull/760) by [@somus](https://github.com/somus))
 
 ## 0.1.68 - 2026-05-05
@@ -2635,11 +2635,11 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 - git diff 窗格中的行内审查评论。点击行号即可开始评论 ([#530](https://github.com/getpaseo/paseo/pull/530))
 - 现在会显示 Codex、OpenCode 和 Claude 的子 Agent 活动 ([#672](https://github.com/getpaseo/paseo/pull/672), [#658](https://github.com/getpaseo/paseo/pull/658) by [@thisisryanswift](https://github.com/thisisryanswift))
 - 在更改窗格的 git 操作菜单中一步完成分支的拉取和推送
-- 使用 `paseo import --provider <name> <id>` 恢复已有的 Agent 会话 ([#632](https://github.com/getpaseo/paseo/pull/632))
+- 使用 `zentic import --provider <name> <id>` 恢复已有的 Agent 会话 ([#632](https://github.com/getpaseo/paseo/pull/632))
 - daemon 连接支持密码认证和 SSL ([#635](https://github.com/getpaseo/paseo/pull/635))
 - 在 CLI 中使用配对邀请 URL 通过中继连接到 daemon ([#639](https://github.com/getpaseo/paseo/pull/639))
 - **Windows：** 现在提供原生 ARM64 构建
-- 内置的 Paseo 技能现在会在桌面应用启动时自动刷新
+- 内置的 Zentic 技能现在会在桌面应用启动时自动刷新
 
 ### 改进
 
@@ -2652,7 +2652,7 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 ### 修复
 
 - **Apple Silicon Mac：** 桌面更新流水线现在以原子方式发布清单，消除了可能在 Apple Silicon Mac 上安装 Intel 构建并导致渲染进程 CPU 占用超过 100% 的竞态。受影响的用户会自动恢复——electron-updater 的 Rosetta 检测会在下一次检查更新时迁回 arm64 ([#555](https://github.com/getpaseo/paseo/issues/555))
-- **Linux：** `.deb` 和 `.rpm` 包现在在程序坞和进程列表中显示为 `Paseo`，而不是 `Paseo.bin`。`--no-sandbox` 现在只作用于 AppImage，与 VS Code 的沙箱处理一致 ([#602](https://github.com/getpaseo/paseo/issues/602))
+- **Linux：** `.deb` 和 `.rpm` 包现在在程序坞和进程列表中显示为 `Zentic`，而不是 `Zentic.bin`。`--no-sandbox` 现在只作用于 AppImage，与 VS Code 的沙箱处理一致 ([#602](https://github.com/getpaseo/paseo/issues/602))
 - **Windows：** Git diff 命令遇到包含特殊字符的路径不再出错 ([#629](https://github.com/getpaseo/paseo/pull/629))
 - Cursor CLI 和其他 ACP 自定义 Provider 可以可靠地启动 ([#628](https://github.com/getpaseo/paseo/pull/628))
 - WebSocket 客户端在流中途断开时 daemon 保持运行，崩溃时现在会写入一条致命日志，而不是静默消失 ([#613](https://github.com/getpaseo/paseo/pull/613) by [@yuruiz](https://github.com/yuruiz))
@@ -2669,7 +2669,7 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 - Web 下拉菜单不再意外改变大小
 - 可见的更改窗格与工作树的 diff 保持同步
 - 时间线上的工具详情行恢复可选择
-- setup、teardown 和终端操作中的 `paseo.json` 解析错误现在会显示明确的错误，而不是静默失败
+- setup、teardown 和终端操作中的 `zentic.json` 解析错误现在会显示明确的错误，而不是静默失败
 - 修复了 Web 上 diff 行号栏在某些情况下错位一行的问题
 - 在回合中途加载时间线时，流式的 Agent 输出可以干净地对齐 ([#663](https://github.com/getpaseo/paseo/pull/663))
 - 助手消息中的图片在加载时显示加载指示器，加载失败时显示“Image unavailable”回退，而不是一片空白
@@ -2688,18 +2688,18 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 
 ### 修复
 
-- `paseo.json` 存在解析错误时工作区仍能加载
+- `zentic.json` 存在解析错误时工作区仍能加载
 
 ## 0.1.63 - 2026-04-28
 
 ### 新增
 
-- 带有内置 `paseo.json` 编辑器的项目设置页面
+- 带有内置 `zentic.json` 编辑器的项目设置页面
 - 冷启动会恢复你上次打开的工作区
 - 工具调用徽标上有一个按钮，可直接打开所引用的文件
 - 从工作区的打开菜单中在 GitHub 上打开当前分支 ([#583](https://github.com/getpaseo/paseo/pull/583) by [@Myriad-Dreamin](https://github.com/Myriad-Dreamin))
 - 在 Settings 中启用或停用 Provider，无需编辑配置文件
-- 缺少 worktree setup 脚本时，Paseo 会提示你进行配置
+- 缺少 worktree setup 脚本时，Zentic 会提示你进行配置
 - 选择关闭桌面应用时是否关闭 daemon
 
 ### 改进
@@ -2708,13 +2708,13 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 - 对于兼容 OpenAI 的 Provider，可以配置语音模式的转写端点 ([#570](https://github.com/getpaseo/paseo/pull/570) by [@yuruiz](https://github.com/yuruiz))
 - 添加项目不再等待 GitHub PR 状态加载
 - 启动屏幕更简洁——只有 logo 和一道淡淡的微光
-- `paseo.json` 的 setup 和 teardown 接受单个命令字符串，而不只是数组
+- `zentic.json` 的 setup 和 teardown 接受单个命令字符串，而不只是数组
 - 归档 worktree 立即生效，无需等待后端确认
 - 加载或流式输出时，Agent 时间线和 git diff 列表不再跳动
 
 ### 修复
 
-- `paseo loop run` 和 `paseo run` 现在会遵循 `--provider` 和 `--model` 标志 ([#594](https://github.com/getpaseo/paseo/pull/594) by [@VincenzoRocchi](https://github.com/VincenzoRocchi))
+- `zentic loop run` 和 `zentic run` 现在会遵循 `--provider` 和 `--model` 标志 ([#594](https://github.com/getpaseo/paseo/pull/594) by [@VincenzoRocchi](https://github.com/VincenzoRocchi))
 - 只设置了 DeepSeek 或其他非 OpenAI/Anthropic/OpenRouter 的 API 密钥时，Pi Provider 也会显示
 - 为新 Agent 选择默认模型时，会考虑来自 `additionalModels` 和 `profileModels` 的自定义模型
 - 文件预览的行号在第 99 行之后仍保持在一行内
@@ -2747,15 +2747,15 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 ### 修复
 
 - 从 fork 打开的 PR 的拉取请求状态可以正确解析
-- 在打包构建中，从 macOS 桌面应用安装 paseo CLI 现在可以正常工作
+- 在打包构建中，从 macOS 桌面应用安装 zentic CLI 现在可以正常工作
 - 从桌面应用启动的 Agent 不再继承仅限 Electron 的环境变量
 
 ## 0.1.61 - 2026-04-23
 
 ### 新增
 
-- Provider 配置中的 `additionalModels` 选项可以添加模型或重新命名模型，而无需替换整个列表——条目会与运行时发现的模型（ACP）或你的静态 `models` 列表合并。参见 [Provider 文档](https://paseo.sh/docs/providers)
-- 新的 [Provider 文档页面](https://paseo.sh/docs/providers)，在一处涵盖一流 Provider 和所有自定义 Provider 的配置模式
+- Provider 配置中的 `additionalModels` 选项可以添加模型或重新命名模型，而无需替换整个列表——条目会与运行时发现的模型（ACP）或你的静态 `models` 列表合并。参见 [Provider 文档](https://zentic.sh/docs/providers)
+- 新的 [Provider 文档页面](https://zentic.sh/docs/providers)，在一处涵盖一流 Provider 和所有自定义 Provider 的配置模式
 
 ### 改进
 
@@ -2767,7 +2767,7 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 
 ### 新增
 
-- 每个 worktree 的脚本和服务——在 `paseo.json` 中定义命名命令，长时间运行的服务会被托管，拥有自己的端口和像 `http://web.my-app.localhost:6767` 这样友好的代理 URL。参见 [worktree 指南](https://paseo.sh/docs/worktrees)
+- 每个 worktree 的脚本和服务——在 `zentic.json` 中定义命名命令，长时间运行的服务会被托管，拥有自己的端口和像 `http://web.my-app.localhost:6767` 这样友好的代理 URL。参见 [worktree 指南](https://zentic.sh/docs/worktrees)
 - 直接从工作区标题栏为 worktree 启动脚本和服务
 - 每个工作区中新增 Setup 标签页，实时显示 setup、teardown 和脚本进度
 - 资源管理器侧边栏中显示 GitHub 检查和 PR 审查，并提供展示完整明细的悬停卡片
@@ -2792,7 +2792,7 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 - 打开 Settings 时键盘快捷键仍然可用
 - Escape 可以可靠地中断当前 Agent
 - 检出来自 fork 的拉取请求会落在带 owner 前缀的分支上，避免多个 fork 冲突
-- `paseo ls` 默认显示活跃的 Agent；传入 `-a` 可包含已归档的 Agent
+- `zentic ls` 默认显示活跃的 Agent；传入 `-a` 可包含已归档的 Agent
 - GitHub 分支和 PR 选择器加载更快——查询会推迟到选择器打开时
 
 ### 修复
@@ -2838,7 +2838,7 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 - OpenCode 的待办和压缩事件会在时间线中渲染 ([#429](https://github.com/getpaseo/paseo/pull/429) by [@aaronflorey](https://github.com/aaronflorey))
 - OpenCode 会话在关闭时干净地归档 ([#408](https://github.com/getpaseo/paseo/pull/408) by [@aaronflorey](https://github.com/aaronflorey))
 - OpenCode 斜杠命令可以从 SSE 超时中恢复 ([#407](https://github.com/getpaseo/paseo/pull/407) by [@aaronflorey](https://github.com/aaronflorey))
-- Paseo MCP 工具可以作用于已归档的 Agent，与 CLI 一致 ([#423](https://github.com/getpaseo/paseo/pull/423))
+- Zentic MCP 工具可以作用于已归档的 Agent，与 CLI 一致 ([#423](https://github.com/getpaseo/paseo/pull/423))
 - 在所有 Web 视图中，原生滚动条与当前主题一致 ([#399](https://github.com/getpaseo/paseo/pull/399) by [@ethersh](https://github.com/ethersh))
 
 ### 修复
@@ -2864,8 +2864,8 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 
 ### 新增
 
-- Provider 配置档——在 Paseo 配置中定义自定义 Provider，它们会与内置 Provider 一起显示。可以覆盖内置 Provider 的二进制、环境变量或模型，也可以创建全新的 Provider。参见[配置指南](https://github.com/getpaseo/paseo/blob/main/docs/custom-providers.md)
-- 支持 ACP Agent——在 Provider 配置中使用 `extends: "acp"` 即可把任何兼容 ACP 的 Agent 添加到 Paseo，无需修改代码
+- Provider 配置档——在 Zentic 配置中定义自定义 Provider，它们会与内置 Provider 一起显示。可以覆盖内置 Provider 的二进制、环境变量或模型，也可以创建全新的 Provider。参见[配置指南](https://github.com/getzentic/zentic/blob/main/docs/custom-providers.md)
+- 支持 ACP Agent——在 Provider 配置中使用 `extends: "acp"` 即可把任何兼容 ACP 的 Agent 添加到 Zentic，无需修改代码
 - 创建定时任务 Agent 时可以选择 Provider 和模型
 - Opus 4.6 模型新增 Max 推理强度选项
 - Cmd+,（Windows/Linux 上为 Ctrl+,）打开设置
@@ -2893,8 +2893,8 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 
 ### 改进
 
-- 默认不再向 Agent 注入 Paseo 工具——需要 Agent 之间的编排时可在 Settings 中选择开启
-- Agent 的 Provider 和模式现在在服务端解析，因此 `paseo run` 等 CLI 命令无需在客户端查找即可使用一致的默认值
+- 默认不再向 Agent 注入 Zentic 工具——需要 Agent 之间的编排时可在 Settings 中选择开启
+- Agent 的 Provider 和模式现在在服务端解析，因此 `zentic run` 等 CLI 命令无需在客户端查找即可使用一致的默认值
 
 ### 修复
 
@@ -2906,10 +2906,10 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 
 ### 新增
 
-- Agent 自动获得 Paseo 工具——每个新 Agent 都能通过 MCP 访问终端、定时任务、worktree 和其他 Agent。可在 Settings 的“Inject Paseo tools”中关闭
+- Agent 自动获得 Zentic 工具——每个新 Agent 都能通过 MCP 访问终端、定时任务、worktree 和其他 Agent。可在 Settings 的“Inject Zentic tools”中关闭
 - Git pull——直接从工作区标题栏拉取远程更改。当你的分支落后于 origin 时会提升为主要操作
 - 子 Agent 通知——子 Agent 完成、出错或需要权限审批时会自动通知父 Agent
-- 重新加载 Agent——`paseo agent reload` 可以从 CLI 重启 Agent 的底层进程
+- 重新加载 Agent——`zentic agent reload` 可以从 CLI 重启 Agent 的底层进程
 - 在桌面端用鼠标中键关闭标签页
 - 循环切换主题的键盘快捷键
 
@@ -2918,7 +2918,7 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 - 不可用的 git 操作现在会在提示中说明原因，而不是静默变灰
 - 移动端的流式 markdown 渲染明显加快
 - 侧边栏、分支切换器和 Agent 面板不再进行不必要的重新渲染——在大型工作区上效果明显
-- Agent 时间线中的 Paseo 工具调用显示 Paseo logo 和易读的名称
+- Agent 时间线中的 Zentic 工具调用显示 Zentic logo 和易读的名称
 - 中继和配对 URL 会从 daemon 日志中去除
 
 ### 修复
@@ -2969,7 +2969,7 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 ### 新增
 
 - 上下文窗口用量表——查看 Agent 已使用了多少上下文窗口，并在 70% 和 90% 处有颜色阈值。适用于 Claude Code、Codex 和 OpenCode
-- 在编辑器中打开——从任意工作区直接跳转到 Cursor、VS Code、Zed 或文件管理器。Paseo 会记住你的选择
+- 在编辑器中打开——从任意工作区直接跳转到 Cursor、VS Code、Zed 或文件管理器。Zentic 会记住你的选择
 - 并排 diff——在统一视图和分栏 diff 视图之间切换，并可选择是否显示空白字符
 - 语音消息——使用语音模式时，Agent 的语音现在作为普通消息出现在对话中，而不是原始工具输出
 - 计划操作——计划卡片现在显示 Agent 支持的操作（例如“Implement”“Deny”），而不是通用的接受/拒绝按钮
@@ -3019,7 +3019,7 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 
 ### 修复
 
-- 桌面应用现在会在启动时解析用户完整的登录 shell 环境，修复了从 Finder 或 Dock 启动 Paseo 时找不到 `codex`、`node`、`bun` 和 `direnv` 等工具的问题。由 Paseo 创建的终端现在继承与普通终端会话相同的 PATH 和环境变量。做法借鉴自 VS Code 久经考验的 shell 环境解析
+- 桌面应用现在会在启动时解析用户完整的登录 shell 环境，修复了从 Finder 或 Dock 启动 Zentic 时找不到 `codex`、`node`、`bun` 和 `direnv` 等工具的问题。由 Zentic 创建的终端现在继承与普通终端会话相同的 PATH 和环境变量。做法借鉴自 VS Code 久经考验的 shell 环境解析
 - 运行中的 Agent 屏幕上的输入框现在可以正确获得键盘焦点
 - 移动端模型选择器的对齐和尺寸
 
@@ -3047,14 +3047,14 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 
 - Pi (pi.dev) Agent Provider——把 Pi 作为新的 Agent 类型连接，支持思考级别和工具调用
 - 在修复 ACP 兼容性后重新启用了 Copilot Agent Provider
-- `paseo .` 和 `paseo <path>` 会用指定的项目打开桌面应用，类似于 `code .`
+- `zentic .` 和 `zentic <path>` 会用指定的项目打开桌面应用，类似于 `code .`
 - Provider 声明的功能系统——Provider 可以暴露动态的开关和选项，应用会自动渲染它们。首个使用者：Codex fast 模式
 - Codex 计划模式——以仅计划模式启动 Agent，并通过专用的计划卡片界面在执行前审查拟议的更改
 - OpenCode 自定义 Agent 和斜杠命令——opencode.json 中用户定义的 Agent 现在会出现在模式选择器中，斜杠命令接受可选参数
-- 桌面端 Integrations 设置——直接在应用中安装 Paseo CLI 和编排技能，无需动用终端
+- 桌面端 Integrations 设置——直接在应用中安装 Zentic CLI 和编排技能，无需动用终端
 - 桌面设置中的 daemon 状态对话框，用于快速检查运行状况
 - 版本不匹配时自动重启 daemon——桌面应用会检测到运行中的 daemon 已过时并自动重启它
-- 移动端欢迎屏幕上的设置提示和 paseo.sh 链接，让新的 App Store 用户知道下一步该做什么
+- 移动端欢迎屏幕上的设置提示和 zentic.sh 链接，让新的 App Store 用户知道下一步该做什么
 
 ### 改进
 
@@ -3155,7 +3155,7 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 
 ### 新增
 
-- **从 CLI 管理终端**——新的 `paseo terminal` 命令组让你无需离开终端即可列出、创建工作区终端并与之交互
+- **从 CLI 管理终端**——新的 `zentic terminal` 命令组让你无需离开终端即可列出、创建工作区终端并与之交互
 - **资源管理器中的 Material 文件图标**——文件浏览器树现在显示特定语言的图标（TypeScript、JSON、Markdown 等），让你一眼认出文件
 
 ### 修复
@@ -3214,8 +3214,8 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 
 ### 新增
 
-- 新增 `paseo archive`，作为 `paseo agent archive` 的顶层别名
-- 为 Claude 和 Codex Agent 新增 `PASEO_AGENT_ID` 环境变量
+- 新增 `zentic archive`，作为 `zentic agent archive` 的顶层别名
+- 为 Claude 和 Codex Agent 新增 `ZENTIC_AGENT_ID` 环境变量
 - 新增重新设计的命令自动补全，带有详情卡片和下拉样式
 - 把 Android 下载入口链接到 Google Play 商店
 
@@ -3230,7 +3230,7 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 
 ### 修复
 
-- 修复了 `paseo send --no-wait` 不生效的问题
+- 修复了 `zentic send --no-wait` 不生效的问题
 - 修复了中断后过时的中止结果污染替换回合的问题
 - 修复了 Claude 中断处理和自主唤醒的可靠性
 - 修复了嵌套 Claude Code 会话的检测和 Provider 可用性检查
@@ -3353,7 +3353,7 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 
 ### 改进
 
-- 改进了 Windows 上的桌面运行时行为：隐藏控制台窗口，并把应用数据默认放在 `~/.paseo`
+- 改进了 Windows 上的桌面运行时行为：隐藏控制台窗口，并把应用数据默认放在 `~/.zentic`
 - 在网站导航中新增了 Discord 链接
 
 ### 修复
@@ -3458,11 +3458,11 @@ _此版本只修复了一个 Android 问题，桌面端用户无需更新。_
 
 ### 新增
 
-- 直接在 Settings 中更新 Paseo 桌面应用和本地 daemon
+- 直接在 Settings 中更新 Zentic 桌面应用和本地 daemon
 - Settings 中的麦克风和通知权限控件
 - 思考/推理模式——当 Provider 支持时，Agent 可以使用扩展思考
 - 自主运行模式——让 Agent 持续工作，无需在每一步手动审批
-- `paseo wait` 现在会在等待期间显示 Agent 最近活动的快照
+- `zentic wait` 现在会在等待期间显示 Agent 最近活动的快照
 
 ### 改进
 

@@ -1,4 +1,4 @@
-import { highlightCode, type HighlightToken } from "@getpaseo/highlight";
+import { highlightCode, type HighlightToken } from "@getzentic/highlight";
 import { describe, expect, it } from "vitest";
 import { buildSourceLines } from "./source-lines";
 

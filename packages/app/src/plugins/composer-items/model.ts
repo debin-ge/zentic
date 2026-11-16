@@ -1,5 +1,5 @@
-import type { JsonValue } from "@getpaseo/protocol/agent-types";
-import type { PluginComposer } from "@getpaseo/plugin/client";
+import type { JsonValue } from "@getzentic/protocol/agent-types";
+import type { PluginComposer } from "@getzentic/plugin/client";
 import type { UserComposerAttachment } from "@/attachments/types";
 import type { ComposerModel, ComposerState } from "@/composer/model";
 import type { InstalledPlugin } from "../types";

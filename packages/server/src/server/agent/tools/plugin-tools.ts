@@ -1,27 +1,27 @@
 import { z } from "zod";
-import type { ProviderPaseoToolsPolicy } from "@getpaseo/protocol/provider-config";
+import type { ProviderZenticToolsPolicy } from "@getzentic/protocol/provider-config";
 import type { AgentManager } from "../agent-manager.js";
-import { isPaseoToolEnabled } from "../paseo-tool-policy.js";
-import type { PaseoToolDefinition } from "./types.js";
-import { addModelVisibleStructuredContent } from "./paseo-tool-serialization.js";
+import { isZenticToolEnabled } from "../zentic-tool-policy.js";
+import type { ZenticToolDefinition } from "./types.js";
+import { addModelVisibleStructuredContent } from "./zentic-tool-serialization.js";
 
 export function registerPluginTools(options: {
   agentManager: AgentManager;
   callerAgentId?: string;
   scope: "agent" | "top-level";
-  tools: Map<string, PaseoToolDefinition>;
+  tools: Map<string, ZenticToolDefinition>;
   builtinNames: Set<string>;
-  policy?: ProviderPaseoToolsPolicy;
+  policy?: ProviderZenticToolsPolicy;
 }): void {
   const { agentManager, callerAgentId, scope, tools, builtinNames, policy } = options;
   if (scope !== "agent" || !callerAgentId) return;
   for (const tool of agentManager.getPluginTools(callerAgentId)) {
     if (builtinNames.has(tool.name)) {
       throw new Error(
-        `Agent tool ${tool.name} from plugin ${tool.pluginId} collides with Paseo tool ${tool.name}`,
+        `Agent tool ${tool.name} from plugin ${tool.pluginId} collides with Zentic tool ${tool.name}`,
       );
     }
-    if (!isPaseoToolEnabled(policy, tool.name)) continue;
+    if (!isZenticToolEnabled(policy, tool.name)) continue;
     tools.set(tool.name, {
       name: tool.name,
       title: tool.title,

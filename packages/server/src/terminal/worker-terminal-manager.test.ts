@@ -1,13 +1,13 @@
-import { TerminalInputModeTracker } from "@getpaseo/protocol/terminal-input-mode";
-import { encodeTerminalKeyInput } from "@getpaseo/protocol/terminal-key-input";
-import type { SubscribeTerminalRequest } from "@getpaseo/protocol/messages";
+import { TerminalInputModeTracker } from "@getzentic/protocol/terminal-input-mode";
+import { encodeTerminalKeyInput } from "@getzentic/protocol/terminal-key-input";
+import type { SubscribeTerminalRequest } from "@getzentic/protocol/messages";
 import { TerminalSessionController } from "./terminal-session-controller.js";
 import { SessionDelivery } from "../server/session/owned-subscriptions/index.js";
 import {
   decodeTerminalStreamFrame,
   TerminalStreamOpcode,
   type TerminalStreamFrame,
-} from "@getpaseo/protocol/binary-frames/index";
+} from "@getzentic/protocol/binary-frames/index";
 import type { SessionOutboundMessage } from "../server/messages.js";
 import { createConnection } from "node:net";
 import { attachFramedSocket } from "./terminal-worker-frames.js";
@@ -39,12 +39,12 @@ import type {
   TerminalWorkspaceContributionChangedEvent,
 } from "./terminal-manager.js";
 import {
-  resolvePaseoCliBinDir,
-  resolvePaseoCliExecutablePath,
+  resolveZenticCliBinDir,
+  resolveZenticCliExecutablePath,
   type TerminalSession,
 } from "./terminal.js";
-import type { TerminalState } from "@getpaseo/protocol/messages";
-import type { TerminalActivity } from "@getpaseo/protocol/terminal-activity";
+import type { TerminalState } from "@getzentic/protocol/messages";
+import type { TerminalActivity } from "@getzentic/protocol/terminal-activity";
 import type {
   TerminalWorkerRequest,
   WorkerTerminalState,
@@ -193,22 +193,22 @@ async function startRealWorkerManager(
   options: {
     getTerminalActivityUrl?: () => string | null;
     requestTimeoutMs?: number;
-    paseoHome?: string;
+    zenticHome?: string;
   } = {},
 ): Promise<DaemonTerminalManager> {
-  const { paseoHome = createTemporaryHome(), ...rest } = options;
+  const { zenticHome = createTemporaryHome(), ...rest } = options;
   return startWorkerTerminalManager({
-    paseoHome,
-    paseoVersion: "0.0.0-test",
+    zenticHome,
+    zenticVersion: "0.0.0-test",
     logger: pino({ level: "silent" }),
     ...rest,
   });
 }
 
 function createTemporaryHome(): string {
-  const paseoHome = mkdtempSync(join(tmpdir(), "worker-terminal-manager-home-"));
-  temporaryDirs.push(paseoHome);
-  return paseoHome;
+  const zenticHome = mkdtempSync(join(tmpdir(), "worker-terminal-manager-home-"));
+  temporaryDirs.push(zenticHome);
+  return zenticHome;
 }
 const terminalSessions: TerminalSession[] = [];
 
@@ -254,17 +254,17 @@ afterEach(async () => {
 });
 
 it("retires a killed worker's sessions and shares one replacement across concurrent creates", async () => {
-  const paseoHome = createTemporaryHome();
-  manager = await startRealWorkerManager({ paseoHome });
-  manager.registerCwdEnv({ cwd: paseoHome, env: { QA_RECOVERY_ENV: "retained" } });
+  const zenticHome = createTemporaryHome();
+  manager = await startRealWorkerManager({ zenticHome });
+  manager.registerCwdEnv({ cwd: zenticHome, env: { QA_RECOVERY_ENV: "retained" } });
   const terminal = await manager.createTerminal({
     workspaceId: "ws-recovery",
-    cwd: paseoHome,
+    cwd: zenticHome,
     ...nodeTerminalCommand(
       "process.stdin.on('data', chunk => process.stdout.write('echo:' + process.env.QA_RECOVERY_ENV + ':' + chunk)); setInterval(() => {}, 1000)",
     ),
   });
-  const records = await listTerminalWorkerRecords(paseoHome);
+  const records = await listTerminalWorkerRecords(zenticHome);
   const file = records.find((entry) => !("error" in entry));
   if (!file || "error" in file) throw new Error("Missing worker record");
   const changes: string[][] = [];
@@ -281,7 +281,7 @@ it("retires a killed worker's sessions and shares one replacement across concurr
     Array.from({ length: 4 }, () =>
       manager!.createTerminal({
         workspaceId: "ws-recovery",
-        cwd: paseoHome,
+        cwd: zenticHome,
         ...nodeTerminalCommand(
           "process.stdin.on('data', chunk => process.stdout.write('echo:' + process.env.QA_RECOVERY_ENV + ':' + chunk)); setInterval(() => {}, 1000)",
         ),
@@ -296,25 +296,25 @@ it("retires a killed worker's sessions and shares one replacement across concurr
     session.send({ type: "input", data: "recovered\r" });
     await waitForCondition(() => output.join("").includes("echo:retained:recovered"), 10000);
   }
-  expect(await manager.getTerminals(paseoHome)).toHaveLength(4);
-  const remaining = (await listTerminalWorkerRecords(paseoHome)).filter(
+  expect(await manager.getTerminals(zenticHome)).toHaveLength(4);
+  const remaining = (await listTerminalWorkerRecords(zenticHome)).filter(
     (entry) => !("error" in entry),
   );
   expect(remaining).toHaveLength(1);
 }, 30000);
 
 it("reconnects a live worker without replacing terminal sessions or processes", async () => {
-  const paseoHome = createTemporaryHome();
-  manager = await startRealWorkerManager({ paseoHome });
+  const zenticHome = createTemporaryHome();
+  manager = await startRealWorkerManager({ zenticHome });
   const terminal = await manager.createTerminal({
     workspaceId: "ws-reconnect",
-    cwd: paseoHome,
+    cwd: zenticHome,
     ...nodeTerminalCommand(
       "process.stdin.on('data', chunk => process.stdout.write('echo:' + chunk)); setInterval(() => {}, 1000)",
     ),
   });
-  const [before] = await workerRecords(paseoHome);
-  const pids = await recordedTerminalPids(paseoHome);
+  const [before] = await workerRecords(zenticHome);
+  const pids = await recordedTerminalPids(zenticHome);
   let replayRequests = 0;
   terminal.subscribe((message) => {
     if (message.type === "snapshotReady") replayRequests += 1;
@@ -334,8 +334,8 @@ it("reconnects a live worker without replacing terminal sessions or processes", 
   }, 10000);
   await waitForCondition(() => replayRequests > 0, 1000);
   expect(manager.getTerminal(terminal.id)).toBe(terminal);
-  expect(await recordedTerminalPids(paseoHome)).toEqual(pids);
-  expect((await workerRecords(paseoHome)).map((record) => record.pid)).toEqual([before!.pid]);
+  expect(await recordedTerminalPids(zenticHome)).toEqual(pids);
+  expect((await workerRecords(zenticHome)).map((record) => record.pid)).toEqual([before!.pid]);
   const output: string[] = [];
   terminal.subscribe((message) => {
     if (message.type === "output") output.push(message.data);
@@ -347,21 +347,21 @@ it("reconnects a live worker without replacing terminal sessions or processes", 
 it.each(["detach", "closeTerminals"] as const)(
   "does not replace a failed worker during %s",
   async (operation) => {
-    const paseoHome = createTemporaryHome();
-    manager = await startRealWorkerManager({ paseoHome });
+    const zenticHome = createTemporaryHome();
+    manager = await startRealWorkerManager({ zenticHome });
     await manager.createTerminal({
       workspaceId: "ws-stop-recovery",
-      cwd: paseoHome,
+      cwd: zenticHome,
       ...nodeTerminalCommand("setInterval(() => {}, 1000)"),
     });
-    const [record] = await workerRecords(paseoHome);
+    const [record] = await workerRecords(zenticHome);
     process.kill(record!.pid, "SIGKILL");
     await manager[operation]();
     await expect(
-      manager.createTerminal({ workspaceId: "ws-stop-recovery", cwd: paseoHome }),
+      manager.createTerminal({ workspaceId: "ws-stop-recovery", cwd: zenticHome }),
     ).rejects.toBeInstanceOf(NoTerminalWorkerAvailableError);
     await manager.closeTerminals();
-    expect(await workerRecords(paseoHome)).toEqual([]);
+    expect(await workerRecords(zenticHome)).toEqual([]);
   },
   30000,
 );
@@ -369,22 +369,22 @@ it.each(["detach", "closeTerminals"] as const)(
 it.each(["detach", "closeTerminals"] as const)(
   "does not leak a replacement stopped during launch by %s",
   async (operation) => {
-    const paseoHome = createTemporaryHome();
-    manager = await startRealWorkerManager({ paseoHome });
+    const zenticHome = createTemporaryHome();
+    manager = await startRealWorkerManager({ zenticHome });
     const terminal = await manager.createTerminal({
       workspaceId: "ws-launch-race",
-      cwd: paseoHome,
+      cwd: zenticHome,
       ...nodeTerminalCommand("setInterval(() => {}, 1000)"),
     });
-    const [record] = await workerRecords(paseoHome);
+    const [record] = await workerRecords(zenticHome);
     process.kill(record!.pid, "SIGKILL");
     await waitForCondition(() => !manager!.getTerminal(terminal.id), 10000);
-    const creating = manager.createTerminal({ workspaceId: "ws-launch-race", cwd: paseoHome });
+    const creating = manager.createTerminal({ workspaceId: "ws-launch-race", cwd: zenticHome });
     const rejected = expect(creating).rejects.toBeInstanceOf(NoTerminalWorkerAvailableError);
     await manager[operation]();
     await rejected;
-    await waitForCondition(async () => (await workerRecords(paseoHome)).length === 0, 10000);
-    expect(await manager.getTerminals(paseoHome)).toEqual([]);
+    await waitForCondition(async () => (await workerRecords(zenticHome)).length === 0, 10000);
+    expect(await manager.getTerminals(zenticHome)).toEqual([]);
   },
   30000,
 );
@@ -392,21 +392,21 @@ it.each(["detach", "closeTerminals"] as const)(
 it.each(["current", "draining"] as const)(
   "keeps the peer usable when the %s worker dies",
   async (target) => {
-    const paseoHome = createTemporaryHome();
+    const zenticHome = createTemporaryHome();
     const seeds = [
-      await launchDetachedWorkerWithTerminal(paseoHome),
-      await launchDetachedWorkerWithTerminal(paseoHome),
+      await launchDetachedWorkerWithTerminal(zenticHome),
+      await launchDetachedWorkerWithTerminal(zenticHome),
     ];
     // Exercise an existing seed adopted as current; launch age does not imply draining ownership.
-    const [firstAdopted] = await workerRecords(paseoHome);
+    const [firstAdopted] = await workerRecords(zenticHome);
     const seed = seeds.find((candidate) => candidate.workerPid === firstAdopted!.pid)!;
-    manager = await startRealWorkerManager({ paseoHome });
+    manager = await startRealWorkerManager({ zenticHome });
     const added = await manager.createTerminal({
       workspaceId: "ws-peer",
       cwd: seed.cwd,
       ...nodeTerminalCommand("setInterval(() => {}, 1000)"),
     });
-    const records = await workerRecords(paseoHome);
+    const records = await workerRecords(zenticHome);
     const current = records.find((record) =>
       record.terminals.some((terminal) => terminal.id === added.id),
     )!;
@@ -425,7 +425,7 @@ it.each(["current", "draining"] as const)(
       cwd: seed.cwd,
       ...nodeTerminalCommand("setInterval(() => {}, 1000)"),
     });
-    expect((await workerRecords(paseoHome)).length).toBeLessThanOrEqual(2);
+    expect((await workerRecords(zenticHome)).length).toBeLessThanOrEqual(2);
   },
   30000,
 );
@@ -478,10 +478,10 @@ it("delivers rapid small writes complete and in order through worker coalescing"
     await manager.createTerminal({
       workspaceId: "ws-test",
       cwd,
-      env: { PASEO_TERMINAL_BURST_GATE: burstGatePath },
+      env: { ZENTIC_TERMINAL_BURST_GATE: burstGatePath },
       ...nodeTerminalCommand(`
       const fs = require("node:fs");
-      const gatePath = process.env.PASEO_TERMINAL_BURST_GATE;
+      const gatePath = process.env.ZENTIC_TERMINAL_BURST_GATE;
       const gate = setInterval(() => {
         if (!gatePath || !fs.existsSync(gatePath)) {
           return;
@@ -684,7 +684,7 @@ it("keeps registered cwd env inheritance behind the worker manager interface", a
 
   manager.registerCwdEnv({
     cwd,
-    env: { PASEO_WORKER_TERMINAL_TEST: "worker-env" },
+    env: { ZENTIC_WORKER_TERMINAL_TEST: "worker-env" },
   });
   trackTerminal(
     await manager.createTerminal({
@@ -693,7 +693,7 @@ it("keeps registered cwd env inheritance behind the worker manager interface", a
       ...nodeTerminalCommand(`
       require("node:fs").writeFileSync(
         ${JSON.stringify(markerPath)},
-        process.env.PASEO_WORKER_TERMINAL_TEST ?? "",
+        process.env.ZENTIC_WORKER_TERMINAL_TEST ?? "",
       );
       setInterval(() => {}, 1000);
     `),
@@ -722,10 +722,10 @@ it("injects parent-minted terminal activity env through the worker", async () =>
         require("node:fs").writeFileSync(
           ${JSON.stringify(envPath)},
           JSON.stringify({
-            terminalId: process.env.PASEO_TERMINAL_ID,
-            token: process.env.PASEO_ACTIVITY_TOKEN,
-            url: process.env.PASEO_TERMINAL_ACTIVITY_URL,
-            hookCli: process.env.PASEO_HOOK_CLI,
+            terminalId: process.env.ZENTIC_TERMINAL_ID,
+            token: process.env.ZENTIC_ACTIVITY_TOKEN,
+            url: process.env.ZENTIC_TERMINAL_ACTIVITY_URL,
+            hookCli: process.env.ZENTIC_HOOK_CLI,
             path: process.env.PATH ?? process.env.Path,
           }),
         );
@@ -743,33 +743,33 @@ it("injects parent-minted terminal activity env through the worker", async () =>
     hookCli?: string;
     path?: string;
   };
-  const paseoCliBinDir = resolvePaseoCliBinDir();
-  const paseoCliPath = resolvePaseoCliExecutablePath();
-  expect(paseoCliBinDir).not.toBeNull();
-  expect(paseoCliPath).not.toBeNull();
+  const zenticCliBinDir = resolveZenticCliBinDir();
+  const zenticCliPath = resolveZenticCliExecutablePath();
+  expect(zenticCliBinDir).not.toBeNull();
+  expect(zenticCliPath).not.toBeNull();
   expect(env.terminalId).toBe(session.id);
   expect(env.token).toEqual(expect.any(String));
   expect(env.token).not.toBe("");
   expect(env.url).toBe(activityUrl);
-  expect(env.hookCli).toBe(paseoCliPath);
+  expect(env.hookCli).toBe(zenticCliPath);
   expect(manager.validateTerminalActivityToken(session.id, env.token ?? "")).toBe("valid");
   await expect(manager.setTerminalActivity(session.id, "attention")).resolves.toBe(true);
-  expect(env.path?.split(delimiter)[0]).toBe(paseoCliBinDir);
+  expect(env.path?.split(delimiter)[0]).toBe(zenticCliBinDir);
 });
 
 it("adopts a detached worker's terminals with their activity tokens and keeps them usable", async () => {
-  const paseoHome = createTemporaryHome();
+  const zenticHome = createTemporaryHome();
   const cwd = mkdtempSync(join(tmpdir(), "worker-terminal-manager-adopt-"));
   temporaryDirs.push(cwd);
   const envPath = join(cwd, "adopt-env.json");
-  const first = await startRealWorkerManager({ paseoHome });
+  const first = await startRealWorkerManager({ zenticHome });
   const created = await first.createTerminal({
     workspaceId: "ws-adopt",
     cwd,
     ...nodeTerminalCommand(`
       require("node:fs").writeFileSync(
         ${JSON.stringify(envPath)},
-        JSON.stringify({ token: process.env.PASEO_ACTIVITY_TOKEN }),
+        JSON.stringify({ token: process.env.ZENTIC_ACTIVITY_TOKEN }),
       );
       process.stdin.on("data", (chunk) => {
         process.stdout.write("adopted-output:" + chunk.toString());
@@ -781,7 +781,7 @@ it("adopts a detached worker's terminals with their activity tokens and keeps th
   const { token } = JSON.parse(readFileSync(envPath, "utf8")) as { token: string };
 
   await first.detach();
-  manager = await startRealWorkerManager({ paseoHome });
+  manager = await startRealWorkerManager({ zenticHome });
 
   const adopted = manager.getTerminal(created.id);
   expect(adopted?.workspaceId).toBe("ws-adopt");
@@ -805,9 +805,9 @@ function isProcessAlive(pid: number): boolean {
 }
 
 // The terminals the worker itself recorded, read from its own record file.
-async function recordedTerminalPids(paseoHome: string): Promise<Map<string, number>> {
+async function recordedTerminalPids(zenticHome: string): Promise<Map<string, number>> {
   const pids = new Map<string, number>();
-  const directory = terminalWorkerDirectory(paseoHome);
+  const directory = terminalWorkerDirectory(zenticHome);
   for (const name of readdirSync(directory).filter((entry) => /^\d+\.json$/.test(entry))) {
     for (const entry of (await readTerminalWorkerRecord(join(directory, name))).terminals) {
       pids.set(entry.id, entry.pid);
@@ -819,10 +819,10 @@ async function recordedTerminalPids(paseoHome: string): Promise<Map<string, numb
 it.each([false, true])(
   "never adopts a closing worker's terminals even once it rewrites its record (held reader: %s)",
   async (holdReader) => {
-    const paseoHome = createTemporaryHome();
+    const zenticHome = createTemporaryHome();
     const cwd = mkdtempSync(join(tmpdir(), "worker-terminal-manager-unfinished-kill-"));
     temporaryDirs.push(cwd);
-    const first = await startRealWorkerManager({ paseoHome });
+    const first = await startRealWorkerManager({ zenticHome });
     manager = first;
     const exitRequestPath = join(cwd, "exit-requested");
     const exitObservedPath = join(cwd, "exit-observed");
@@ -844,15 +844,15 @@ it.each([false, true])(
       cwd,
       ...nodeTerminalCommand("setInterval(() => {}, 1000);"),
     });
-    const pids = await recordedTerminalPids(paseoHome);
+    const pids = await recordedTerminalPids(zenticHome);
     const endingPid = pids.get(ending.id)!;
     const remainingPid = pids.get(remaining.id)!;
-    const [record] = await workerRecords(paseoHome);
+    const [record] = await workerRecords(zenticHome);
 
     // Seed a retained cleanup through the same record interface the reaper writes. Windows
     // does not read program birth times, so a process-table failure cannot create this state.
     const inspector = createTerminalWorkerProcessInspector();
-    await writeTerminalCleanupRecord(paseoHome, {
+    await writeTerminalCleanupRecord(zenticHome, {
       ...record!,
       closing: {
         unresolved: [
@@ -865,13 +865,13 @@ it.each([false, true])(
         ],
       },
     });
-    expect((await readUnconfirmedTerminalCleanup(paseoHome)).length).toBeGreaterThan(0);
+    expect((await readUnconfirmedTerminalCleanup(zenticHome)).length).toBeGreaterThan(0);
 
     // Keep an ordinary reader open until the worker delivers the terminal exit.
     // Windows cannot replace the record while this handle is open. The exit must
     // still reach the controller, and publication must recover after release.
     const recordFd = holdReader
-      ? openSync(terminalWorkerRecordPath(paseoHome, record!.pid), "r")
+      ? openSync(terminalWorkerRecordPath(zenticHome, record!.pid), "r")
       : null;
     try {
       writeFileSync(exitRequestPath, "");
@@ -893,17 +893,17 @@ it.each([false, true])(
       if (recordFd !== null) closeSync(recordFd);
     }
     await waitForCondition(
-      async () => !(await recordedTerminalPids(paseoHome)).has(ending.id),
+      async () => !(await recordedTerminalPids(zenticHome)).has(ending.id),
       10000,
     );
-    expect((await readUnconfirmedTerminalCleanup(paseoHome)).length).toBeGreaterThan(0);
+    expect((await readUnconfirmedTerminalCleanup(zenticHome)).length).toBeGreaterThan(0);
 
     await first.detach();
-    manager = await startRealWorkerManager({ paseoHome });
+    manager = await startRealWorkerManager({ zenticHome });
 
     expect(manager.getTerminal(remaining.id)).toBeUndefined();
     expect(await manager.getTerminals(cwd)).toEqual([]);
-    expect(await readUnconfirmedTerminalCleanup(paseoHome)).toEqual([]);
+    expect(await readUnconfirmedTerminalCleanup(zenticHome)).toEqual([]);
     const original = record!.terminals.find((entry) => entry.id === remaining.id)!;
     // Startup can launch a new worker after cleanup and Windows can reuse the old PID.
     // Require the original process to be gone, not the numeric PID to remain unused.
@@ -924,7 +924,7 @@ it.each([false, true])(
 // the shim; the PATH is restored as soon as it is up.
 async function startWorkerWithSlowProcessTable(
   delaySeconds: number,
-  options: { paseoHome?: string; requestTimeoutMs?: number } = {},
+  options: { zenticHome?: string; requestTimeoutMs?: number } = {},
 ): Promise<DaemonTerminalManager> {
   const realPs = (process.env.PATH ?? "")
     .split(delimiter)
@@ -1573,7 +1573,7 @@ it("rejects createTerminal and registers nothing when the worker cannot start th
     id: "terminal-a",
     cwd: "/workspace",
     workspaceId: "ws-test",
-    command: "paseo-qa-absent-codex",
+    command: "zentic-qa-absent-codex",
   });
   const request = worker.sentMessages.find((message) => message.type === "createTerminal");
   if (!request) {
@@ -1583,18 +1583,18 @@ it("rejects createTerminal and registers nothing when the worker cannot start th
     type: "response",
     requestId: request.requestId,
     ok: false,
-    error: "paseo-qa-absent-codex: command not found",
+    error: "zentic-qa-absent-codex: command not found",
   });
 
-  await expect(created).rejects.toThrow("paseo-qa-absent-codex: command not found");
+  await expect(created).rejects.toThrow("zentic-qa-absent-codex: command not found");
   expect(manager.getTerminal("terminal-a")).toBeUndefined();
   expect(await manager.getTerminals("/workspace")).toEqual([]);
   expect(snapshots).toEqual([]);
 });
 
 // The live worker records in a home, by worker pid.
-async function workerRecords(paseoHome: string): Promise<TerminalWorkerRecord[]> {
-  return (await listTerminalWorkerRecords(paseoHome)).flatMap((file) =>
+async function workerRecords(zenticHome: string): Promise<TerminalWorkerRecord[]> {
+  return (await listTerminalWorkerRecords(zenticHome)).flatMap((file) =>
     "record" in file && !file.record.closing ? [file.record] : [],
   );
 }
@@ -1602,13 +1602,13 @@ async function workerRecords(paseoHome: string): Promise<TerminalWorkerRecord[]>
 // A worker launched while the override is set reports that protocol version; the variable is
 // restored as soon as it is up, so later workers report the build's own.
 async function startManagerWithWorkerProtocol(
-  paseoHome: string,
+  zenticHome: string,
   protocolVersion: number,
 ): Promise<DaemonTerminalManager> {
   const previous = process.env[TERMINAL_WORKER_PROTOCOL_OVERRIDE_ENV];
   process.env[TERMINAL_WORKER_PROTOCOL_OVERRIDE_ENV] = String(protocolVersion);
   try {
-    return await startRealWorkerManager({ paseoHome });
+    return await startRealWorkerManager({ zenticHome });
   } finally {
     if (previous === undefined) delete process.env[TERMINAL_WORKER_PROTOCOL_OVERRIDE_ENV];
     else process.env[TERMINAL_WORKER_PROTOCOL_OVERRIDE_ENV] = previous;
@@ -1618,22 +1618,22 @@ async function startManagerWithWorkerProtocol(
 // A terminal running an idle program in a worker that reports `protocolVersion`, left running
 // after its daemon lets go (stop --keep-terminals).
 async function leaveWorkerWithTerminal(
-  paseoHome: string,
+  zenticHome: string,
   protocolVersion: number,
 ): Promise<{ terminalId: string; programPid: number; workerPid: number; cwd: string }> {
   const cwd = mkdtempSync(join(tmpdir(), "worker-terminal-manager-protocol-"));
   temporaryDirs.push(cwd);
-  const previous = await startManagerWithWorkerProtocol(paseoHome, protocolVersion);
+  const previous = await startManagerWithWorkerProtocol(zenticHome, protocolVersion);
   const session = await previous.createTerminal({
     workspaceId: "ws-protocol",
     cwd,
     ...nodeTerminalCommand("setInterval(() => {}, 1000);"),
   });
-  const [record] = await workerRecords(paseoHome);
+  const [record] = await workerRecords(zenticHome);
   await previous.detach();
   return {
     terminalId: session.id,
-    programPid: (await recordedTerminalPids(paseoHome)).get(session.id)!,
+    programPid: (await recordedTerminalPids(zenticHome)).get(session.id)!,
     workerPid: record!.pid,
     cwd,
   };
@@ -1642,15 +1642,15 @@ async function leaveWorkerWithTerminal(
 it.each([1, 4])(
   "hard cuts unreleased worker protocol %s, closing its terminals",
   async (version) => {
-    const paseoHome = createTemporaryHome();
-    const old = await leaveWorkerWithTerminal(paseoHome, version);
-    const [record] = await workerRecords(paseoHome);
+    const zenticHome = createTemporaryHome();
+    const old = await leaveWorkerWithTerminal(zenticHome, version);
+    const [record] = await workerRecords(zenticHome);
     const program = record!.terminals.find((entry) => entry.id === old.terminalId)!;
     const inspector = createTerminalWorkerProcessInspector();
 
-    manager = await startRealWorkerManager({ paseoHome });
+    manager = await startRealWorkerManager({ zenticHome });
 
-    expect(await readUnconfirmedTerminalCleanup(paseoHome)).toEqual([]);
+    expect(await readUnconfirmedTerminalCleanup(zenticHome)).toEqual([]);
     // Startup launches a replacement worker after cleanup. Either old PID may already
     // belong to another process, so verify that the recorded birth identities are gone.
     await waitForCondition(() => !isProcessAlive(record!.pid), 10000);
@@ -1664,17 +1664,17 @@ it.each([1, 4])(
       )
       .toBe(true);
     expect(manager.getTerminal(old.terminalId)).toBeUndefined();
-    const workers = await workerRecords(paseoHome);
+    const workers = await workerRecords(zenticHome);
     expect(workers).toHaveLength(1);
     expect(workers[0]!.protocolVersion).toBe(6);
   },
 );
 
-it("leaves a worker from a newer Paseo running, reports it incompatible, and closes it on a kill stop", async () => {
-  const paseoHome = createTemporaryHome();
-  const newer = await leaveWorkerWithTerminal(paseoHome, 7);
+it("leaves a worker from a newer Zentic running, reports it incompatible, and closes it on a kill stop", async () => {
+  const zenticHome = createTemporaryHome();
+  const newer = await leaveWorkerWithTerminal(zenticHome, 7);
 
-  manager = await startRealWorkerManager({ paseoHome });
+  manager = await startRealWorkerManager({ zenticHome });
 
   const unavailable = manager.getUnavailableError?.();
   expect(unavailable).toBeInstanceOf(TerminalWorkerIncompatibleError);
@@ -1686,7 +1686,7 @@ it("leaves a worker from a newer Paseo running, reports it incompatible, and clo
     manager.createTerminal({ workspaceId: "ws-protocol", cwd: newer.cwd }),
   ).rejects.toBeInstanceOf(TerminalWorkerIncompatibleError);
   expect(isProcessAlive(newer.programPid)).toBe(true);
-  expect((await workerRecords(paseoHome)).map((record) => record.pid)).toEqual([newer.workerPid]);
+  expect((await workerRecords(zenticHome)).map((record) => record.pid)).toEqual([newer.workerPid]);
 
   await manager.closeTerminals();
 
@@ -1694,13 +1694,13 @@ it("leaves a worker from a newer Paseo running, reports it incompatible, and clo
   // Cleanup counts the worker gone once its socket refuses connections, which happens before
   // its process exits.
   await waitForCondition(() => !isProcessAlive(newer.workerPid), 5000);
-  expect(await workerRecords(paseoHome)).toEqual([]);
+  expect(await workerRecords(zenticHome)).toEqual([]);
 });
 
 // A worker launched on its own, as two daemons that each started one would leave it: running an
 // idle program in a terminal, with no daemon attached.
 async function launchDetachedWorkerWithTerminal(
-  paseoHome: string,
+  zenticHome: string,
   protocolVersion?: number,
 ): Promise<{ terminalId: string; workerPid: number; cwd: string }> {
   const cwd = mkdtempSync(join(tmpdir(), "worker-terminal-manager-detached-"));
@@ -1711,7 +1711,7 @@ async function launchDetachedWorkerWithTerminal(
   }
   let launched: Awaited<ReturnType<typeof launchTerminalWorker>>;
   try {
-    launched = await launchTerminalWorker({ paseoHome, paseoVersion: "0.0.0-test" });
+    launched = await launchTerminalWorker({ zenticHome, zenticVersion: "0.0.0-test" });
   } finally {
     if (previous === undefined) delete process.env[TERMINAL_WORKER_PROTOCOL_OVERRIDE_ENV];
     else process.env[TERMINAL_WORKER_PROTOCOL_OVERRIDE_ENV] = previous;
@@ -1732,8 +1732,8 @@ async function launchDetachedWorkerWithTerminal(
 }
 
 // Worker pids alive in a home, from every record, closing ones included.
-async function liveWorkerPids(paseoHome: string): Promise<number[]> {
-  return (await listTerminalWorkerRecords(paseoHome))
+async function liveWorkerPids(zenticHome: string): Promise<number[]> {
+  return (await listTerminalWorkerRecords(zenticHome))
     .flatMap((file) => ("record" in file ? [file.record.pid] : []))
     .filter(isProcessAlive)
     .sort();
@@ -1742,20 +1742,20 @@ async function liveWorkerPids(paseoHome: string): Promise<number[]> {
 it.skipIf(isPlatform("win32"))(
   "counts live workers whose cleanup could not be confirmed and never starts a third",
   async () => {
-    const paseoHome = createTemporaryHome();
-    const first = await launchDetachedWorkerWithTerminal(paseoHome);
-    const second = await launchDetachedWorkerWithTerminal(paseoHome);
+    const zenticHome = createTemporaryHome();
+    const first = await launchDetachedWorkerWithTerminal(zenticHome);
+    const second = await launchDetachedWorkerWithTerminal(zenticHome);
     // A kill cleanup that cannot read the process table signals nothing: both workers keep
     // running with their records marked closing.
     const inspector = createTerminalWorkerProcessInspector();
     await expect(
       reapTerminalWorkers({
-        paseoHome,
+        zenticHome,
         gracefulMs: 0,
         inspector: { ...inspector, listProcesses: () => Promise.reject(new Error("ps timed out")) },
       }),
     ).rejects.toBeInstanceOf(TerminalCleanupNotConfirmedError);
-    expect((await readUnconfirmedTerminalCleanup(paseoHome)).map((entry) => entry.role)).toContain(
+    expect((await readUnconfirmedTerminalCleanup(zenticHome)).map((entry) => entry.role)).toContain(
       "worker",
     );
 
@@ -1774,16 +1774,16 @@ it.skipIf(isPlatform("win32"))(
     const originalPath = process.env.PATH;
     process.env.PATH = `${shimDir}${delimiter}${originalPath ?? ""}`;
     try {
-      manager = await startRealWorkerManager({ paseoHome });
+      manager = await startRealWorkerManager({ zenticHome });
     } finally {
       process.env.PATH = originalPath;
     }
 
-    expect(await liveWorkerPids(paseoHome)).toEqual([first.workerPid, second.workerPid].sort());
+    expect(await liveWorkerPids(zenticHome)).toEqual([first.workerPid, second.workerPid].sort());
     await expect(
       manager.createTerminal({ workspaceId: "ws-detached", cwd: first.cwd }),
     ).rejects.toThrow("2 terminal workers are already running");
-    expect(await liveWorkerPids(paseoHome)).toEqual([first.workerPid, second.workerPid].sort());
+    expect(await liveWorkerPids(zenticHome)).toEqual([first.workerPid, second.workerPid].sort());
   },
 );
 
@@ -1888,12 +1888,12 @@ it("replays bounded ANSI chunks independently of live output and reconstructs th
 });
 
 it("completes a replay larger than the socket budget while a sibling stays usable", async () => {
-  const paseoHome = createTemporaryHome();
-  const overflowProgress = join(paseoHome, "overflow-progress");
-  manager = await startRealWorkerManager({ paseoHome });
+  const zenticHome = createTemporaryHome();
+  const overflowProgress = join(zenticHome, "overflow-progress");
+  manager = await startRealWorkerManager({ zenticHome });
   const terminal = trackTerminal(
     await manager.createTerminal({
-      cwd: paseoHome,
+      cwd: zenticHome,
       workspaceId: "ws-wide",
       rows: 4,
       cols: 1024,
@@ -1907,10 +1907,10 @@ it("completes a replay larger than the socket budget while a sibling stays usabl
     `),
     }),
   );
-  const siblingProgress = join(paseoHome, "sibling-progress");
+  const siblingProgress = join(zenticHome, "sibling-progress");
   const sibling = trackTerminal(
     await manager.createTerminal({
-      cwd: paseoHome,
+      cwd: zenticHome,
       workspaceId: "ws-wide",
       ...nodeTerminalCommand(`
         let count = 0;
@@ -1956,7 +1956,7 @@ it("completes a replay larger than the socket budget while a sibling stays usabl
     metadata!.retainedHistoryLines,
   ]);
   await manager.detach();
-  const [record] = await workerRecords(paseoHome);
+  const [record] = await workerRecords(zenticHome);
   const socket = createConnection(record!.socketPath);
   let began = false;
   let ended = false;
@@ -2030,7 +2030,7 @@ it("completes a replay larger than the socket budget while a sibling stays usabl
     await waitForCondition(() => cancelledReplayBegan, 10000);
     // Replace a controller while its large replay is socket-paced. The original
     // request must never leak frames or completion onto the replacement connection.
-    manager = await startRealWorkerManager({ paseoHome });
+    manager = await startRealWorkerManager({ zenticHome });
     socket.resume();
     await waitForCondition(() => socket.destroyed, 10000);
     expect((await readReplay(manager, terminal.id))?.state.cols).toBe(1024);
@@ -2241,14 +2241,14 @@ it("keeps concurrent viewer replays and live output ordered behind slow app deli
 it.each([true, false])(
   "queues replay independently of app delivery past the worker deadline (chunked=%s)",
   async (chunked) => {
-    const paseoHome = createTemporaryHome();
+    const zenticHome = createTemporaryHome();
     // Slow program identification belongs to setup, not the replay request deadline.
     // The POSIX shim deterministically exceeds 800 ms; Windows keeps its real OS path.
     manager = isPlatform("win32")
-      ? await startRealWorkerManager({ paseoHome })
-      : await startWorkerWithSlowProcessTable(1, { paseoHome });
+      ? await startRealWorkerManager({ zenticHome })
+      : await startWorkerWithSlowProcessTable(1, { zenticHome });
     const created = await manager.createTerminal({
-      cwd: paseoHome,
+      cwd: zenticHome,
       workspaceId: "slow-delivery",
       ...nodeTerminalCommand(
         'process.stdout.write("READY\\r\\n"); process.stdin.on("data", data => process.stdout.write("ECHO:" + data)); setInterval(() => {}, 1000);',
@@ -2259,7 +2259,7 @@ it.each([true, false])(
       10000,
     );
     await manager.detach();
-    manager = await startRealWorkerManager({ paseoHome, requestTimeoutMs: 800 });
+    manager = await startRealWorkerManager({ zenticHome, requestTimeoutMs: 800 });
     const session = manager.getTerminal(created.id);
     if (!session) throw new Error("Replay fixture did not adopt its prepared terminal");
     trackTerminal(session);
@@ -2285,12 +2285,12 @@ it.each([true, false])(
 it.each(["replacement", "socket-overflow"] as const)(
   "recovers an attached restore viewer after worker %s",
   async (loss) => {
-    const paseoHome = createTemporaryHome();
-    const drained = join(paseoHome, "burst-drained");
-    manager = await startRealWorkerManager({ paseoHome });
+    const zenticHome = createTemporaryHome();
+    const drained = join(zenticHome, "burst-drained");
+    manager = await startRealWorkerManager({ zenticHome });
     const session = trackTerminal(
       await manager.createTerminal({
-        cwd: paseoHome,
+        cwd: zenticHome,
         workspaceId: "attached-reconnect",
         ...nodeTerminalCommand(
           `process.stdout.write("RETAINED\\r\\n"); process.stdin.on("data", data => {
@@ -2310,7 +2310,7 @@ it.each(["replacement", "socket-overflow"] as const)(
       await viewers.attach(desktop, "desktop");
       await waitForCondition(() => viewers.replayed(desktop), 10000);
       viewers.frames.length = 0;
-      const [record] = await workerRecords(paseoHome);
+      const [record] = await workerRecords(zenticHome);
       if (loss === "replacement") {
         const competitor = await connectTerminalWorker({
           socketPath: record!.socketPath,
@@ -2333,7 +2333,7 @@ it.each(["replacement", "socket-overflow"] as const)(
         .join("");
       expect(replay).toContain("RETAINED");
       if (loss === "socket-overflow") expect(replay).toContain("RETAINED-AFTER-LOSS");
-      expect((await workerRecords(paseoHome)).map((worker) => worker.pid)).toEqual([record!.pid]);
+      expect((await workerRecords(zenticHome)).map((worker) => worker.pid)).toEqual([record!.pid]);
       session.send({ type: "input", data: "RECOVERED\r" });
       await waitForCondition(() => viewers.text(desktop).includes("ECHO:RECOVERED"), 3000);
       expect(viewers.ended(desktop)).toHaveLength(0);
@@ -2699,22 +2699,22 @@ it.each([false, true])(
 // #8810: a worker that cannot start must not take the daemon down. An override that is not a
 // protocol version makes the worker fail before it writes its record, on every platform.
 it("starts without a worker when the worker cannot start, and launches one once it can", async () => {
-  const paseoHome = createTemporaryHome();
+  const zenticHome = createTemporaryHome();
   const previous = process.env[TERMINAL_WORKER_PROTOCOL_OVERRIDE_ENV];
   process.env[TERMINAL_WORKER_PROTOCOL_OVERRIDE_ENV] = "not-a-version";
   try {
-    manager = await startRealWorkerManager({ paseoHome });
-    expect(await workerRecords(paseoHome)).toEqual([]);
+    manager = await startRealWorkerManager({ zenticHome });
+    expect(await workerRecords(zenticHome)).toEqual([]);
     await expect(
-      manager.createTerminal({ workspaceId: "ws-no-worker", cwd: paseoHome }),
+      manager.createTerminal({ workspaceId: "ws-no-worker", cwd: zenticHome }),
     ).rejects.toThrow(TerminalWorkerLaunchError);
   } finally {
     if (previous === undefined) delete process.env[TERMINAL_WORKER_PROTOCOL_OVERRIDE_ENV];
     else process.env[TERMINAL_WORKER_PROTOCOL_OVERRIDE_ENV] = previous;
   }
 
-  trackTerminal(await manager.createTerminal({ workspaceId: "ws-no-worker", cwd: paseoHome }));
-  expect(await workerRecords(paseoHome)).toHaveLength(1);
+  trackTerminal(await manager.createTerminal({ workspaceId: "ws-no-worker", cwd: zenticHome }));
+  expect(await workerRecords(zenticHome)).toHaveLength(1);
 }, 30000);
 
 function echoTerminalCommand(prefix: string) {
@@ -2740,18 +2740,18 @@ async function expectEcho(session: TerminalSession, prefix: string, input: strin
 }
 
 it("runs terminals without recording a worker process identity", async () => {
-  const paseoHome = createTemporaryHome();
-  manager = await startRealWorkerManager({ paseoHome });
+  const zenticHome = createTemporaryHome();
+  manager = await startRealWorkerManager({ zenticHome });
   const session = trackTerminal(
     await manager.createTerminal({
       workspaceId: "ws-no-identity",
-      cwd: paseoHome,
+      cwd: zenticHome,
       ...echoTerminalCommand("no-identity:"),
     }),
   );
   await expectEcho(session, "no-identity:", "hello");
 
-  const [record, ...others] = await workerRecords(paseoHome);
+  const [record, ...others] = await workerRecords(zenticHome);
   expect(others).toEqual([]);
   expect(record!.identity).toBeUndefined();
   expect(record!.terminals).toEqual([
@@ -2764,66 +2764,66 @@ it("runs terminals without recording a worker process identity", async () => {
 }, 30000);
 
 it("adopts terminals over the authenticated socket after a daemon restart", async () => {
-  const paseoHome = createTemporaryHome();
-  const first = await startRealWorkerManager({ paseoHome });
+  const zenticHome = createTemporaryHome();
+  const first = await startRealWorkerManager({ zenticHome });
   const created = await first.createTerminal({
     workspaceId: "ws-no-identity",
-    cwd: paseoHome,
+    cwd: zenticHome,
     ...echoTerminalCommand("adopted:"),
   });
   await first.detach();
 
-  manager = await startRealWorkerManager({ paseoHome });
+  manager = await startRealWorkerManager({ zenticHome });
 
   const adopted = manager.getTerminal(created.id);
   expect(adopted).toBeDefined();
   await expectEcho(adopted!, "adopted:", "after-restart");
-  expect(await workerRecords(paseoHome)).toHaveLength(1);
+  expect(await workerRecords(zenticHome)).toHaveLength(1);
 }, 30000);
 
 it("closes terminals and their worker through authenticated shutdown", async () => {
-  const paseoHome = createTemporaryHome();
-  const stopping = await startRealWorkerManager({ paseoHome });
+  const zenticHome = createTemporaryHome();
+  const stopping = await startRealWorkerManager({ zenticHome });
   manager = stopping;
   await stopping.createTerminal({
     workspaceId: "ws-no-identity",
-    cwd: paseoHome,
+    cwd: zenticHome,
     ...nodeTerminalCommand("setInterval(() => {}, 1000);"),
   });
-  const [record] = await workerRecords(paseoHome);
+  const [record] = await workerRecords(zenticHome);
   const programPid = record!.terminals[0]!.pid;
 
   await stopping.closeTerminals();
 
   // The worker closed its terminals before it answered; it stops listening as it exits.
   expect(isProcessAlive(programPid)).toBe(false);
-  expect(await listTerminalWorkerRecords(paseoHome)).toEqual([]);
+  expect(await listTerminalWorkerRecords(zenticHome)).toEqual([]);
   await waitForCondition(() => !isProcessAlive(record!.pid), 5000);
 }, 30000);
 
 // Startup cleanup and retries can request immediate forced termination.
 it("force closes a worker from cleanup without a grace period", async () => {
-  const paseoHome = createTemporaryHome();
-  const previous = await startRealWorkerManager({ paseoHome });
+  const zenticHome = createTemporaryHome();
+  const previous = await startRealWorkerManager({ zenticHome });
   await previous.createTerminal({
     workspaceId: "ws-no-identity",
-    cwd: paseoHome,
+    cwd: zenticHome,
     ...nodeTerminalCommand("setInterval(() => {}, 1000);"),
   });
-  const [record] = await workerRecords(paseoHome);
+  const [record] = await workerRecords(zenticHome);
   const programPid = record!.terminals[0]!.pid;
   await previous.detach();
 
-  const result = await reapTerminalWorkers({ paseoHome, gracefulMs: 0 });
+  const result = await reapTerminalWorkers({ zenticHome, gracefulMs: 0 });
 
   expect(result.signaled).toContain(record!.pid);
   expect(isProcessAlive(programPid)).toBe(false);
-  expect(await listTerminalWorkerRecords(paseoHome)).toEqual([]);
+  expect(await listTerminalWorkerRecords(zenticHome)).toEqual([]);
   await waitForCondition(() => !isProcessAlive(record!.pid), 5000);
 }, 30000);
 
 it("launches past stale records without signaling an unrelated live pid", async () => {
-  const paseoHome = createTemporaryHome();
+  const zenticHome = createTemporaryHome();
   // One worker died; another died and its pid now runs an unrelated process, so nothing
   // listens on its socket. Neither may count against the two-worker limit or be signaled.
   const exited = spawn(process.execPath, ["-e", ""], { stdio: "ignore" });
@@ -2833,22 +2833,22 @@ it("launches past stale records without signaling an unrelated live pid", async 
   });
   try {
     for (const pid of [exited.pid!, reused.pid!]) {
-      writeTerminalWorkerRecord(paseoHome, {
+      writeTerminalWorkerRecord(zenticHome, {
         recordId: `dead-worker-${pid}`,
         pid,
         bootId: currentBootId(),
         createdAt: new Date().toISOString(),
         protocolVersion: TERMINAL_WORKER_PROTOCOL_VERSION,
-        paseoVersion: "0.0.0-test",
-        socketPath: join(paseoHome, `gone-${pid}.sock`),
+        zenticVersion: "0.0.0-test",
+        socketPath: join(zenticHome, `gone-${pid}.sock`),
         secret: "secret-of-a-gone-worker",
         terminals: [],
       });
     }
-    manager = await startRealWorkerManager({ paseoHome });
-    trackTerminal(await manager.createTerminal({ workspaceId: "ws-no-identity", cwd: paseoHome }));
+    manager = await startRealWorkerManager({ zenticHome });
+    trackTerminal(await manager.createTerminal({ workspaceId: "ws-no-identity", cwd: zenticHome }));
 
-    const records = await workerRecords(paseoHome);
+    const records = await workerRecords(zenticHome);
     expect(records.map((record) => record.pid)).not.toContain(exited.pid);
     expect(records.map((record) => record.pid)).not.toContain(reused.pid);
     expect(records).toHaveLength(1);
@@ -2859,27 +2859,27 @@ it("launches past stale records without signaling an unrelated live pid", async 
 }, 30000);
 
 it("does not reach a newer worker through a stale record with its reused pid", async () => {
-  const paseoHome = createTemporaryHome();
-  manager = await startRealWorkerManager({ paseoHome });
+  const zenticHome = createTemporaryHome();
+  manager = await startRealWorkerManager({ zenticHome });
   const session = trackTerminal(
     await manager.createTerminal({
       workspaceId: "stale-worker-record",
-      cwd: paseoHome,
+      cwd: zenticHome,
       ...echoTerminalCommand("alive:"),
     }),
   );
-  const [record] = await workerRecords(paseoHome);
+  const [record] = await workerRecords(zenticHome);
   const staleHome = createTemporaryHome();
   writeTerminalWorkerRecord(staleHome, {
     ...record!,
     recordId: "stale-record",
     socketPath:
       process.platform === "win32"
-        ? `\\\\.\\pipe\\paseo-stale-${Date.now()}`
+        ? `\\\\.\\pipe\\zentic-stale-${Date.now()}`
         : join(staleHome, "gone.sock"),
     terminals: [],
   });
-  expect(await reapTerminalWorkers({ paseoHome: staleHome, gracefulMs: 0 })).toMatchObject({
+  expect(await reapTerminalWorkers({ zenticHome: staleHome, gracefulMs: 0 })).toMatchObject({
     retired: 1,
     signaled: [],
   });
@@ -2889,14 +2889,14 @@ it("does not reach a newer worker through a stale record with its reused pid", a
 it.skipIf(!isPlatform("win32"))(
   "observes terminal program survival after a worker hard crash",
   async () => {
-    const paseoHome = createTemporaryHome();
-    const previous = await startRealWorkerManager({ paseoHome });
+    const zenticHome = createTemporaryHome();
+    const previous = await startRealWorkerManager({ zenticHome });
     await previous.createTerminal({
       workspaceId: "worker-crash",
-      cwd: paseoHome,
+      cwd: zenticHome,
       ...nodeTerminalCommand("setInterval(() => {}, 1000)"),
     });
-    const [record] = await workerRecords(paseoHome);
+    const [record] = await workerRecords(zenticHome);
     await previous.detach();
     process.kill(record!.pid, "SIGKILL");
     await waitForCondition(() => !isProcessAlive(record!.pid), 5000);

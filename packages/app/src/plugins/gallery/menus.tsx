@@ -11,7 +11,7 @@ import {
   RotateCw,
   Trash2,
 } from "lucide-react-native";
-import type { PluginListItem, PluginLogEntry } from "@getpaseo/protocol/messages";
+import type { PluginListItem, PluginLogEntry } from "@getzentic/protocol/messages";
 import {
   AdaptiveModalSheet,
   SheetHeaderIconButton,
@@ -45,7 +45,7 @@ import { InstallPluginSheet } from "./install-sheet";
 import { pluginErrorText } from "./error-text";
 
 const SUBMIT_PLUGIN_URL =
-  "https://github.com/getpaseo/plugins/issues/new?template=submit-plugin.yml";
+  "https://github.com/getzentic/plugins/issues/new?template=submit-plugin.yml";
 const ThemedMore = withUnistyles(MoreHorizontal);
 const dangerIconMapping = (theme: Theme) => ({ color: theme.colors.statusDanger });
 const ThemedPackagePlus = withUnistyles(PackagePlus);

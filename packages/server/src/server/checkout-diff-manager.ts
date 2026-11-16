@@ -9,8 +9,8 @@ import {
   type DiffFrame,
   type DiffBegin,
   type DiffBody,
-} from "@getpaseo/protocol/binary-frames/index";
-import type { ParsedDiffFile } from "@getpaseo/protocol/messages";
+} from "@getzentic/protocol/binary-frames/index";
+import type { ParsedDiffFile } from "@getzentic/protocol/messages";
 import {
   CHECKOUT_DIFF_MAX_STRUCTURED_BYTES,
   resolveCheckoutDiffBase,
@@ -43,15 +43,15 @@ export interface CheckoutDiffSubscription {
 // Old clients receive the same JSON snapshot while the shared engine owns reads and observation.
 export class CheckoutDiffManager {
   readonly streams: DiffSubscriptions;
-  private readonly paseoHome: string;
+  private readonly zenticHome: string;
   constructor(options: {
     logger: pino.Logger;
-    paseoHome: string;
+    zenticHome: string;
     workspaceGitService: Pick<WorkspaceGitService, "requestWorkingTreeWatch">;
     workspaceRuntimeStore: WorkspaceRuntimeStore;
   }) {
     this.streams = new DiffSubscriptions(options.workspaceGitService);
-    this.paseoHome = options.paseoHome;
+    this.zenticHome = options.zenticHome;
   }
   readCommitFile(input: CommitFileRead) {
     return this.streams.readCommitFile(input);
@@ -128,7 +128,7 @@ export class CheckoutDiffManager {
     };
     try {
       const baseRef = await resolveCheckoutDiffBase(cwd, params.compare, {
-        paseoHome: this.paseoHome,
+        zenticHome: this.zenticHome,
       });
       if (!baseRef) return { initial: { cwd, files: [], error: null }, unsubscribe() {} };
       const subscription = await this.streams.subscribe(
@@ -138,7 +138,7 @@ export class CheckoutDiffManager {
           checkoutBase:
             params.compare.mode === "uncommitted"
               ? undefined
-              : { compare: params.compare, paseoHome: this.paseoHome },
+              : { compare: params.compare, zenticHome: this.zenticHome },
           head:
             params.compare.mode === "base" ? { kind: "rev", rev: "HEAD" } : { kind: "worktree" },
           mergeBase: params.compare.mode !== "uncommitted",

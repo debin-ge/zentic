@@ -23,7 +23,7 @@ function reviewPrompt(mode: ReviewMode, delivery: Delivery): ProviderInput {
         content: [
           {
             type: "review",
-            mimeType: "application/paseo-review",
+            mimeType: "application/zentic-review",
             cwd: "/workspace",
             mode,
             baseRef: "main",

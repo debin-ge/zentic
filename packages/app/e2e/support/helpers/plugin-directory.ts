@@ -34,7 +34,7 @@ export const LISTING = {
 export const test = base.extend<{ directoryHost: { serverId: string; port: number } }>({
   directoryHost: async ({ e2eWorker }, provide) => {
     void e2eWorker;
-    const root = await mkdtemp(path.join(tmpdir(), "paseo-plugin-directory-"));
+    const root = await mkdtemp(path.join(tmpdir(), "zentic-plugin-directory-"));
     const registry = await startRegistry(await createListedPlugin(root));
     try {
       const host = await startHostDaemon({
@@ -57,7 +57,7 @@ async function createListedPlugin(root: string) {
   const repository = path.join(root, "repository");
   execFileSync("git", ["init", "-b", "main", repository], { stdio: "ignore" });
   await writeFile(
-    path.join(repository, "paseo-plugin.json"),
+    path.join(repository, "zentic-plugin.json"),
     JSON.stringify({
       id: "directory-example",
       name: LISTING.name,
@@ -71,7 +71,7 @@ async function createListedPlugin(root: string) {
   const git = (...args: string[]) =>
     execFileSync(
       "git",
-      ["-c", "user.name=Paseo Tests", "-c", "user.email=e2e@paseo.test", ...args],
+      ["-c", "user.name=Zentic Tests", "-c", "user.email=e2e@zentic.test", ...args],
       {
         cwd: repository,
         encoding: "utf8",

@@ -1,8 +1,8 @@
 import { expect, test } from "vitest";
 import { z } from "zod";
-import { defineAgentTool } from "@getpaseo/plugin/server";
+import { defineAgentTool } from "@getzentic/plugin/server";
 import { serializeAgentTool } from "./agent-tools.js";
-import { serializePaseoToolInputParameters } from "../agent/tools/paseo-tool-serialization.js";
+import { serializeZenticToolInputParameters } from "../agent/tools/zentic-tool-serialization.js";
 
 test("agent tool schemas survive the process boundary and catalog round trip", () => {
   const input = z
@@ -22,7 +22,7 @@ test("agent tool schemas survive the process boundary and catalog round trip", (
   const metadata = JSON.parse(JSON.stringify(serializeAgentTool(tool)));
   const restored = z.fromJSONSchema(metadata.inputSchema);
   expect(
-    serializePaseoToolInputParameters({
+    serializeZenticToolInputParameters({
       ...metadata,
       inputSchema: restored,
       handler: async () => ({ content: [] }),

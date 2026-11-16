@@ -13,7 +13,7 @@ import {
   type TerminalInputModeState,
   TerminalInputModeTracker,
   terminalInputModeStatesEqual,
-} from "@getpaseo/protocol/terminal-input-mode";
+} from "@getzentic/protocol/terminal-input-mode";
 import {
   type PendingTerminalModifiers,
   hasPendingTerminalModifiers,
@@ -143,7 +143,7 @@ interface TerminalOutputOperation {
 
 declare global {
   interface Window {
-    __paseoTerminal?: Terminal;
+    __zenticTerminal?: Terminal;
   }
 }
 
@@ -695,7 +695,7 @@ export class TerminalEmulatorRuntime {
 
     this.terminal = terminal;
     this.fitAddon = fitAddon;
-    window.__paseoTerminal = terminal;
+    window.__zenticTerminal = terminal;
 
     const fitAndEmitResize = (resizeInput?: TerminalResizeRequest): void => {
       if (this.deferReplayResize(resizeInput)) return;
@@ -954,7 +954,7 @@ export class TerminalEmulatorRuntime {
     onFilePaste?.(file);
   }
 
-  replay(event: import("@getpaseo/client").TerminalReplayEvent): void {
+  replay(event: import("@getzentic/client").TerminalReplayEvent): void {
     if (event.type === "begin") {
       this.replayResize ??= { shouldClaim: false };
       this.restoreOutput({ data: EMPTY_TERMINAL_OUTPUT, rows: event.rows, cols: event.cols });
@@ -1116,8 +1116,8 @@ export class TerminalEmulatorRuntime {
 
     this.cleanup?.();
     this.cleanup = null;
-    if (window.__paseoTerminal === this.terminal) {
-      window.__paseoTerminal = undefined;
+    if (window.__zenticTerminal === this.terminal) {
+      window.__zenticTerminal = undefined;
     }
     this.terminal = null;
     this.searchAddon = null;

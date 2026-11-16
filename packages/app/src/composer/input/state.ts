@@ -1,6 +1,6 @@
 import type { SendShortcut } from "@/hooks/use-settings";
-import type { DaemonClient } from "@getpaseo/client/internal/daemon-client";
-import type { ActiveTurnBehavior } from "@getpaseo/protocol/messages";
+import type { DaemonClient } from "@getzentic/client/internal/daemon-client";
+import type { ActiveTurnBehavior } from "@getzentic/protocol/messages";
 import type { MessagePayload, TextReplacement } from "@/composer/types";
 import type { MessageInputKeyboardActionKind } from "@/keyboard/actions";
 

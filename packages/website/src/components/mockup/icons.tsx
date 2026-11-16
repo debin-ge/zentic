@@ -2,8 +2,8 @@
 
 import { OpenCodeIcon as OpenCodeBrandIcon, PiIcon as PiBrandIcon } from "../agent-icons";
 
-/** The Paseo brand swirl — public/logo.svg, drawn as a small sidebar avatar mark. */
-export function PaseoMark({ size = 13, className }: { size?: number; className?: string }) {
+/** The Zentic brand swirl — public/logo.svg, drawn as a small sidebar avatar mark. */
+export function ZenticMark({ size = 13, className }: { size?: number; className?: string }) {
   return (
     <svg
       width={size}

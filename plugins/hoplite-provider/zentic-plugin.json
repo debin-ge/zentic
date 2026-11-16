@@ -1,0 +1,1 @@
+{ "id": "hoplite-provider", "requirements": { "zentic": ">=0.11.0" } }

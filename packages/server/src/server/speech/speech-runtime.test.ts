@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import pino from "pino";
 
-import type { PaseoSpeechConfig } from "../bootstrap.js";
+import type { ZenticSpeechConfig } from "../bootstrap.js";
 import type { LocalSpeechModelId } from "./providers/local/models.js";
 import type { InitializedLocalSpeech } from "./providers/local/runtime.js";
 import type { SpeechToTextProvider, TextToSpeechProvider } from "./speech-provider.js";
@@ -74,7 +74,7 @@ function rejectWhenAborted(signal?: AbortSignal): Promise<never> {
   });
 }
 
-function createSpeechConfig(providers: PaseoSpeechConfig["providers"]): PaseoSpeechConfig {
+function createSpeechConfig(providers: ZenticSpeechConfig["providers"]): ZenticSpeechConfig {
   return {
     providers,
     localModelsDir: "/tmp/missing-local-speech-models",

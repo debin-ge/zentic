@@ -1,6 +1,6 @@
 ---
 title: .worktreeinclude
-description: 将 Git 忽略的本地文件复制到新的 Paseo worktree。
+description: 将 Git 忽略的本地文件复制到新的 Zentic worktree。
 nav: .worktreeinclude
 order: 12
 category: Workspaces
@@ -8,7 +8,7 @@ category: Workspaces
 
 # .worktreeinclude
 
-在源检出的根目录添加 `.worktreeinclude`，将本地配置复制到新的 [Git worktree](/docs/worktrees)。Paseo 会在 setup、终端和首个 Agent 启动之前复制匹配的 Git 忽略文件。
+在源检出的根目录添加 `.worktreeinclude`，将本地配置复制到新的 [Git worktree](/docs/worktrees)。Zentic 会在 setup、终端和首个 Agent 启动之前复制匹配的 Git 忽略文件。
 
 ## 复制本地配置 {#copy-your-local-configuration}
 
@@ -19,7 +19,7 @@ category: Workspaces
 config/*.local.json
 ```
 
-通过 Paseo 创建 worktree 时，已有的 `.env` 和 `config/dev.local.json` 等匹配文件会被复制到新 worktree 中的相同相对路径。文件内容仍不会纳入 Git。
+通过 Zentic 创建 worktree 时，已有的 `.env` 和 `config/dev.local.json` 等匹配文件会被复制到新 worktree 中的相同相对路径。文件内容仍不会纳入 Git。
 
 提交 `.worktreeinclude`，与团队共享这些模式。每位团队成员在用于创建 worktree 的检出中提供自己的忽略文件。
 
@@ -58,4 +58,4 @@ config/*.local.json
 }
 ```
 
-将此配置放入新 worktree 所用基准分支的 `paseo.json` 中。setup 运行时，复制的文件已可使用。
+将此配置放入新 worktree 所用基准分支的 `zentic.json` 中。setup 运行时，复制的文件已可使用。

@@ -2,7 +2,7 @@ import type {
   CheckoutPrStatusResponse,
   CheckoutStatusResponse,
   SessionOutboundMessage,
-} from "@getpaseo/protocol/messages";
+} from "@getzentic/protocol/messages";
 import { isGitHubPullRequestStatusFacts } from "../../services/github-facts.js";
 import type { WorkspaceGitRuntimeSnapshot } from "../workspace-git-service.js";
 
@@ -38,7 +38,7 @@ export function buildCheckoutStatusPayloadFromSnapshot({
       behindOfOrigin: null,
       hasRemote: false,
       remoteUrl: null,
-      isPaseoOwnedWorktree: false,
+      isZenticOwnedWorktree: false,
       error: null,
       requestId,
     };
@@ -48,7 +48,7 @@ export function buildCheckoutStatusPayloadFromSnapshot({
     throw new Error("Workspace git snapshot is missing required checkout status fields");
   }
 
-  if (snapshot.git.isPaseoOwnedWorktree) {
+  if (snapshot.git.isZenticOwnedWorktree) {
     if (snapshot.git.mainRepoRoot === null || snapshot.git.baseRef === null) {
       throw new Error("Workspace git snapshot is missing required worktree status fields");
     }
@@ -70,7 +70,7 @@ export function buildCheckoutStatusPayloadFromSnapshot({
       hasRemote: snapshot.git.hasRemote,
       remoteUrl: snapshot.git.remoteUrl,
       ...(snapshot.forgeWeb ? { forgeWeb: snapshot.forgeWeb } : {}),
-      isPaseoOwnedWorktree: true,
+      isZenticOwnedWorktree: true,
       error: null,
       requestId,
     };
@@ -93,7 +93,7 @@ export function buildCheckoutStatusPayloadFromSnapshot({
     hasRemote: snapshot.git.hasRemote,
     remoteUrl: snapshot.git.remoteUrl,
     ...(snapshot.forgeWeb ? { forgeWeb: snapshot.forgeWeb } : {}),
-    isPaseoOwnedWorktree: false,
+    isZenticOwnedWorktree: false,
     error: null,
     requestId,
   };

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DaemonClient } from "@getpaseo/client/internal/daemon-client";
+import { DaemonClient } from "@getzentic/client/internal/daemon-client";
 import { createPluginHosts, type PluginHostsSource } from "./index";
 
 function registry() {
@@ -71,8 +71,8 @@ describe("plugin host access", () => {
   it("rejects unknown and disconnected targets without falling through to another host", () => {
     const h = registry();
     h.snapshots.set("a", { connectionStatus: "online", client: connection("a") });
-    expect(() => h.runtime.getPaseoClient("missing")).toThrow("Unknown Paseo host: missing");
-    expect(() => h.runtime.getPaseoClient("b")).toThrow("Paseo host is disconnected: b");
+    expect(() => h.runtime.getZenticClient("missing")).toThrow("Unknown Zentic host: missing");
+    expect(() => h.runtime.getZenticClient("b")).toThrow("Zentic host is disconnected: b");
     h.lifetime.abort();
   });
 
@@ -83,27 +83,27 @@ describe("plugin host access", () => {
     h.publish();
     const otherLifetime = new AbortController();
     const other = createPluginHosts(h.source, otherLifetime.signal);
-    const api = h.runtime.getPaseoClient("b");
-    expect(api).toBe(h.runtime.getPaseoClient("b"));
-    expect(api).not.toBe(other.getPaseoClient("b"));
+    const api = h.runtime.getZenticClient("b");
+    expect(api).toBe(h.runtime.getZenticClient("b"));
+    expect(api).not.toBe(other.getZenticClient("b"));
     expect(api).not.toHaveProperty("connect");
     expect(api).not.toHaveProperty("close");
     api.agents.subscribe(ignoreUpdate);
     h.snapshots.set("b", { connectionStatus: "offline", client });
     h.publish();
-    expect(() => h.runtime.getPaseoClient("b")).toThrow("disconnected");
-    expect(() => api.config.get()).toThrow("Paseo host is disconnected: b");
+    expect(() => h.runtime.getZenticClient("b")).toThrow("disconnected");
+    expect(() => api.config.get()).toThrow("Zentic host is disconnected: b");
     h.snapshots.set("b", { connectionStatus: "online", client });
     h.publish();
-    expect(h.runtime.getPaseoClient("b")).toBe(api);
+    expect(h.runtime.getZenticClient("b")).toBe(api);
     h.snapshots.set("b", { connectionStatus: "online", client: connection("new-b") });
     h.publish();
     expect(() => api.agents.subscribe(ignoreUpdate)).toThrow("disposed");
-    expect(() => api.config.get()).toThrow("Paseo client is released: b");
-    expect(h.runtime.getPaseoClient("b")).not.toBe(api);
+    expect(() => api.config.get()).toThrow("Zentic client is released: b");
+    expect(h.runtime.getZenticClient("b")).not.toBe(api);
     h.lifetime.abort();
-    expect(() => h.runtime.getPaseoClient("b")).toThrow("Plugin has stopped");
-    expect(() => other.getPaseoClient("b").agents.subscribe(ignoreUpdate)).not.toThrow();
+    expect(() => h.runtime.getZenticClient("b")).toThrow("Plugin has stopped");
+    expect(() => other.getZenticClient("b").agents.subscribe(ignoreUpdate)).not.toThrow();
     otherLifetime.abort();
   });
 });
@@ -111,14 +111,14 @@ describe("plugin host access", () => {
 it("reacquires a fresh API after explicit disposal without affecting a later borrower", async () => {
   const h = registry();
   h.snapshots.set("b", { connectionStatus: "online", client: connection("b") });
-  const first = h.runtime.getPaseoClient("b");
+  const first = h.runtime.getZenticClient("b");
   await first.dispose();
-  const second = h.runtime.getPaseoClient("b");
+  const second = h.runtime.getZenticClient("b");
   expect(second).not.toBe(first);
   expect(() => second.agents.subscribe(ignoreUpdate)).not.toThrow();
-  expect(() => first.config.get()).toThrow("Paseo client is released: b");
+  expect(() => first.config.get()).toThrow("Zentic client is released: b");
   await first.dispose();
-  expect(h.runtime.getPaseoClient("b")).toBe(second);
+  expect(h.runtime.getZenticClient("b")).toBe(second);
   h.lifetime.abort();
   expect(() => second.agents.subscribe(ignoreUpdate)).toThrow("disposed");
 });

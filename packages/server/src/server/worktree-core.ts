@@ -1,4 +1,4 @@
-import type { PluginWorktreeCreateRequest } from "@getpaseo/plugin/server";
+import type { PluginWorktreeCreateRequest } from "@getzentic/plugin/server";
 import type { PluginLifecycle } from "./plugins/lifecycle/index.js";
 import { createNameId } from "mnemonic-id";
 
@@ -16,7 +16,7 @@ import {
   UnsupportedForgeCheckoutTargetError,
   type WorktreeCreationIntent,
 } from "./resolve-worktree-creation-intent.js";
-import type { ChangeRequestCheckoutSource, FirstAgentContext } from "@getpaseo/protocol/messages";
+import type { ChangeRequestCheckoutSource, FirstAgentContext } from "@getzentic/protocol/messages";
 import type { WorkspaceGitService } from "./workspace-git-service.js";
 import { runGitCommand, runWithGitCommandPriority } from "../utils/run-git-command.js";
 
@@ -29,7 +29,7 @@ export interface CreateWorktreeCoreInput {
   checkoutSource?: ChangeRequestCheckoutSource;
   githubPrNumber?: number;
   firstAgentContext?: FirstAgentContext;
-  paseoHome?: string;
+  zenticHome?: string;
   worktreesRoot?: string;
 }
 
@@ -120,7 +120,7 @@ async function createWorktreeCoreWithPriority(
 
   const defaultPath = await resolveDefaultWorktreePath({
     cwd: repoRoot,
-    paseoHome: input.paseoHome,
+    zenticHome: input.zenticHome,
     worktreesRoot: input.worktreesRoot,
     worktreeSlug: normalizedSlug,
   });
@@ -146,7 +146,7 @@ async function createWorktreeCoreWithPriority(
       worktreeSlug: normalizedSlug,
       worktreePath: transformed.path,
       source: intent,
-      paseoHome: input.paseoHome,
+      zenticHome: input.zenticHome,
       worktreesRoot: input.worktreesRoot,
     }),
     intent,
@@ -240,7 +240,7 @@ async function resolveDefaultBranch(
 }
 
 export async function resolveWorktreeRepoRoot(
-  input: Pick<CreateWorktreeCoreInput, "cwd" | "paseoHome">,
+  input: Pick<CreateWorktreeCoreInput, "cwd" | "zenticHome">,
   workspaceGitService?: Pick<WorkspaceGitService, "resolveRepoRoot">,
 ): Promise<string> {
   if (!workspaceGitService) {

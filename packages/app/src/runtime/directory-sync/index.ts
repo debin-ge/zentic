@@ -1,10 +1,10 @@
-import type { OwnedSubscription } from "@getpaseo/client";
+import type { OwnedSubscription } from "@getzentic/client";
 import type {
   DaemonClient,
   FetchAgentsEntry,
   FetchAgentsOptions,
-} from "@getpaseo/client/internal/daemon-client";
-import type { AgentSnapshotPayload } from "@getpaseo/protocol/messages";
+} from "@getzentic/client/internal/daemon-client";
+import type { AgentSnapshotPayload } from "@getzentic/protocol/messages";
 import { fetchAgentTimelineOnce } from "@/timeline/fetch-agent-timeline-once";
 import {
   normalizeProjectDescriptor,

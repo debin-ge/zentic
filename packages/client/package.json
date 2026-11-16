@@ -1,7 +1,7 @@
 {
-  "name": "@getpaseo/client",
+  "name": "@getzentic/client",
   "version": "0.16.0-beta.2",
-  "description": "Paseo client SDK package",
+  "description": "Zentic client SDK package",
   "license": "Apache-2.0",
   "files": [
     "dist",
@@ -40,7 +40,7 @@
   },
   "scripts": {
     "clean": "node ../../scripts/clean-package-dist.mjs",
-    "build": "npm run build --workspace=@getpaseo/protocol && npm run build --workspace=@getpaseo/relay && tsc -p tsconfig.json --incremental false",
+    "build": "npm run build --workspace=@getzentic/protocol && npm run build --workspace=@getzentic/relay && tsc -p tsconfig.json --incremental false",
     "build:clean": "npm run clean && npm run build",
     "prepack": "npm run build:clean",
     "typecheck": "tsgo --noEmit",
@@ -49,8 +49,8 @@
     "measure:diff-materialization": "tsx scripts/measure-diff-materialization.ts"
   },
   "dependencies": {
-    "@getpaseo/protocol": "0.16.0-beta.2",
-    "@getpaseo/relay": "0.16.0-beta.2",
+    "@getzentic/protocol": "0.16.0-beta.2",
+    "@getzentic/relay": "0.16.0-beta.2",
     "ws": "^8.20.0",
     "zod": "^4.4.3"
   },

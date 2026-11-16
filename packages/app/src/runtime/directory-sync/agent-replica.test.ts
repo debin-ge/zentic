@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { DaemonClient, FetchAgentsEntry } from "@getpaseo/client/internal/daemon-client";
-import type { AgentSnapshotPayload } from "@getpaseo/protocol/messages";
+import type { DaemonClient, FetchAgentsEntry } from "@getzentic/client/internal/daemon-client";
+import type { AgentSnapshotPayload } from "@getzentic/protocol/messages";
 import {
   selectAgentTimelineState,
   selectAgentTurnPresentation,
@@ -51,7 +51,7 @@ function entry(agent: AgentSnapshotPayload): FetchAgentsEntry {
         currentBranch: null,
         remoteUrl: null,
         worktreeRoot: null,
-        isPaseoOwnedWorktree: false,
+        isZenticOwnedWorktree: false,
         mainRepoRoot: null,
       },
     },

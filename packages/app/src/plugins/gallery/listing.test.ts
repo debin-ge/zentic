@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { PluginListingIndex, PluginListing } from "@getpaseo/protocol/plugin-registry";
+import type { PluginListingIndex, PluginListing } from "@getzentic/protocol/plugin-registry";
 import {
   ALL_CATEGORIES,
   featuredListings,
@@ -30,7 +30,7 @@ function listing(id: string, overrides: Partial<PluginListing> = {}): PluginList
 function directory(plugins: PluginListing[], featured: string[] = []): PluginListingIndex {
   return {
     schemaVersion: 1,
-    registry: { name: "Paseo", url: "https://plugins.paseo.sh" },
+    registry: { name: "Zentic", url: "https://plugins.zentic.sh" },
     categories: [{ slug: "git", label: "Git" }],
     plugins,
     featured,

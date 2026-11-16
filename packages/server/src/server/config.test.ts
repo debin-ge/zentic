@@ -21,11 +21,11 @@ describe("server config", () => {
   });
 
   test("resolves reloadable settings without resolving the startup password", async () => {
-    const paseoHome = await mkdtemp(path.join(os.tmpdir(), "paseo-config-auth-reload-"));
-    roots.push(paseoHome);
-    const env = { PASEO_PASSWORD: "synthetic-audit-password" };
-    const persisted = loadPersistedConfig(paseoHome);
-    const startup = resolveConfigFromPersisted(paseoHome, persisted, { env });
+    const zenticHome = await mkdtemp(path.join(os.tmpdir(), "zentic-config-auth-reload-"));
+    roots.push(zenticHome);
+    const env = { ZENTIC_PASSWORD: "synthetic-audit-password" };
+    const persisted = loadPersistedConfig(zenticHome);
+    const startup = resolveConfigFromPersisted(zenticHome, persisted, { env });
     const { result: reloaded, blockingMs } = await measureMainThreadWork(
       "config resolve main-thread work",
       () =>
@@ -43,88 +43,88 @@ describe("server config", () => {
   test.each([undefined, false, true])(
     "restart recovery requires explicit opt-in (%s)",
     async (enabled) => {
-      const paseoHome = await mkdtemp(path.join(os.tmpdir(), "paseo-config-recovery-"));
-      roots.push(paseoHome);
+      const zenticHome = await mkdtemp(path.join(os.tmpdir(), "zentic-config-recovery-"));
+      roots.push(zenticHome);
       await writeFile(
-        path.join(paseoHome, "config.json"),
+        path.join(zenticHome, "config.json"),
         JSON.stringify({
           version: 1,
           agents: { resumeOnStartup: enabled, resumePrompt: "Continue exactly.\n" },
         }),
       );
-      const config = loadConfig(paseoHome, { env: {} });
+      const config = loadConfig(zenticHome, { env: {} });
       expect(config.resumeOnStartup).toBe(enabled === true);
       expect(config.resumePrompt).toBe("Continue exactly.\n");
     },
   );
 
-  test("records when the daemon is managed by Paseo Desktop", async () => {
-    const paseoHome = await mkdtemp(path.join(os.tmpdir(), "paseo-config-desktop-managed-"));
-    roots.push(paseoHome);
+  test("records when the daemon is managed by Zentic Desktop", async () => {
+    const zenticHome = await mkdtemp(path.join(os.tmpdir(), "zentic-config-desktop-managed-"));
+    roots.push(zenticHome);
 
-    const desktopConfig = loadConfig(paseoHome, {
-      env: { PASEO_DESKTOP_MANAGED: "1" },
+    const desktopConfig = loadConfig(zenticHome, {
+      env: { ZENTIC_DESKTOP_MANAGED: "1" },
     });
-    const standaloneConfig = loadConfig(paseoHome, { env: {} });
+    const standaloneConfig = loadConfig(zenticHome, { env: {} });
 
     expect(desktopConfig.desktopManaged).toBe(true);
     expect(standaloneConfig.desktopManaged).toBe(false);
   });
 
   test("idle runtime cleanup defaults on and supports a host-wide opt-out", async () => {
-    const paseoHome = await mkdtemp(path.join(os.tmpdir(), "paseo-config-idle-cleanup-"));
-    roots.push(paseoHome);
-    expect(loadConfig(paseoHome, { env: {} }).idleRuntimeCleanup).toBe(true);
+    const zenticHome = await mkdtemp(path.join(os.tmpdir(), "zentic-config-idle-cleanup-"));
+    roots.push(zenticHome);
+    expect(loadConfig(zenticHome, { env: {} }).idleRuntimeCleanup).toBe(true);
     await writeFile(
-      path.join(paseoHome, "config.json"),
+      path.join(zenticHome, "config.json"),
       JSON.stringify({ agents: { idleRuntimeCleanup: false } }),
     );
-    expect(loadConfig(paseoHome, { env: {} }).idleRuntimeCleanup).toBe(false);
+    expect(loadConfig(zenticHome, { env: {} }).idleRuntimeCleanup).toBe(false);
   });
 
   test("loads the provider catalog refresh timeout", async () => {
-    const paseoHome = await mkdtemp(path.join(os.tmpdir(), "paseo-config-provider-timeout-"));
-    roots.push(paseoHome);
+    const zenticHome = await mkdtemp(path.join(os.tmpdir(), "zentic-config-provider-timeout-"));
+    roots.push(zenticHome);
     await writeFile(
-      path.join(paseoHome, "config.json"),
+      path.join(zenticHome, "config.json"),
       JSON.stringify({ agents: { catalogRefreshTimeoutMs: 180_000 } }),
     );
 
-    const config = loadConfig(paseoHome, { env: {} });
+    const config = loadConfig(zenticHome, { env: {} });
 
     expect(config.providerCatalogRefreshTimeoutMs).toBe(180_000);
   });
 
   test("resolves reload state from the supplied validated snapshot", async () => {
-    const paseoHome = await mkdtemp(path.join(os.tmpdir(), "paseo-config-snapshot-"));
-    roots.push(paseoHome);
-    const snapshot = loadPersistedConfig(paseoHome);
+    const zenticHome = await mkdtemp(path.join(os.tmpdir(), "zentic-config-snapshot-"));
+    roots.push(zenticHome);
+    const snapshot = loadPersistedConfig(zenticHome);
     await writeFile(
-      path.join(paseoHome, "config.json"),
+      path.join(zenticHome, "config.json"),
       JSON.stringify({
         ...snapshot,
         daemon: { ...snapshot.daemon, browserTools: { enabled: true } },
       }),
     );
 
-    expect(resolveConfigFromPersisted(paseoHome, snapshot, { env: {} }).browserToolsEnabled).toBe(
+    expect(resolveConfigFromPersisted(zenticHome, snapshot, { env: {} }).browserToolsEnabled).toBe(
       false,
     );
-    expect(loadConfig(paseoHome, { env: {} }).browserToolsEnabled).toBe(true);
+    expect(loadConfig(zenticHome, { env: {} }).browserToolsEnabled).toBe(true);
   });
 
   test("records mutable and startup launch overrides by persisted leaf", async () => {
-    const paseoHome = await mkdtemp(path.join(os.tmpdir(), "paseo-config-overrides-"));
-    roots.push(paseoHome);
-    const config = loadConfig(paseoHome, {
+    const zenticHome = await mkdtemp(path.join(os.tmpdir(), "zentic-config-overrides-"));
+    roots.push(zenticHome);
+    const config = loadConfig(zenticHome, {
       env: {
-        PASEO_LISTEN: "127.0.0.1:7000",
-        PASEO_PASSWORD: "secret",
-        PASEO_RELAY_ENDPOINT: "relay.example.test:443",
-        PASEO_TRUSTED_PROXIES: "true",
-        PASEO_WEB_UI_ENABLED: "true",
-        PASEO_LOG_FILE_PATH: "custom.log",
-        PASEO_VOICE_LLM_PROVIDER: "codex",
+        ZENTIC_LISTEN: "127.0.0.1:7000",
+        ZENTIC_PASSWORD: "secret",
+        ZENTIC_RELAY_ENDPOINT: "relay.example.test:443",
+        ZENTIC_TRUSTED_PROXIES: "true",
+        ZENTIC_WEB_UI_ENABLED: "true",
+        ZENTIC_LOG_FILE_PATH: "custom.log",
+        ZENTIC_VOICE_LLM_PROVIDER: "codex",
       },
       cli: { relayUseTls: false },
     });
@@ -183,7 +183,7 @@ describe("server config", () => {
     },
   ])("classifies speech overrides for $name", ({ providers, expected }) => {
     const config = resolveConfigFromPersisted(
-      "/tmp/paseo-speech-override-classification",
+      "/tmp/zentic-speech-override-classification",
       {
         version: 1,
         features: {
@@ -198,9 +198,9 @@ describe("server config", () => {
       {
         env: {
           OPENAI_API_KEY: "test-api-key",
-          PASEO_DICTATION_LOCAL_STT_MODEL: "parakeet-tdt-0.6b-v2-int8",
-          PASEO_VOICE_LOCAL_STT_MODEL: "parakeet-tdt-0.6b-v2-int8",
-          PASEO_VOICE_LOCAL_TTS_MODEL: "kokoro-en-v0_19",
+          ZENTIC_DICTATION_LOCAL_STT_MODEL: "parakeet-tdt-0.6b-v2-int8",
+          ZENTIC_VOICE_LOCAL_STT_MODEL: "parakeet-tdt-0.6b-v2-int8",
+          ZENTIC_VOICE_LOCAL_TTS_MODEL: "kokoro-en-v0_19",
           STT_CONFIDENCE_THRESHOLD: "0.5",
           STT_MODEL: "whisper-1",
           TTS_MODEL: "tts-1",
@@ -224,7 +224,7 @@ describe("server config", () => {
   });
 
   test("resolves bundled web UI path from globally installed compiled modules", async () => {
-    const packageRoot = await mkdtemp(path.join(os.tmpdir(), "paseo-config-compiled-"));
+    const packageRoot = await mkdtemp(path.join(os.tmpdir(), "zentic-config-compiled-"));
     roots.push(packageRoot);
     await mkdir(path.join(packageRoot, "dist", "server", "web-ui"), { recursive: true });
 
@@ -236,7 +236,7 @@ describe("server config", () => {
   });
 
   test("resolves packaged desktop web UI path from resources app-dist", async () => {
-    const packageRoot = await mkdtemp(path.join(os.tmpdir(), "paseo-config-packaged-"));
+    const packageRoot = await mkdtemp(path.join(os.tmpdir(), "zentic-config-packaged-"));
     roots.push(packageRoot);
     await mkdir(path.join(packageRoot, "app-dist"), { recursive: true });
 
@@ -247,7 +247,7 @@ describe("server config", () => {
             packageRoot,
             "app.asar",
             "node_modules",
-            "@getpaseo",
+            "@getzentic",
             "server",
             "dist",
             "server",
@@ -262,12 +262,12 @@ describe("server config", () => {
 });
 
 test("loads private plugin registry settings through the configuration boundary", async () => {
-  const home = await mkdtemp(path.join(os.tmpdir(), "paseo-registry-config-"));
+  const home = await mkdtemp(path.join(os.tmpdir(), "zentic-registry-config-"));
   try {
     const pluginRegistries = { "plugins.example.test": { authorization: "Bearer fixture" } };
     await writeFile(path.join(home, "config.json"), JSON.stringify({ pluginRegistries }));
     const config = loadConfig(home, {
-      env: { PASEO_PLUGIN_REGISTRY: "https://plugins.example.test/internal" },
+      env: { ZENTIC_PLUGIN_REGISTRY: "https://plugins.example.test/internal" },
     });
     expect(config.pluginRegistryUrl).toBe("https://plugins.example.test/internal");
     expect(config.pluginRegistries).toEqual(pluginRegistries);

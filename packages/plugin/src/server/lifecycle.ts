@@ -4,12 +4,12 @@ import type {
   AgentPermissionResponse,
   AgentSessionConfig,
   JsonValue,
-} from "@getpaseo/protocol/agent-types";
-import type { PaseoApi } from "@getpaseo/client";
-import type { WorkspaceCreateRequest } from "@getpaseo/protocol/messages";
+} from "@getzentic/protocol/agent-types";
+import type { ZenticApi } from "@getzentic/client";
+import type { WorkspaceCreateRequest } from "@getzentic/protocol/messages";
 
 export interface PluginHookContext {
-  paseo: PaseoApi;
+  zentic: ZenticApi;
   signal: AbortSignal;
 }
 
@@ -19,7 +19,7 @@ export interface PluginHookWorkspace {
   cwd: string;
   name: string | null;
   archivedAt: string | null;
-  /** Data plugins stored on the workspace. Paseo never reads a key. */
+  /** Data plugins stored on the workspace. Zentic never reads a key. */
   metadata: Record<string, JsonValue>;
 }
 
@@ -72,7 +72,7 @@ export interface PluginHookAgent {
   title: string | null;
   /** A helper hidden from tabs, lists and attention. Fixed at creation. */
   readonly background: boolean;
-  /** Data plugins stored on the agent. Paseo never reads a key. */
+  /** Data plugins stored on the agent. Zentic never reads a key. */
   metadata: Record<string, JsonValue>;
 }
 
@@ -105,7 +105,7 @@ export interface PluginHookEvents {
     turnId: string | null;
     /**
      * The payload carries no history. Read the turn with
-     * `paseo.agents.ref(agent.id).timeline.refetch({ direction: "tail", limit: 1, wholeTurns: true })`
+     * `zentic.agents.ref(agent.id).timeline.refetch({ direction: "tail", limit: 1, wholeTurns: true })`
      * and keep the entries whose `turnId` equals this `turnId`. The result is empty when a newer turn
      * started before the read, or when `turnId` is `null`.
      */

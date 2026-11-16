@@ -58,12 +58,12 @@ function boundaryViolations(entry: string, runtime: "shared" | "server" | "clien
         if (runtime !== "server" && serverModule.test(module)) violations.push(label);
         pending.push(local);
       } else if (runtime === "shared") {
-        if (specifier !== "zod" && specifier !== "@getpaseo/protocol/agent-types")
+        if (specifier !== "zod" && specifier !== "@getzentic/protocol/agent-types")
           violations.push(label);
       } else if (runtime === "server") {
-        if (uiDependency.test(specifier) || /^@getpaseo\/plugin\/client(\/|$)/.test(specifier))
+        if (uiDependency.test(specifier) || /^@getzentic\/plugin\/client(\/|$)/.test(specifier))
           violations.push(label);
-      } else if (isBuiltin(specifier) || /^@getpaseo\/plugin\/server(\/|$)/.test(specifier)) {
+      } else if (isBuiltin(specifier) || /^@getzentic\/plugin\/server(\/|$)/.test(specifier)) {
         violations.push(label);
       }
     }
@@ -119,10 +119,10 @@ describe("plugin SDK import boundaries", () => {
   it("typechecks a 0.12 reveal-hook consumer without exposing the hook on current UI", () => {
     expect(
       typeErrors(`
-      import { useRevealedText, Icon } from "@getpaseo/plugin/client/react-native";
-      import { StreamedText } from "@getpaseo/plugin/client/ui";
+      import { useRevealedText, Icon } from "@getzentic/plugin/client/react-native";
+      import { StreamedText } from "@getzentic/plugin/client/ui";
       // @ts-expect-error the legacy hook is not part of the current UI API
-      import { useRevealedText as currentHook } from "@getpaseo/plugin/client/ui";
+      import { useRevealedText as currentHook } from "@getzentic/plugin/client/ui";
       import { Text } from "react-native";
       function LegacyRow({ text, phase }: { text: string; phase: "streaming" | "complete" }) {
         const revealed: string = useRevealedText(text, phase);
@@ -163,8 +163,8 @@ describe("plugin example import boundaries", () => {
       if (specifier.startsWith(".")) {
         const imported = owner(resolveLocal(file, specifier));
         if (imported !== "shared" && imported !== runtime) violations.push(specifier);
-      } else if (specifier.startsWith("@getpaseo/plugin")) {
-        const entry = specifier.replace("@getpaseo/plugin", ".") as keyof typeof entries;
+      } else if (specifier.startsWith("@getzentic/plugin")) {
+        const entry = specifier.replace("@getzentic/plugin", ".") as keyof typeof entries;
         if (
           entry === "./client/host" ||
           entry.startsWith("./internal/") ||
@@ -187,7 +187,7 @@ describe("plugin panel SDK boundary", () => {
   it("accepts uniform params and persisted tab state alongside 0.12 panels", () => {
     expect(
       typeErrors(`
-      import { type PluginClientContext, type PluginFilePanelProps, type PluginWorkspacePanelProps, type PluginAgentPanelProps, type PluginTab, useTabState } from "@getpaseo/plugin/client";
+      import { type PluginClientContext, type PluginFilePanelProps, type PluginWorkspacePanelProps, type PluginAgentPanelProps, type PluginTab, useTabState } from "@getzentic/plugin/client";
       import { z } from "zod";
       function FilePanel({ params, revision, tab, file }: PluginFilePanelProps) {
         const [state, setState] = useTabState(tab, z.object({ view: z.enum(["preview", "source"]) }), { view: "preview" });
@@ -217,8 +217,8 @@ describe("plugin composer SDK boundary", () => {
   it("lets a composer item read and change the composer through typed commands and controls", () => {
     expect(
       typeErrors(`
-      import { useComposer, type PluginClientContext } from "@getpaseo/plugin/client";
-      import { Action, Select, Toggle } from "@getpaseo/plugin/client/ui";
+      import { useComposer, type PluginClientContext } from "@getzentic/plugin/client";
+      import { Action, Select, Toggle } from "@getzentic/plugin/client/ui";
       function Item() {
         const composer = useComposer();
         const context: "agent" | "draft" | "new-workspace" = composer.context;
@@ -255,7 +255,7 @@ describe("plugin composers by reference SDK boundary", () => {
   it("reaches a running agent's composer from any component and from every command context", () => {
     expect(
       typeErrors(`
-      import { useComposers, type PluginClientContext } from "@getpaseo/plugin/client";
+      import { useComposers, type PluginClientContext } from "@getzentic/plugin/client";
       function Button() {
         const [focused] = useComposers({ focused: true });
         const byId = useComposers({ agentId: "agent-1" });
@@ -300,8 +300,8 @@ describe("plugin New workspace SDK boundary", () => {
   it("lets a New workspace item read the setup and change it through typed commands and a Combobox", () => {
     expect(
       typeErrors(`
-      import { useNewWorkspace, type PluginClientContext } from "@getpaseo/plugin/client";
-      import { Combobox } from "@getpaseo/plugin/client/ui";
+      import { useNewWorkspace, type PluginClientContext } from "@getzentic/plugin/client";
+      import { Combobox } from "@getzentic/plugin/client/ui";
       interface Issue { id: string; label: string; branch: string }
       function Item() {
         const newWorkspace = useNewWorkspace();
@@ -346,12 +346,12 @@ describe("plugin agent tools SDK boundary", () => {
     expect(
       typeErrors(`
       import { z } from "zod";
-      import { defineAgentTool, type PluginServerContext, type AgentToolResult, type AgentToolContext, type AgentToolDefinition } from "@getpaseo/plugin/server";
+      import { defineAgentTool, type PluginServerContext, type AgentToolResult, type AgentToolContext, type AgentToolDefinition } from "@getzentic/plugin/server";
       const tool: AgentToolDefinition = defineAgentTool({
         name: "create_issue",
         description: "Create an issue",
         input: z.object({ title: z.string(), count: z.string().transform(Number) }),
-        async execute(input, { agent, paseo, signal }) {
+        async execute(input, { agent, zentic, signal }) {
           const count: number = input.count;
           // @ts-expect-error input is inferred from the schema
           input.missing;
@@ -392,8 +392,8 @@ describe("lifecycle hook SDK types", () => {
   it("infers payloads and replacement requests and requires async handlers and new names", () => {
     expect(
       typeErrors(`
-      import type { PluginServerContext, PluginHooks, PluginHookPayload, PluginHookResult } from "@getpaseo/plugin/server";
-      import type { AgentTimelineItem } from "@getpaseo/protocol/agent-types";
+      import type { PluginServerContext, PluginHooks, PluginHookPayload, PluginHookResult } from "@getzentic/plugin/server";
+      import type { AgentTimelineItem } from "@getzentic/protocol/agent-types";
       export default function contribute(server: PluginServerContext) {
         server.addHook("worktree.create.before", async ({ request }) => {
           if (request.kind === "checkout-branch") {
@@ -427,12 +427,12 @@ describe("lifecycle hook SDK types", () => {
           const { metadata, ...withoutMetadata } = request;
           return withoutMetadata;
         });
-        server.addHook("agent.turn.after", async (event, { paseo, signal }) => {
+        server.addHook("agent.turn.after", async (event, { zentic, signal }) => {
           const { agent, outcome } = event;
           const kind: "completed" | "failed" | "canceled" = outcome.kind;
           // @ts-expect-error Turn payloads carry no history; read it from the agent's timeline.
           event.timeline;
-          const turn = await paseo.agents
+          const turn = await zentic.agents
             .ref(agent.id)
             .timeline.refetch({ direction: "tail", limit: 1, wholeTurns: true });
           const items: readonly AgentTimelineItem[] = turn.entries
@@ -468,12 +468,12 @@ describe("agent session reload SDK boundary", () => {
   it("exposes reload separately from snapshot refresh", () => {
     expect(
       typeErrors(`
-      import { type PluginServerContext } from "@getpaseo/plugin/server";
-      import { type PaseoAgentRefetchResult } from "@getpaseo/client";
-      async function reload(server: PluginServerContext, paseo: import("@getpaseo/client").PaseoApi) {
-        const agent = paseo.agents.ref("chosen-agent");
-        const read: PaseoAgentRefetchResult | null = await agent.refresh("read-snapshot");
-        const reopened: PaseoAgentRefetchResult | null = await agent.reload({ requestId: "reload-session" });
+      import { type PluginServerContext } from "@getzentic/plugin/server";
+      import { type ZenticAgentRefetchResult } from "@getzentic/client";
+      async function reload(server: PluginServerContext, zentic: import("@getzentic/client").ZenticApi) {
+        const agent = zentic.agents.ref("chosen-agent");
+        const read: ZenticAgentRefetchResult | null = await agent.refresh("read-snapshot");
+        const reopened: ZenticAgentRefetchResult | null = await agent.reload({ requestId: "reload-session" });
         await agent.reload();
         // @ts-expect-error reload options can grow without a positional signature change
         await agent.reload("reload-session");
@@ -487,10 +487,10 @@ describe("plugin subscription SDK boundary", () => {
   it("types contracts, overloaded handlers, the client hook, and the client entry handle", () => {
     expect(
       typeErrors(`
-      import { defineRpc, defineSubscription, type SubscriptionEvent, type SubscriptionInput } from "@getpaseo/plugin";
-      import type { PluginClientContext } from "@getpaseo/plugin/client";
-      import { useRpc, useSubscription } from "@getpaseo/plugin/client";
-      import type { PluginServerContext, PluginSubscriptionContext } from "@getpaseo/plugin/server";
+      import { defineRpc, defineSubscription, type SubscriptionEvent, type SubscriptionInput } from "@getzentic/plugin";
+      import type { PluginClientContext } from "@getzentic/plugin/client";
+      import { useRpc, useSubscription } from "@getzentic/plugin/client";
+      import type { PluginServerContext, PluginSubscriptionContext } from "@getzentic/plugin/server";
       import { z } from "zod";
       const diffWatch = defineSubscription({
         name: "diff.watch",
@@ -506,7 +506,7 @@ describe("plugin subscription SDK boundary", () => {
       const input: SubscriptionInput<typeof diffWatch> = { a: "main", b: "HEAD" };
       const event: SubscriptionEvent<typeof diffWatch> = { path: "a.ts", status: "added" };
       function server(server: PluginServerContext) {
-        server.handle(diffWatch, ({ a, b }, { push, signal, paseo }: PluginSubscriptionContext<SubscriptionEvent<typeof diffWatch>>) => {
+        server.handle(diffWatch, ({ a, b }, { push, signal, zentic }: PluginSubscriptionContext<SubscriptionEvent<typeof diffWatch>>) => {
           const pushed: Promise<void> = push({ path: a + b, status: "modified" });
           // @ts-expect-error events follow the contract
           void push({ path: 1, status: "modified" });
@@ -552,8 +552,8 @@ describe("sidebar data SDK boundary", () => {
   it("accepts references and preserves string-id panel consumers", () => {
     expect(
       typeErrors(`
-      import { useWorkspace, useAgent, usePaseo, type PluginClientContext, type PluginSidebarViewProps, type WorkspaceRef, type AgentRef, useProject, useTerminal, useWorkspaces, useAgents, useProjects, useTerminals, type ProjectRef, type TerminalRef, type Query, type Group } from "@getpaseo/plugin/client";
-      import type { PluginWorkspaceSnapshot } from "@getpaseo/plugin";
+      import { useWorkspace, useAgent, useZentic, type PluginClientContext, type PluginSidebarViewProps, type WorkspaceRef, type AgentRef, useProject, useTerminal, useWorkspaces, useAgents, useProjects, useTerminals, type ProjectRef, type TerminalRef, type Query, type Group } from "@getzentic/plugin/client";
+      import type { PluginWorkspaceSnapshot } from "@getzentic/plugin";
       function Panel({ workspace, agent }: { workspace: WorkspaceRef; agent: AgentRef }) {
         const snapshot: PluginWorkspaceSnapshot | null = useWorkspace(workspace);
         const title: string | null = useWorkspace("workspace", item => item.name);
@@ -564,13 +564,13 @@ describe("sidebar data SDK boundary", () => {
         const groups: readonly Group<AgentRef>[] = useAgents({ groupBy: item => item.status });
         const projects: readonly ProjectRef[] = useProjects({ hosts: [workspace.hostId] });
         const terminals: readonly TerminalRef[] = useTerminals();
-        const paseo = usePaseo();
-        void paseo.workspaces.ref(workspace).setPinned(true);
-        void paseo.workspaces.ref(workspace).setLabel("Later", { assigned: true });
-        void paseo.workspaces.ref("old-id").setTitle("Title");
-        if (projects[0]) { paseo.projects.ref(projects[0]).open(); void paseo.projects.ref(projects[0]).createWorkspace(); }
-        if (terminals[0]) { paseo.terminals.ref(terminals[0]).focus(); void paseo.terminals.ref(terminals[0]).kill(); }
-        void paseo.agents.ref(agent);
+        const zentic = useZentic();
+        void zentic.workspaces.ref(workspace).setPinned(true);
+        void zentic.workspaces.ref(workspace).setLabel("Later", { assigned: true });
+        void zentic.workspaces.ref("old-id").setTitle("Title");
+        if (projects[0]) { zentic.projects.ref(projects[0]).open(); void zentic.projects.ref(projects[0]).createWorkspace(); }
+        if (terminals[0]) { zentic.terminals.ref(terminals[0]).focus(); void zentic.terminals.ref(terminals[0]).kill(); }
+        void zentic.agents.ref(agent);
         if (projects[0]) useProject(projects[0], item => item.displayName);
         if (terminals[0]) useTerminal(terminals[0]);
         function View(props: PluginSidebarViewProps) {

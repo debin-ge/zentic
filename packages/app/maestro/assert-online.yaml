@@ -1,8 +1,8 @@
-appId: sh.paseo
+appId: sh.zentic
 ---
 - runFlow:
     when:
-      visible: "Open in.*Paseo.*\\?"
+      visible: "Open in.*Zentic.*\\?"
     commands:
       - tapOn: "Open"
 

@@ -1,7 +1,7 @@
-import type { PaseoAgentHandle, PaseoClient } from "@getpaseo/client";
+import type { ZenticAgentHandle, ZenticClient } from "@getzentic/client";
 
-export async function reviewInParallel(client: PaseoClient, cwd: string): Promise<string[]> {
-  const agents: PaseoAgentHandle[] = [];
+export async function reviewInParallel(client: ZenticClient, cwd: string): Promise<string[]> {
+  const agents: ZenticAgentHandle[] = [];
 
   try {
     agents.push(

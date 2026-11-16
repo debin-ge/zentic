@@ -1,4 +1,4 @@
-import type { PaseoApi } from "@getpaseo/client";
+import type { ZenticApi } from "@getzentic/client";
 import type { ZodType, input as ZodInput, output as ZodOutput } from "zod";
 import type { PluginRpcContract, PluginSubscriptionContract, PluginWireInput } from "../rpc.js";
 import type { PluginCleanup } from "../contracts.js";
@@ -7,7 +7,7 @@ import type { UsageSourceRegistration } from "./usage.js";
 import type { PluginLifecycleRegistration } from "./lifecycle.js";
 
 export interface PluginHandlerContext {
-  paseo: PaseoApi;
+  zentic: ZenticApi;
 }
 
 /** What a subscription handler receives beside its input. */

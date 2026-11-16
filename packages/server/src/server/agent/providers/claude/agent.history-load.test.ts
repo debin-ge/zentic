@@ -7,7 +7,7 @@ import * as path from "node:path";
 import pino from "pino";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-import { createTestPaseoDaemon } from "../../../test-utils/paseo-daemon.js";
+import { createTestZenticDaemon } from "../../../test-utils/zentic-daemon.js";
 import type { ClaudeRewindSdk } from "./rewind.js";
 import { ClaudeAgentClient } from "./agent.js";
 import { claudeProjectDirSync } from "./project-dir.js";
@@ -117,7 +117,7 @@ describe("ClaudeAgentSession persisted history load", () => {
     } finally {
       await file.close();
     }
-    const daemon = await createTestPaseoDaemon();
+    const daemon = await createTestZenticDaemon();
     let loading = true;
     let answeredDuringLoad = false;
     const health = fetch(`http://127.0.0.1:${daemon.port}/api/health`).then(async (response) => {

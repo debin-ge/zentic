@@ -1,7 +1,7 @@
-typeset -g PASEO_SHELL_INTEGRATION_DIR="${${(%):-%N}:A:h}"
+typeset -g ZENTIC_SHELL_INTEGRATION_DIR="${${(%):-%N}:A:h}"
 
-if [[ -n "${PASEO_ZSH_ZDOTDIR-}" ]]; then
-  export ZDOTDIR="${PASEO_ZSH_ZDOTDIR}"
+if [[ -n "${ZENTIC_ZSH_ZDOTDIR-}" ]]; then
+  export ZDOTDIR="${ZENTIC_ZSH_ZDOTDIR}"
 else
   unset ZDOTDIR
 fi
@@ -14,4 +14,4 @@ elif [[ -f "${HOME}/.zshenv" ]]; then
   source "${HOME}/.zshenv"
 fi
 
-source "${PASEO_SHELL_INTEGRATION_DIR}/paseo-integration.zsh"
+source "${ZENTIC_SHELL_INTEGRATION_DIR}/zentic-integration.zsh"

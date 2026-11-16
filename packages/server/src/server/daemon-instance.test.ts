@@ -14,8 +14,8 @@ function bootedAt(): number {
   return Date.now() - uptime() * 1000;
 }
 
-async function writeLock(paseoHome: string, lock: PidLockInfo): Promise<void> {
-  await writeFile(join(paseoHome, "paseo.pid"), JSON.stringify(lock));
+async function writeLock(zenticHome: string, lock: PidLockInfo): Promise<void> {
+  await writeFile(join(zenticHome, "zentic.pid"), JSON.stringify(lock));
 }
 
 function lockFor(pid: number, startedAt: Date): PidLockInfo {
@@ -31,44 +31,44 @@ function lockFor(pid: number, startedAt: Date): PidLockInfo {
 }
 
 describe("daemon instance identity across a reboot", () => {
-  let paseoHome: string;
+  let zenticHome: string;
   let bystander: ChildProcess | undefined;
 
   beforeEach(async () => {
-    paseoHome = await mkdtemp(join(tmpdir(), "paseo-daemon-instance-"));
+    zenticHome = await mkdtemp(join(tmpdir(), "zentic-daemon-instance-"));
   });
 
   afterEach(async () => {
     bystander?.kill("SIGKILL");
     bystander = undefined;
-    await rm(paseoHome, { recursive: true, force: true });
+    await rm(zenticHome, { recursive: true, force: true });
   });
 
   test("a lock stamped before this boot has no running owner", async () => {
-    await writeLock(paseoHome, lockFor(process.pid, new Date(bootedAt() - 60 * 60_000)));
+    await writeLock(zenticHome, lockFor(process.pid, new Date(bootedAt() - 60 * 60_000)));
 
-    expect(await readDaemonInstance(paseoHome)).toBeNull();
-    expect(await isLocked(paseoHome)).toMatchObject({ locked: false });
+    expect(await readDaemonInstance(zenticHome)).toBeNull();
+    expect(await isLocked(zenticHome)).toMatchObject({ locked: false });
   });
 
   test("a supervisor started during this boot still holds the lock", async () => {
-    await writeLock(paseoHome, lockFor(process.pid, new Date()));
+    await writeLock(zenticHome, lockFor(process.pid, new Date()));
 
-    expect(await readDaemonInstance(paseoHome)).toMatchObject({ pid: process.pid });
-    expect(await isLocked(paseoHome)).toMatchObject({ locked: true });
+    expect(await readDaemonInstance(zenticHome)).toMatchObject({ pid: process.pid });
+    expect(await isLocked(zenticHome)).toMatchObject({ locked: true });
   });
 
   test("a new supervisor takes over a lock stamped before this boot", async () => {
-    await writeLock(paseoHome, lockFor(process.pid, new Date(bootedAt() - 60 * 60_000)));
+    await writeLock(zenticHome, lockFor(process.pid, new Date(bootedAt() - 60 * 60_000)));
 
-    await acquirePidLock(paseoHome, null, { ownerPid: process.pid + 10_000 });
+    await acquirePidLock(zenticHome, null, { ownerPid: process.pid + 10_000 });
 
-    expect(await getPidLockInfo(paseoHome)).toMatchObject({ pid: process.pid + 10_000 });
+    expect(await getPidLockInfo(zenticHome)).toMatchObject({ pid: process.pid + 10_000 });
   });
 
   test("stopping a lock stamped before this boot leaves the process holding that pid alone", async () => {
     // Records delivery rather than dying of it, so a signal cannot be missed by arriving late.
-    const signalMarker = join(paseoHome, "bystander-signalled");
+    const signalMarker = join(zenticHome, "bystander-signalled");
     bystander = spawn(
       process.execPath,
       [
@@ -85,13 +85,13 @@ describe("daemon instance identity across a reboot", () => {
       exited = true;
     });
 
-    await writeLock(paseoHome, lockFor(bystanderPid, new Date(bootedAt() - 60 * 60_000)));
+    await writeLock(zenticHome, lockFor(bystanderPid, new Date(bootedAt() - 60 * 60_000)));
 
-    expect(await stopDaemonInstance(paseoHome)).toMatchObject({ action: "not_running" });
+    expect(await stopDaemonInstance(zenticHome)).toMatchObject({ action: "not_running" });
 
     expect(existsSync(signalMarker)).toBe(false);
     expect(exited).toBe(false);
-    await expect(readFile(join(paseoHome, "paseo.pid"), "utf-8")).rejects.toThrow(/ENOENT/);
+    await expect(readFile(join(zenticHome, "zentic.pid"), "utf-8")).rejects.toThrow(/ENOENT/);
   });
 });
 
@@ -99,37 +99,37 @@ describe("daemon instance identity across a reboot", () => {
 // runs ahead of its uptime once it resumes. A sleep longer than the time between boot and
 // the supervisor's start puts the wall-clock boot instant after the lock's startedAt.
 describe.runIf(process.platform === "linux")("daemon instance identity on Linux", () => {
-  let paseoHome: string;
+  let zenticHome: string;
 
   beforeEach(async () => {
-    paseoHome = await mkdtemp(join(tmpdir(), "paseo-daemon-instance-linux-"));
+    zenticHome = await mkdtemp(join(tmpdir(), "zentic-daemon-instance-linux-"));
   });
 
   afterEach(async () => {
     vi.useRealTimers();
-    await rm(paseoHome, { recursive: true, force: true });
+    await rm(zenticHome, { recursive: true, force: true });
   });
 
   test("a supervisor still holds the lock after its paused VM resumes", async () => {
-    await acquirePidLock(paseoHome, null, { ownerPid: process.pid });
+    await acquirePidLock(zenticHome, null, { ownerPid: process.pid });
 
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(Date.now() + uptime() * 1000 + 12 * 60 * 60_000);
 
-    expect(await readDaemonInstance(paseoHome)).toMatchObject({ pid: process.pid });
-    expect(await isLocked(paseoHome)).toMatchObject({ locked: true });
+    expect(await readDaemonInstance(zenticHome)).toMatchObject({ pid: process.pid });
+    expect(await isLocked(zenticHome)).toMatchObject({ locked: true });
     await expect(
-      acquirePidLock(paseoHome, null, { ownerPid: process.pid + 10_000 }),
-    ).rejects.toThrow("Another Paseo daemon is already running");
+      acquirePidLock(zenticHome, null, { ownerPid: process.pid + 10_000 }),
+    ).rejects.toThrow("Another Zentic daemon is already running");
   });
 
   test("a lock written during another boot has no running owner", async () => {
-    await writeLock(paseoHome, {
+    await writeLock(zenticHome, {
       ...lockFor(process.pid, new Date()),
       bootId: "00000000-0000-0000-0000-000000000000",
     });
 
-    expect(await readDaemonInstance(paseoHome)).toBeNull();
-    expect(await isLocked(paseoHome)).toMatchObject({ locked: false });
+    expect(await readDaemonInstance(zenticHome)).toBeNull();
+    expect(await isLocked(zenticHome)).toMatchObject({ locked: false });
   });
 });

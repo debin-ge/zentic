@@ -1,4 +1,8 @@
-import { encodeDiffFrame, DiffOpcode, type DiffBody } from "@getpaseo/protocol/binary-frames/index";
+import {
+  encodeDiffFrame,
+  DiffOpcode,
+  type DiffBody,
+} from "@getzentic/protocol/binary-frames/index";
 
 export async function* packBodies(
   files: AsyncIterable<DiffBody> | Iterable<DiffBody>,

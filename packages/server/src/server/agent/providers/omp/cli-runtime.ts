@@ -1,4 +1,4 @@
-import { createExternalProcessEnv } from "../../../paseo-env.js";
+import { createExternalProcessEnv } from "../../../zentic-env.js";
 import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import type { Logger } from "pino";
 import { z } from "zod";

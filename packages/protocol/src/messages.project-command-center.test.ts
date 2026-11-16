@@ -10,13 +10,13 @@ describe("project command-center protocol", () => {
     expect(
       SessionInboundMessageSchema.parse({
         type: "workspace.github.search_repositories.request",
-        query: "paseo",
+        query: "zentic",
         limit: 12,
         requestId: "req-search",
       }),
     ).toEqual({
       type: "workspace.github.search_repositories.request",
-      query: "paseo",
+      query: "zentic",
       limit: 12,
       requestId: "req-search",
     });
@@ -29,13 +29,13 @@ describe("project command-center protocol", () => {
           requestId: "req-search",
           repositories: [
             {
-              id: "R_paseo",
-              name: "paseo",
-              nameWithOwner: "getpaseo/paseo",
+              id: "R_zentic",
+              name: "zentic",
+              nameWithOwner: "getzentic/zentic",
               description: "Development environment in your pocket",
               visibility: "public",
               updatedAt: "2026-07-15T10:00:00Z",
-              cloneUrl: "git@github.com:getpaseo/paseo.git",
+              cloneUrl: "git@github.com:getzentic/zentic.git",
             },
           ],
           available: true,
@@ -47,13 +47,13 @@ describe("project command-center protocol", () => {
       requestId: "req-search",
       repositories: [
         {
-          id: "R_paseo",
-          name: "paseo",
-          nameWithOwner: "getpaseo/paseo",
+          id: "R_zentic",
+          name: "zentic",
+          nameWithOwner: "getzentic/zentic",
           description: "Development environment in your pocket",
           visibility: "public",
           updatedAt: "2026-07-15T10:00:00Z",
-          cloneUrl: "git@github.com:getpaseo/paseo.git",
+          cloneUrl: "git@github.com:getzentic/zentic.git",
         },
       ],
       available: true,
@@ -142,19 +142,19 @@ describe("project command-center protocol", () => {
           repositories: [
             {
               id: "repo",
-              name: " paseo ",
-              nameWithOwner: " getpaseo/paseo ",
+              name: " zentic ",
+              nameWithOwner: " getzentic/zentic ",
               description: null,
               visibility: "public",
               updatedAt: "2026-07-15T10:00:00Z",
-              cloneUrl: " https://github.com/getpaseo/paseo ",
+              cloneUrl: " https://github.com/getzentic/zentic ",
             },
           ],
           available: true,
           error: null,
         },
       }).payload.repositories[0]?.name,
-    ).toBe(" paseo ");
+    ).toBe(" zentic ");
   });
 
   it("keeps project command feature flags optional for older server_info payloads", () => {

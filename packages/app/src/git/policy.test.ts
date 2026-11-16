@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { CheckoutPrStatusSchema } from "@getpaseo/protocol/messages";
+import { CheckoutPrStatusSchema } from "@getzentic/protocol/messages";
 import { i18n } from "@/i18n/i18next";
 
 import {
@@ -76,7 +76,7 @@ function createInput(
     pullRequestMergeable: "UNKNOWN",
     mergeCapability: deriveMergeCapability(pullRequestGithub),
     hasRemote: false,
-    isPaseoOwnedWorktree: false,
+    isZenticOwnedWorktree: false,
     isOnBaseBranch: true,
     canMergeLocally: true,
     hasUncommittedChanges: false,
@@ -229,7 +229,7 @@ describe("git-actions-policy", () => {
   it("offers local merge when the selected local base starts with origin slash", () => {
     const actions = buildGitActions(
       createInput({
-        isPaseoOwnedWorktree: true,
+        isZenticOwnedWorktree: true,
         isOnBaseBranch: isCurrentBranchBase("release", "refs/heads/origin/release"),
         canMergeLocally: canMergeIntoLocalBase("release", "refs/heads/origin/release"),
         baseRefLabel: "origin/release",
@@ -243,7 +243,7 @@ describe("git-actions-policy", () => {
   it("offers update but not local merge for a non-origin remote base", () => {
     const actions = buildGitActions(
       createInput({
-        isPaseoOwnedWorktree: true,
+        isZenticOwnedWorktree: true,
         isOnBaseBranch: false,
         canMergeLocally: canMergeIntoLocalBase("feature", "refs/remotes/upstream/release"),
         baseRefLabel: "upstream/release",
@@ -261,7 +261,7 @@ describe("git-actions-policy", () => {
   it("does not offer merging into the current local branch when the remote base shares its name", () => {
     const actions = buildGitActions(
       createInput({
-        isPaseoOwnedWorktree: true,
+        isZenticOwnedWorktree: true,
         isOnBaseBranch: false,
         canMergeLocally: canMergeIntoLocalBase("release", "refs/remotes/origin/release"),
         baseRefLabel: "release",
@@ -279,7 +279,7 @@ describe("git-actions-policy", () => {
   it("offers update from the same-named remote base when it is ahead", () => {
     const actions = buildGitActions(
       createInput({
-        isPaseoOwnedWorktree: true,
+        isZenticOwnedWorktree: true,
         isOnBaseBranch: isCurrentBranchBase("release", "refs/remotes/origin/release"),
         baseRefLabel: "release",
         behindBaseCount: 1,
@@ -342,11 +342,11 @@ describe("git-actions-policy", () => {
     });
   });
 
-  it("keeps push available for a no-upstream Paseo worktree with local commits", () => {
+  it("keeps push available for a no-upstream Zentic worktree with local commits", () => {
     const actions = buildGitActions(
       createInput({
         hasRemote: true,
-        isPaseoOwnedWorktree: true,
+        isZenticOwnedWorktree: true,
         isOnBaseBranch: false,
         aheadCount: 1,
         aheadOfOrigin: null,
@@ -555,7 +555,7 @@ describe("git-actions-policy", () => {
   it("offers archive workspace for Git checkouts and worktrees", () => {
     const localCheckout = buildGitActions(createInput({ hasUncommittedChanges: true }));
     const worktree = buildGitActions(
-      createInput({ hasUncommittedChanges: true, isPaseoOwnedWorktree: true }),
+      createInput({ hasUncommittedChanges: true, isZenticOwnedWorktree: true }),
     );
 
     expect(localCheckout.secondary.some((action) => action.id === "archive-workspace")).toBe(true);
@@ -569,8 +569,8 @@ describe("git-actions-policy", () => {
     expect(actions.secondary.some((action) => action.id === "archive-workspace")).toBe(true);
   });
 
-  it("still promotes archive as primary for an idle Paseo-owned worktree", () => {
-    const actions = buildGitActions(createInput({ isPaseoOwnedWorktree: true }));
+  it("still promotes archive as primary for an idle Zentic-owned worktree", () => {
+    const actions = buildGitActions(createInput({ isZenticOwnedWorktree: true }));
 
     expect(actions.primary).toMatchObject({ id: "archive-workspace" });
   });
@@ -1196,7 +1196,7 @@ describe("git-actions-policy", () => {
         pullRequestState: "open",
         pullRequestMergeable: "MERGEABLE",
         pullRequestGithub: githubStatus(),
-        isPaseoOwnedWorktree: true,
+        isZenticOwnedWorktree: true,
       }),
     );
 

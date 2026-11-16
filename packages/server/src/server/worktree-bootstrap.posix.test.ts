@@ -95,7 +95,7 @@ describe.skipIf(isPlatform("win32"))("worktree-bootstrap POSIX-only", () => {
 
     it("injects real peer service env into terminal-backed services", async () => {
       writeFileSync(
-        join(repoDir, "paseo.json"),
+        join(repoDir, "zentic.json"),
         JSON.stringify({
           scripts: {
             api: {
@@ -111,7 +111,7 @@ describe.skipIf(isPlatform("win32"))("worktree-bootstrap POSIX-only", () => {
           },
         }),
       );
-      execFileSync("git", ["add", "paseo.json"], { cwd: repoDir, stdio: "pipe" });
+      execFileSync("git", ["add", "zentic.json"], { cwd: repoDir, stdio: "pipe" });
       execFileSync(
         "git",
         ["-c", "commit.gpgsign=false", "commit", "-m", "add real peer env services"],
@@ -150,32 +150,32 @@ describe.skipIf(isPlatform("win32"))("worktree-bootstrap POSIX-only", () => {
       const apiEnv = readEnvFile(apiEnvPath);
       const webEnv = readEnvFile(webEnvPath);
 
-      expect(apiEnv.PASEO_SERVICE_API_URL).toBe(
+      expect(apiEnv.ZENTIC_SERVICE_API_URL).toBe(
         "http://api--feature-peer-env--repo.localhost:6767",
       );
-      expect(apiEnv.PASEO_SERVICE_WEB_URL).toBe(
+      expect(apiEnv.ZENTIC_SERVICE_WEB_URL).toBe(
         "http://web--feature-peer-env--repo.localhost:6767",
       );
-      expect(apiEnv.PASEO_SERVICE_API_PORT).toEqual(expect.stringMatching(/^\d+$/));
-      expect(apiEnv.PASEO_SERVICE_WEB_PORT).toEqual(expect.stringMatching(/^\d+$/));
-      expect(apiEnv.PASEO_URL).toBe(apiEnv.PASEO_SERVICE_API_URL);
-      expect(apiEnv.PASEO_PORT).toBe(apiEnv.PASEO_SERVICE_API_PORT);
+      expect(apiEnv.ZENTIC_SERVICE_API_PORT).toEqual(expect.stringMatching(/^\d+$/));
+      expect(apiEnv.ZENTIC_SERVICE_WEB_PORT).toEqual(expect.stringMatching(/^\d+$/));
+      expect(apiEnv.ZENTIC_URL).toBe(apiEnv.ZENTIC_SERVICE_API_URL);
+      expect(apiEnv.ZENTIC_PORT).toBe(apiEnv.ZENTIC_SERVICE_API_PORT);
       expect(apiEnv).not.toHaveProperty("PORT");
 
-      expect(webEnv.PASEO_SERVICE_API_URL).toBe(
+      expect(webEnv.ZENTIC_SERVICE_API_URL).toBe(
         "http://api--feature-peer-env--repo.localhost:6767",
       );
-      expect(webEnv.PASEO_SERVICE_WEB_URL).toBe(
+      expect(webEnv.ZENTIC_SERVICE_WEB_URL).toBe(
         "http://web--feature-peer-env--repo.localhost:6767",
       );
-      expect(webEnv.PASEO_SERVICE_API_PORT).toBe(apiEnv.PASEO_SERVICE_API_PORT);
-      expect(webEnv.PASEO_SERVICE_WEB_PORT).toBe(apiEnv.PASEO_SERVICE_WEB_PORT);
-      expect(webEnv.PASEO_URL).toBe(webEnv.PASEO_SERVICE_WEB_URL);
-      expect(webEnv.PASEO_PORT).toBe(webEnv.PASEO_SERVICE_WEB_PORT);
+      expect(webEnv.ZENTIC_SERVICE_API_PORT).toBe(apiEnv.ZENTIC_SERVICE_API_PORT);
+      expect(webEnv.ZENTIC_SERVICE_WEB_PORT).toBe(apiEnv.ZENTIC_SERVICE_WEB_PORT);
+      expect(webEnv.ZENTIC_URL).toBe(webEnv.ZENTIC_SERVICE_WEB_URL);
+      expect(webEnv.ZENTIC_PORT).toBe(webEnv.ZENTIC_SERVICE_WEB_PORT);
       expect(webEnv).not.toHaveProperty("PORT");
 
-      const apiPort = Number(apiEnv.PASEO_SERVICE_API_PORT);
-      const webPort = Number(apiEnv.PASEO_SERVICE_WEB_PORT);
+      const apiPort = Number(apiEnv.ZENTIC_SERVICE_API_PORT);
+      const webPort = Number(apiEnv.ZENTIC_SERVICE_WEB_PORT);
       expect(Number.isInteger(apiPort)).toBe(true);
       expect(Number.isInteger(webPort)).toBe(true);
       expect(routeStore.listRoutes()).toEqual([

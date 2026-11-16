@@ -26,15 +26,15 @@ import {
   assertPullRequestAutoMergeDisableReady,
   assertPullRequestAutoMergeEnableReady,
 } from "../services/github-service.js";
-import { PARENT_AGENT_ID_LABEL } from "@getpaseo/protocol/agent-labels";
-import { CLIENT_CAPS } from "@getpaseo/protocol/client-capabilities";
-import type { WorkspaceDescriptorPayload } from "@getpaseo/protocol/messages";
+import { PARENT_AGENT_ID_LABEL } from "@getzentic/protocol/agent-labels";
+import { CLIENT_CAPS } from "@getzentic/protocol/client-capabilities";
+import type { WorkspaceDescriptorPayload } from "@getzentic/protocol/messages";
 import {
   decodeFileTransferFrame,
   encodeFileTransferFrame,
   FileTransferOpcode,
   type FileTransferFrame,
-} from "@getpaseo/protocol/binary-frames/index";
+} from "@getzentic/protocol/binary-frames/index";
 import { Session } from "./session.js";
 import {
   terminalCleanupRecordPath,
@@ -106,7 +106,7 @@ interface SessionHandlerInternals {
   handleStashListRequest(params: unknown): Promise<unknown>;
   handleStashSaveRequest(params: unknown): Promise<unknown>;
   handleStashPopRequest(params: unknown): Promise<unknown>;
-  createPaseoWorktree(params: unknown): Promise<unknown>;
+  createZenticWorktree(params: unknown): Promise<unknown>;
   handleStartWorkspaceScriptRequest(params: unknown): Promise<unknown>;
 }
 
@@ -232,8 +232,8 @@ const gitCommandMocks = vi.hoisted(() => ({
   runGitCommand: vi.fn(),
 }));
 
-const paseoWorktreeServiceMocks = vi.hoisted(() => ({
-  createPaseoWorktree: vi.fn(),
+const zenticWorktreeServiceMocks = vi.hoisted(() => ({
+  createZenticWorktree: vi.fn(),
 }));
 
 interface Deferred<T> {
@@ -272,11 +272,11 @@ vi.mock("../utils/checkout-git.js", async (importOriginal) => {
   };
 });
 
-vi.mock("./paseo-worktree-service.js", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("./paseo-worktree-service.js")>();
+vi.mock("./zentic-worktree-service.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./zentic-worktree-service.js")>();
   return {
     ...actual,
-    createPaseoWorktree: paseoWorktreeServiceMocks.createPaseoWorktree,
+    createZenticWorktree: zenticWorktreeServiceMocks.createZenticWorktree,
   };
 });
 
@@ -339,7 +339,7 @@ interface SessionForTestOptions {
   hubExecutionAgents?: SessionOptions["hubExecutionAgents"];
   stt?: SessionOptions["stt"];
   voice?: SessionOptions["voice"];
-  paseoHome?: string;
+  zenticHome?: string;
   serverId?: SessionOptions["serverId"];
   daemonVersion?: SessionOptions["daemonVersion"];
   daemonRuntimeConfig?: SessionOptions["daemonRuntimeConfig"];
@@ -407,7 +407,7 @@ function createSessionForTest(options: SessionForTestOptions = {}): Session {
     logger,
     downloadTokenStore: options.downloadTokenStore ?? asDownloadTokenStore(),
     pushNotifications: options.pushNotifications ?? asPushNotifications(),
-    paseoHome: options.paseoHome ?? "/tmp/paseo-home",
+    zenticHome: options.zenticHome ?? "/tmp/zentic-home",
     agentManager: asAgentManager({
       listAgents: vi.fn(() => []),
       listProviderSubagentActivity: vi.fn(() => []),
@@ -475,8 +475,8 @@ test("routes host-scoped agent skills requests through the daemon owner", async 
   const status = {
     state: "up-to-date" as const,
     ops: [],
-    available: ["paseo"],
-    installed: ["paseo"],
+    available: ["zentic"],
+    installed: ["zentic"],
     selection: { mode: "all" as const },
   };
   const orchestrationSkills: NonNullable<SessionOptions["orchestrationSkills"]> = {
@@ -495,13 +495,13 @@ test("routes host-scoped agent skills requests through the daemon owner", async 
   await session.handleMessage({
     type: "agent.skills.save_selection.request",
     requestId: "save-skills",
-    selection: { mode: "custom", skills: ["paseo"] },
-    confirmedRemovals: ["paseo-loop"],
+    selection: { mode: "custom", skills: ["zentic"] },
+    confirmedRemovals: ["zentic-loop"],
   });
 
   expect(orchestrationSkills.saveSelection).toHaveBeenCalledWith(
-    { mode: "custom", skills: ["paseo"] },
-    ["paseo-loop"],
+    { mode: "custom", skills: ["zentic"] },
+    ["zentic-loop"],
   );
   expect(messages).toContainEqual({
     type: "agent.skills.save_selection.response",
@@ -1003,27 +1003,27 @@ describe("project command-center RPCs", () => {
     const messages: SessionOutboundMessage[] = [];
     const searchRepositories = vi.fn().mockResolvedValue([
       {
-        id: "R_paseo",
-        name: "paseo",
-        nameWithOwner: "getpaseo/paseo",
+        id: "R_zentic",
+        name: "zentic",
+        nameWithOwner: "getzentic/zentic",
         description: "Development environment in your pocket",
         visibility: "public",
         updatedAt: "2026-07-15T10:00:00Z",
-        cloneUrl: "git@github.com:getpaseo/paseo.git",
+        cloneUrl: "git@github.com:getzentic/zentic.git",
       },
     ]);
     const session = createSessionForTest({ messages, github: { searchRepositories } });
 
     await session.handleMessage({
       type: "workspace.github.search_repositories.request",
-      query: "paseo",
+      query: "zentic",
       limit: 10,
       requestId: "req-repositories",
     });
 
     expect(searchRepositories).toHaveBeenCalledWith({
       cwd: expect.any(String),
-      query: "paseo",
+      query: "zentic",
       limit: 10,
     });
     expect(messages).toEqual([
@@ -1034,13 +1034,13 @@ describe("project command-center RPCs", () => {
           requestId: "req-repositories",
           repositories: [
             {
-              id: "R_paseo",
-              name: "paseo",
-              nameWithOwner: "getpaseo/paseo",
+              id: "R_zentic",
+              name: "zentic",
+              nameWithOwner: "getzentic/zentic",
               description: "Development environment in your pocket",
               visibility: "public",
               updatedAt: "2026-07-15T10:00:00Z",
-              cloneUrl: "git@github.com:getpaseo/paseo.git",
+              cloneUrl: "git@github.com:getzentic/zentic.git",
             },
           ],
           available: true,
@@ -1074,7 +1074,7 @@ describe("project command-center RPCs", () => {
     },
     {
       error: new GitHubCommandError({
-        args: ["search", "repos", "paseo"],
+        args: ["search", "repos", "zentic"],
         cwd: "/tmp",
         exitCode: 1,
         stderr: "GitHub API unavailable",
@@ -1096,7 +1096,7 @@ describe("project command-center RPCs", () => {
 
     await session.handleMessage({
       type: "workspace.github.search_repositories.request",
-      query: "paseo",
+      query: "zentic",
       requestId: "req-repositories-error",
     });
 
@@ -1109,7 +1109,7 @@ describe("project command-center RPCs", () => {
   });
 
   test("creates a directory and returns its normalized Project descriptor", async () => {
-    const parentDirectory = realpathSync(mkdtempSync(join(tmpdir(), "paseo-project-session-")));
+    const parentDirectory = realpathSync(mkdtempSync(join(tmpdir(), "zentic-project-session-")));
     const directoryPath = join(parentDirectory, "new-project");
     const messages: SessionOutboundMessage[] = [];
     const projectAllocation = vi.fn(async (input) =>
@@ -1134,7 +1134,7 @@ describe("project command-center RPCs", () => {
           currentBranch: null,
           remoteUrl: null,
           worktreeRoot: null,
-          isPaseoOwnedWorktree: false as const,
+          isZenticOwnedWorktree: false as const,
           mainRepoRoot: null,
         })),
       },
@@ -1187,7 +1187,7 @@ describe("project command-center RPCs", () => {
   });
 
   test("rolls back the directory when Project registration fails", async () => {
-    const parentDirectory = realpathSync(mkdtempSync(join(tmpdir(), "paseo-project-session-")));
+    const parentDirectory = realpathSync(mkdtempSync(join(tmpdir(), "zentic-project-session-")));
     const directoryPath = join(parentDirectory, "unregistered");
     const messages: SessionOutboundMessage[] = [];
     const session = createSessionForTest({
@@ -1202,7 +1202,7 @@ describe("project command-center RPCs", () => {
           currentBranch: null,
           remoteUrl: null,
           worktreeRoot: null,
-          isPaseoOwnedWorktree: false as const,
+          isZenticOwnedWorktree: false as const,
           mainRepoRoot: null,
         })),
       },
@@ -1475,9 +1475,9 @@ describe("workspace file access (behavior preservation)", () => {
   });
 
   test("file upload round-trips bytes through binary frames", async () => {
-    const paseoHome = makeDir("file-access-upload-");
+    const zenticHome = makeDir("file-access-upload-");
     const messages: SessionOutboundMessage[] = [];
-    const session = createSessionForTest({ messages, paseoHome });
+    const session = createSessionForTest({ messages, zenticHome });
 
     const source = {};
     await session.handleMessage(
@@ -1831,7 +1831,7 @@ describe("project config RPC authorization", () => {
 
   test("read_project_config_request accepts the same root with a trailing slash", async () => {
     const repoRoot = makeRoot();
-    writeFileSync(join(repoRoot, "paseo.json"), JSON.stringify({ worktree: { setup: "npm ci" } }));
+    writeFileSync(join(repoRoot, "zentic.json"), JSON.stringify({ worktree: { setup: "npm ci" } }));
     const messages: unknown[] = [];
     const session = createSessionForTest({
       messages,
@@ -1867,7 +1867,7 @@ describe("project config RPC authorization", () => {
     async () => {
       const repoRoot = makeRoot();
       writeFileSync(
-        join(repoRoot, "paseo.json"),
+        join(repoRoot, "zentic.json"),
         JSON.stringify({ worktree: { setup: "npm ci" } }),
       );
       const linkRoot = join(makeRoot(), "link");
@@ -1951,7 +1951,7 @@ describe("project config RPC authorization", () => {
   test("read_project_config_request emits raw lifecycle forms for a known project root", async () => {
     const repoRoot = makeRoot();
     writeFileSync(
-      join(repoRoot, "paseo.json"),
+      join(repoRoot, "zentic.json"),
       JSON.stringify({ worktree: { setup: "npm install", teardown: ["npm run clean"] } }),
     );
     const messages: unknown[] = [];
@@ -1985,7 +1985,7 @@ describe("project config RPC authorization", () => {
 
   test("write_project_config_request emits stale and write-failed inline domain failures", async () => {
     const staleRoot = makeRoot();
-    writeFileSync(join(staleRoot, "paseo.json"), JSON.stringify({ worktree: { setup: "old" } }));
+    writeFileSync(join(staleRoot, "zentic.json"), JSON.stringify({ worktree: { setup: "old" } }));
     const writeFailedRoot = join(makeRoot(), "not-a-directory");
     writeFileSync(writeFailedRoot, "file");
     const messages: unknown[] = [];
@@ -2146,7 +2146,7 @@ describe("daemon status + pairing RPC", () => {
     const messages: unknown[] = [];
     const session = createSessionForTest({
       messages,
-      paseoHome: makeHome(),
+      zenticHome: makeHome(),
       serverId: "srv-test",
       daemonVersion: "9.9.9",
       daemonRuntimeConfig: { listen: "127.0.0.1:6767", getRelayConfig: () => null },
@@ -2184,29 +2184,29 @@ describe("daemon status + pairing RPC", () => {
 
   test("daemon.get_status.request reports what a terminal cleanup could not confirm gone", async () => {
     const messages: unknown[] = [];
-    const paseoHome = makeHome();
+    const zenticHome = makeHome();
     const unresolved = {
       pid: 4242,
       role: "terminal program" as const,
       reason: "still alive" as const,
       detail: "survived SIGKILL",
     };
-    await writeTerminalCleanupRecord(paseoHome, {
+    await writeTerminalCleanupRecord(zenticHome, {
       recordId: "closing-record",
       pid: 4241,
       bootId: null,
       createdAt: new Date().toISOString(),
       identity: { startedAt: "Thu Jan  1 00:00:00 1970", commandLine: "worker" },
       protocolVersion: 1,
-      paseoVersion: "0.0.0-test",
-      socketPath: join(paseoHome, "closing.sock"),
+      zenticVersion: "0.0.0-test",
+      socketPath: join(zenticHome, "closing.sock"),
       secret: "closing-secret",
       terminals: [{ id: "t1", pid: 4242, startedAt: "Thu Jan  1 00:00:00 1970" }],
       closing: { unresolved: [unresolved] },
     });
     const session = createSessionForTest({
       messages,
-      paseoHome,
+      zenticHome,
       serverId: "srv-test",
       daemonVersion: "9.9.9",
       daemonRuntimeConfig: { listen: "127.0.0.1:6767", getRelayConfig: () => null },
@@ -2225,13 +2225,13 @@ describe("daemon status + pairing RPC", () => {
 
   test("daemon.get_status.request fails when a terminal cleanup record cannot be read", async () => {
     const messages: unknown[] = [];
-    const paseoHome = makeHome();
-    mkdirSync(terminalWorkerDirectory(paseoHome), { recursive: true });
-    const cleanupPath = terminalCleanupRecordPath(paseoHome, "closing-record");
+    const zenticHome = makeHome();
+    mkdirSync(terminalWorkerDirectory(zenticHome), { recursive: true });
+    const cleanupPath = terminalCleanupRecordPath(zenticHome, "closing-record");
     writeFileSync(cleanupPath, "{ not json");
     const session = createSessionForTest({
       messages,
-      paseoHome,
+      zenticHome,
       serverId: "srv-test",
       daemonVersion: "9.9.9",
       daemonRuntimeConfig: { listen: "127.0.0.1:6767", getRelayConfig: () => null },
@@ -2258,7 +2258,7 @@ describe("daemon status + pairing RPC", () => {
     const messages: unknown[] = [];
     const session = createSessionForTest({
       messages,
-      paseoHome: makeHome(),
+      zenticHome: makeHome(),
       serverId: "srv-test",
       daemonVersion: "9.9.9",
       daemonRuntimeConfig: { listen: "127.0.0.1:6767", getRelayConfig: () => null },
@@ -2295,13 +2295,13 @@ describe("daemon status + pairing RPC", () => {
     const messages: unknown[] = [];
     const session = createSessionForTest({
       messages,
-      paseoHome: makeHome(),
+      zenticHome: makeHome(),
       daemonRuntimeConfig: {
         listen: "127.0.0.1:6767",
         getRelayConfig: () => ({
           enabled: false,
-          endpoint: "relay.paseo.sh:443",
-          publicEndpoint: "relay.paseo.sh:443",
+          endpoint: "relay.zentic.sh:443",
+          publicEndpoint: "relay.zentic.sh:443",
           useTls: true,
           publicUseTls: true,
         }),
@@ -2341,8 +2341,8 @@ function createWorkspaceGitSnapshot(
       repoRoot: cwd,
       mainRepoRoot: null,
       currentBranch: "feature/service",
-      remoteUrl: "https://github.com/getpaseo/paseo.git",
-      isPaseoOwnedWorktree: false,
+      remoteUrl: "https://github.com/getzentic/zentic.git",
+      isZenticOwnedWorktree: false,
       isDirty: true,
       baseRef: "main",
       aheadBehind: { ahead: 2, behind: 1 },
@@ -2641,7 +2641,7 @@ describe("session checkout merge handling", () => {
         baseRef: "main",
         mode: "merge",
       },
-      { paseoHome: "/tmp/paseo-home" },
+      { zenticHome: "/tmp/zentic-home" },
     );
     expect(workspaceGitService.getSnapshot).toHaveBeenCalledWith("/tmp/base-worktree", {
       force: true,
@@ -2726,7 +2726,7 @@ describe("session checkout merge handling", () => {
         baseRef: "main",
         requireCleanTarget: true,
       },
-      { paseoHome: "/tmp/paseo-home", worktreesRoot: undefined },
+      { zenticHome: "/tmp/zentic-home", worktreesRoot: undefined },
     );
     expect(workspaceGitService.getSnapshot).toHaveBeenCalledWith("/tmp/request-worktree", {
       force: true,
@@ -2773,13 +2773,13 @@ diff --git a/file.txt b/file.txt
   }
 
   function writeConfig(repoRoot: string, config: unknown): void {
-    writeFileSync(join(repoRoot, "paseo.json"), `${JSON.stringify(config)}\n`);
+    writeFileSync(join(repoRoot, "zentic.json"), `${JSON.stringify(config)}\n`);
   }
 
   async function generateCommitPromptWithConfig(config: unknown): Promise<string> {
     const repoRoot = makeRoot();
     if (typeof config === "string") {
-      writeFileSync(join(repoRoot, "paseo.json"), config);
+      writeFileSync(join(repoRoot, "zentic.json"), config);
     } else if (config !== undefined) {
       writeConfig(repoRoot, config);
     }
@@ -2921,9 +2921,9 @@ diff --git a/file.txt b/file.txt
   });
 
   test.each([
-    ["paseo.json missing", undefined],
-    ["paseo.json exists but invalid JSON", "{ nope"],
-    ["paseo.json valid but missing metadataGeneration", {}],
+    ["zentic.json missing", undefined],
+    ["zentic.json exists but invalid JSON", "{ nope"],
+    ["zentic.json valid but missing metadataGeneration", {}],
     ["metadataGeneration is schema-invalid", { metadataGeneration: "not an object" }],
     [
       "metadataGeneration exists but missing commitMessage",
@@ -3069,13 +3069,13 @@ diff --git a/file.txt b/file.txt
   }
 
   function writeConfig(repoRoot: string, config: unknown): void {
-    writeFileSync(join(repoRoot, "paseo.json"), `${JSON.stringify(config)}\n`);
+    writeFileSync(join(repoRoot, "zentic.json"), `${JSON.stringify(config)}\n`);
   }
 
   async function generatePullRequestCallWithConfig(config: unknown): Promise<unknown> {
     const repoRoot = makeRoot();
     if (typeof config === "string") {
-      writeFileSync(join(repoRoot, "paseo.json"), config);
+      writeFileSync(join(repoRoot, "zentic.json"), config);
     } else if (config !== undefined) {
       writeConfig(repoRoot, config);
     }
@@ -3102,7 +3102,7 @@ diff --git a/file.txt b/file.txt
       body: "Updates file.",
     });
     checkoutGitMocks.createPullRequest.mockResolvedValue({
-      url: "https://github.com/getpaseo/paseo/pull/1",
+      url: "https://github.com/getzentic/zentic/pull/1",
       number: 1,
     });
     const session = createSessionForTest({ workspaceGitService });
@@ -3147,7 +3147,7 @@ diff --git a/file.txt b/file.txt
       body: "Updates file.",
     });
     checkoutGitMocks.createPullRequest.mockResolvedValue({
-      url: "https://github.com/getpaseo/paseo/pull/1",
+      url: "https://github.com/getzentic/zentic/pull/1",
       number: 1,
     });
     const session = createSessionForTest({ workspaceGitService, messages });
@@ -3184,13 +3184,13 @@ diff --git a/file.txt b/file.txt
         base: "main",
       },
       expect.anything(),
-      { paseoHome: "/tmp/paseo-home", worktreesRoot: undefined },
+      { zenticHome: "/tmp/zentic-home", worktreesRoot: undefined },
     );
     expect(messages).toContainEqual({
       type: "checkout_pr_create_response",
       payload: {
         cwd: "/tmp/request-worktree",
-        url: "https://github.com/getpaseo/paseo/pull/1",
+        url: "https://github.com/getzentic/zentic/pull/1",
         number: 1,
         error: null,
         requestId: "request-generated-pr",
@@ -3199,9 +3199,9 @@ diff --git a/file.txt b/file.txt
   });
 
   test.each([
-    ["paseo.json missing", undefined],
-    ["paseo.json exists but invalid JSON", "{ nope"],
-    ["paseo.json valid but missing metadataGeneration", {}],
+    ["zentic.json missing", undefined],
+    ["zentic.json exists but invalid JSON", "{ nope"],
+    ["zentic.json valid but missing metadataGeneration", {}],
     ["metadataGeneration is schema-invalid", { metadataGeneration: "not an object" }],
     [
       "metadataGeneration exists but missing pullRequest",
@@ -3287,7 +3287,7 @@ diff --git a/file.txt b/file.txt
       new StructuredAgentFallbackError([]),
     );
     checkoutGitMocks.createPullRequest.mockResolvedValue({
-      url: "https://github.com/getpaseo/paseo/pull/9",
+      url: "https://github.com/getzentic/zentic/pull/9",
       number: 9,
     });
     const session = createSessionForTest({ workspaceGitService, messages });
@@ -3305,17 +3305,17 @@ diff --git a/file.txt b/file.txt
       "/tmp/request-worktree",
       {
         title: "Update changes",
-        body: "Automated PR generated by Paseo.",
+        body: "Automated PR generated by Zentic.",
         base: "main",
       },
       expect.anything(),
-      { paseoHome: "/tmp/paseo-home", worktreesRoot: undefined },
+      { zenticHome: "/tmp/zentic-home", worktreesRoot: undefined },
     );
     expect(messages).toContainEqual({
       type: "checkout_pr_create_response",
       payload: {
         cwd: "/tmp/request-worktree",
-        url: "https://github.com/getpaseo/paseo/pull/9",
+        url: "https://github.com/getzentic/zentic/pull/9",
         number: 9,
         error: null,
         requestId: "request-generated-pr-fallback",
@@ -3330,7 +3330,7 @@ diff --git a/file.txt b/file.txt
       getSnapshot: vi.fn().mockResolvedValue({}),
     };
     checkoutGitMocks.createPullRequest.mockResolvedValue({
-      url: "https://github.com/getpaseo/paseo/pull/2",
+      url: "https://github.com/getzentic/zentic/pull/2",
       number: 2,
     });
     const session = createSessionForTest({ github, workspaceGitService, messages });
@@ -3353,7 +3353,7 @@ diff --git a/file.txt b/file.txt
       type: "checkout_pr_create_response",
       payload: {
         cwd: "/tmp/request-worktree",
-        url: "https://github.com/getpaseo/paseo/pull/2",
+        url: "https://github.com/getzentic/zentic/pull/2",
         number: 2,
         error: null,
         requestId: "request-pr-create",
@@ -4185,8 +4185,8 @@ describe("session checkout status handling", () => {
         behindOfOrigin: 1,
         upstreamRef: null,
         hasRemote: true,
-        remoteUrl: "https://github.com/getpaseo/paseo.git",
-        isPaseoOwnedWorktree: false,
+        remoteUrl: "https://github.com/getzentic/zentic.git",
+        isZenticOwnedWorktree: false,
         error: null,
         requestId: "request-status",
       },
@@ -4264,7 +4264,7 @@ describe("session workspace descriptors", () => {
             git: {
               remoteUrl: "https://github.com/acme/app.git",
               currentBranch: "main",
-              isPaseoOwnedWorktree: false,
+              isZenticOwnedWorktree: false,
               mainRepoRoot: null,
             },
           }),
@@ -4306,7 +4306,7 @@ describe("session workspace descriptors", () => {
                 currentBranch: "app",
                 remoteUrl: null,
                 worktreeRoot: "/repo/app",
-                isPaseoOwnedWorktree: false,
+                isZenticOwnedWorktree: false,
                 mainRepoRoot: null,
               }),
             }),
@@ -4344,7 +4344,7 @@ describe("session workspace descriptors", () => {
             git: {
               remoteUrl: null,
               currentBranch: "main",
-              isPaseoOwnedWorktree: false,
+              isZenticOwnedWorktree: false,
               mainRepoRoot: null,
             },
           }),
@@ -4382,7 +4382,7 @@ describe("session workspace descriptors", () => {
                 currentBranch: "local",
                 remoteUrl: null,
                 worktreeRoot: "/repo/local",
-                isPaseoOwnedWorktree: false,
+                isZenticOwnedWorktree: false,
                 mainRepoRoot: null,
               }),
             }),
@@ -4499,7 +4499,7 @@ describe("session branch validation", () => {
   });
 
   test("does not validate tags as branches", async () => {
-    const tempDir = mkdtempSync(join(tmpdir(), "paseo-session-branch-validation-"));
+    const tempDir = mkdtempSync(join(tmpdir(), "zentic-session-branch-validation-"));
     const repoDir = join(tempDir, "repo");
 
     try {
@@ -4849,9 +4849,9 @@ describe("session stash list handling", () => {
     const entries = [
       {
         index: 0,
-        message: "paseo-auto-stash: feature",
+        message: "zentic-auto-stash: feature",
         branch: "feature",
-        isPaseo: true,
+        isZentic: true,
       },
     ];
     const workspaceRuntimeStore = { ...createWorkspaceRuntimeStore(), get: vi.fn() };
@@ -4864,13 +4864,13 @@ describe("session stash list handling", () => {
     await session.handleMessage({
       type: "stash_list_request",
       cwd: "/tmp/repo",
-      paseoOnly: true,
+      zenticOnly: true,
       requestId: "request-stashes",
     });
 
     expect(workspaceGitService.listStashes).toHaveBeenCalledTimes(1);
     expect(workspaceGitService.listStashes).toHaveBeenCalledWith("/tmp/repo", {
-      paseoOnly: true,
+      zenticOnly: true,
     });
     expect(messages).toContainEqual({
       type: "stash_list_response",
@@ -4900,7 +4900,7 @@ describe("session stash mutation handling", () => {
     });
 
     expect(gitCommandMocks.runGitCommand).toHaveBeenCalledWith(
-      ["stash", "push", "--include-untracked", "-m", "paseo-auto-stash: feature"],
+      ["stash", "push", "--include-untracked", "-m", "zentic-auto-stash: feature"],
       { cwd: "/tmp/repo", timeout: 120_000 },
     );
     expect(workspaceGitService.getSnapshot).toHaveBeenCalledWith("/tmp/repo", {
@@ -4957,27 +4957,27 @@ describe("session stash mutation handling", () => {
   });
 });
 
-describe("session paseo worktree creation handling", () => {
+describe("session zentic worktree creation handling", () => {
   test("forces workspace git refreshes for the source repo and created worktree", async () => {
     const workspaceGitService = { getSnapshot: vi.fn().mockResolvedValue({}) };
     const session = createSessionForTest({ workspaceGitService });
-    paseoWorktreeServiceMocks.createPaseoWorktree.mockResolvedValue({
+    zenticWorktreeServiceMocks.createZenticWorktree.mockResolvedValue({
       repoRoot: "/tmp/repo",
       worktree: {
         branchName: "feature/new-worktree",
-        worktreePath: "/tmp/paseo/worktrees/new-worktree",
+        worktreePath: "/tmp/zentic/worktrees/new-worktree",
       },
       workspace: {
         workspaceId: "workspace-new-worktree",
         projectId: "project-repo",
-        cwd: "/tmp/paseo/worktrees/new-worktree",
+        cwd: "/tmp/zentic/worktrees/new-worktree",
         kind: "worktree",
         displayName: "feature/new-worktree",
       },
       created: true,
     });
 
-    await asSessionInternals(session).createPaseoWorktree({
+    await asSessionInternals(session).createZenticWorktree({
       cwd: "/tmp/repo",
       worktreeSlug: "new-worktree",
     });
@@ -4987,7 +4987,7 @@ describe("session paseo worktree creation handling", () => {
       reason: "create-worktree",
     });
     expect(workspaceGitService.getSnapshot).toHaveBeenCalledWith(
-      "/tmp/paseo/worktrees/new-worktree",
+      "/tmp/zentic/worktrees/new-worktree",
       {
         force: true,
         reason: "create-worktree",
@@ -5002,12 +5002,12 @@ describe("session workspace script handling", () => {
     const snapshot = createWorkspaceGitSnapshot("/tmp/repo", {
       git: {
         currentBranch: "feature/service-scripts",
-        remoteUrl: "https://github.com/getpaseo/paseo.git",
+        remoteUrl: "https://github.com/getzentic/zentic.git",
       },
     });
     const workspaceRuntimeStore = { ...createWorkspaceRuntimeStore(), get: vi.fn(() => snapshot) };
     const workspaceGitService = {
-      getProjectSlug: vi.fn().mockResolvedValue("paseo"),
+      getProjectSlug: vi.fn().mockResolvedValue("zentic"),
     };
     const workspaceRegistry = {
       get: vi.fn().mockResolvedValue({
@@ -5045,7 +5045,7 @@ describe("session workspace script handling", () => {
       expect.objectContaining({
         repoRoot: "/tmp/repo",
         workspaceId: "workspace-1",
-        projectSlug: "paseo",
+        projectSlug: "zentic",
         branchName: "feature/service-scripts",
         scriptName: "api",
         daemonPort: 6767,
@@ -5078,7 +5078,7 @@ describe("session pull request timeline handling", () => {
             forge: "github",
             number: 42,
             title: "Ship search",
-            url: "https://github.com/getpaseo/paseo/pull/42",
+            url: "https://github.com/getzentic/zentic/pull/42",
             state: "OPEN",
             body: null,
             labels: [],
@@ -5126,7 +5126,7 @@ describe("session pull request timeline handling", () => {
             forge: "github",
             number: 42,
             title: "Ship search",
-            url: "https://github.com/getpaseo/paseo/pull/42",
+            url: "https://github.com/getzentic/zentic/pull/42",
             state: "OPEN",
             body: null,
             labels: [],
@@ -5183,8 +5183,8 @@ describe("session pull request timeline handling", () => {
       isAuthenticated: vi.fn().mockResolvedValue(true),
       getPullRequestTimeline: vi.fn().mockResolvedValue({
         prNumber: 42,
-        repoOwner: "getpaseo",
-        repoName: "paseo",
+        repoOwner: "getzentic",
+        repoName: "zentic",
         items: [
           {
             id: "review-1",
@@ -5194,7 +5194,7 @@ describe("session pull request timeline handling", () => {
             avatarUrl: "https://avatars.githubusercontent.com/u/1?v=4",
             body: "Looks good",
             createdAt: 1710000000000,
-            url: "https://github.com/getpaseo/paseo/pull/42#pullrequestreview-1",
+            url: "https://github.com/getzentic/zentic/pull/42#pullrequestreview-1",
             reviewState: "approved",
           },
         ],
@@ -5208,16 +5208,16 @@ describe("session pull request timeline handling", () => {
       type: "pull_request_timeline_request",
       cwd: "/tmp/repo",
       prNumber: 42,
-      repoOwner: "getpaseo",
-      repoName: "paseo",
+      repoOwner: "getzentic",
+      repoName: "zentic",
       requestId: "request-1",
     });
 
     expect(github.getPullRequestTimeline).toHaveBeenCalledWith({
       cwd: "/tmp/repo",
       prNumber: 42,
-      repoOwner: "getpaseo",
-      repoName: "paseo",
+      repoOwner: "getzentic",
+      repoName: "zentic",
     });
     expect(messages).toContainEqual({
       type: "pull_request_timeline_response",
@@ -5233,7 +5233,7 @@ describe("session pull request timeline handling", () => {
             avatarUrl: "https://avatars.githubusercontent.com/u/1?v=4",
             body: "Looks good",
             createdAt: 1710000000000,
-            url: "https://github.com/getpaseo/paseo/pull/42#pullrequestreview-1",
+            url: "https://github.com/getzentic/zentic/pull/42#pullrequestreview-1",
             reviewState: "approved",
           },
         ],
@@ -5246,14 +5246,14 @@ describe("session pull request timeline handling", () => {
   });
 
   test.each([
-    { prNumber: 0, repoOwner: "getpaseo", repoName: "paseo" },
-    { prNumber: -1, repoOwner: "getpaseo", repoName: "paseo" },
-    { prNumber: 42, repoOwner: "get paseo", repoName: "paseo" },
-    { prNumber: 42, repoOwner: "getpaseo/cli", repoName: "paseo" },
-    { prNumber: 42, repoOwner: "get$paseo", repoName: "paseo" },
-    { prNumber: 42, repoOwner: "getpaseo", repoName: "pa seo" },
-    { prNumber: 42, repoOwner: "getpaseo", repoName: "paseo/app" },
-    { prNumber: 42, repoOwner: "getpaseo", repoName: "paseo!" },
+    { prNumber: 0, repoOwner: "getzentic", repoName: "zentic" },
+    { prNumber: -1, repoOwner: "getzentic", repoName: "zentic" },
+    { prNumber: 42, repoOwner: "get zentic", repoName: "zentic" },
+    { prNumber: 42, repoOwner: "getzentic/cli", repoName: "zentic" },
+    { prNumber: 42, repoOwner: "get$zentic", repoName: "zentic" },
+    { prNumber: 42, repoOwner: "getzentic", repoName: "pa seo" },
+    { prNumber: 42, repoOwner: "getzentic", repoName: "zentic/app" },
+    { prNumber: 42, repoOwner: "getzentic", repoName: "zentic!" },
   ])("returns an unknown error when request identity is invalid: %j", async (identity) => {
     const messages: unknown[] = [];
     const github = {
@@ -5302,8 +5302,8 @@ describe("session pull request timeline handling", () => {
       type: "pull_request_timeline_request",
       cwd: "/tmp/repo",
       prNumber: 42,
-      repoOwner: "getpaseo",
-      repoName: "paseo",
+      repoOwner: "getzentic",
+      repoName: "zentic",
       requestId: "request-3",
     });
 
@@ -5340,8 +5340,8 @@ describe("session pull request timeline handling", () => {
       name: "server-tests",
       status: "completed",
       conclusion: "failure",
-      url: "https://github.com/getpaseo/paseo/actions/runs/456/job/789",
-      detailsUrl: "https://github.com/getpaseo/paseo/actions/runs/456/job/789",
+      url: "https://github.com/getzentic/zentic/actions/runs/456/job/789",
+      detailsUrl: "https://github.com/getzentic/zentic/actions/runs/456/job/789",
       output: { title: "Tests failed", summary: "1 failure", text: "Assertion failed" },
       annotations: [],
       failedJobs: [],
@@ -5368,8 +5368,8 @@ describe("session pull request timeline handling", () => {
     await session.handleMessage({
       type: "checkout.forge.get_check_details.request",
       cwd: "/tmp/repo",
-      repoOwner: "getpaseo",
-      repoName: "paseo",
+      repoOwner: "getzentic",
+      repoName: "zentic",
       checkRunId: 12345,
       workflowRunId: 456,
       requestId: "request-check-details",
@@ -5378,8 +5378,8 @@ describe("session pull request timeline handling", () => {
     expect(checkDetailRequests).toEqual([
       {
         cwd: "/tmp/repo",
-        repoOwner: "getpaseo",
-        repoName: "paseo",
+        repoOwner: "getzentic",
+        repoName: "zentic",
         checkRunId: 12345,
         workflowRunId: 456,
       },
@@ -5396,8 +5396,8 @@ describe("session pull request timeline handling", () => {
           name: "server-tests",
           status: "completed",
           conclusion: "failure",
-          url: "https://github.com/getpaseo/paseo/actions/runs/456/job/789",
-          detailsUrl: "https://github.com/getpaseo/paseo/actions/runs/456/job/789",
+          url: "https://github.com/getzentic/zentic/actions/runs/456/job/789",
+          detailsUrl: "https://github.com/getzentic/zentic/actions/runs/456/job/789",
           output: { title: "Tests failed", summary: "1 failure", text: "Assertion failed" },
           annotations: [],
           failedJobs: [],

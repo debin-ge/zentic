@@ -5,8 +5,8 @@ test.each([
   ["127.0.0.1:6767", "tcp://127.0.0.1:6767"],
   ["4321", "tcp://127.0.0.1:4321"],
   ["[::1]:4321", "tcp://[::1]:4321"],
-  ["unix:///tmp/paseo.sock", "unix:///tmp/paseo.sock"],
-  ["pipe://\\\\.\\pipe\\paseo", "pipe://\\\\.\\pipe\\paseo"],
+  ["unix:///tmp/zentic.sock", "unix:///tmp/zentic.sock"],
+  ["pipe://\\\\.\\pipe\\zentic", "pipe://\\\\.\\pipe\\zentic"],
   ["wss://example.com/custom?token=secret", "wss://example.com"],
   ["tcp://example.com:6767?password=secret", "tcp://example.com:6767"],
 ])(
@@ -70,7 +70,7 @@ test("pairing offers cannot publish a credential-bearing or malformed relay auth
       daemonPublicKeyB64: "private-key",
       relay: { endpoint, useTls: false },
     };
-    const url = `https://app.paseo.sh/#offer=${Buffer.from(JSON.stringify(offer)).toString("base64url")}`;
+    const url = `https://app.zentic.sh/#offer=${Buffer.from(JSON.stringify(offer)).toString("base64url")}`;
     expect(() => parseHostTarget(url)).toThrow("Invalid host connection");
   }
 });

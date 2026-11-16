@@ -7,12 +7,12 @@ import { resolveSpeechConfig } from "./speech-config-resolver.js";
 
 describe("resolveSpeechConfig", () => {
   test("resolves local-first defaults with voice mode off until turned on", () => {
-    const paseoHome = "/tmp/paseo-home";
+    const zenticHome = "/tmp/zentic-home";
     const persisted = PersistedConfigSchema.parse({});
     const env = {} as NodeJS.ProcessEnv;
 
     const result = resolveSpeechConfig({
-      paseoHome,
+      zenticHome,
       env,
       persisted,
     });
@@ -39,7 +39,7 @@ describe("resolveSpeechConfig", () => {
       enabled: false,
     });
     expect(result.speech.local).toEqual({
-      modelsDir: path.join(paseoHome, "models", "local-speech"),
+      modelsDir: path.join(zenticHome, "models", "local-speech"),
       models: {
         dictationStt: "parakeet-tdt-0.6b-v2-int8",
         voiceStt: "parakeet-tdt-0.6b-v2-int8",
@@ -68,22 +68,22 @@ describe("resolveSpeechConfig", () => {
       },
     });
     const env = {
-      PASEO_DICTATION_LOCAL_STT_MODEL: "parakeet-tdt-0.6b-v2-int8",
-      PASEO_VOICE_LOCAL_STT_MODEL: "parakeet-tdt-0.6b-v2-int8",
-      PASEO_VOICE_LOCAL_TTS_MODEL: "kokoro-en-v0_19",
-      PASEO_VOICE_LOCAL_TTS_SPEAKER_ID: "5",
-      PASEO_VOICE_LOCAL_TTS_SPEED: "1.35",
-      PASEO_DICTATION_LANGUAGE: "es",
-      PASEO_VOICE_LANGUAGE: "pt",
-      PASEO_LOCAL_MODELS_DIR: "/tmp/models",
+      ZENTIC_DICTATION_LOCAL_STT_MODEL: "parakeet-tdt-0.6b-v2-int8",
+      ZENTIC_VOICE_LOCAL_STT_MODEL: "parakeet-tdt-0.6b-v2-int8",
+      ZENTIC_VOICE_LOCAL_TTS_MODEL: "kokoro-en-v0_19",
+      ZENTIC_VOICE_LOCAL_TTS_SPEAKER_ID: "5",
+      ZENTIC_VOICE_LOCAL_TTS_SPEED: "1.35",
+      ZENTIC_DICTATION_LANGUAGE: "es",
+      ZENTIC_VOICE_LANGUAGE: "pt",
+      ZENTIC_LOCAL_MODELS_DIR: "/tmp/models",
       OPENAI_API_KEY: "env-key",
-      PASEO_VOICE_STT_PROVIDER: "openai",
-      PASEO_DICTATION_STT_PROVIDER: "local",
-      PASEO_VOICE_TTS_PROVIDER: "local",
+      ZENTIC_VOICE_STT_PROVIDER: "openai",
+      ZENTIC_DICTATION_STT_PROVIDER: "local",
+      ZENTIC_VOICE_TTS_PROVIDER: "local",
     } as NodeJS.ProcessEnv;
 
     const result = resolveSpeechConfig({
-      paseoHome: "/tmp/paseo-home",
+      zenticHome: "/tmp/zentic-home",
       env,
       persisted,
     });
@@ -153,10 +153,10 @@ describe("resolveSpeechConfig", () => {
       });
 
       const result = resolveSpeechConfig({
-        paseoHome: "/tmp/paseo-home",
+        zenticHome: "/tmp/zentic-home",
         env: {
-          PASEO_DICTATION_LANGUAGE: "es",
-          PASEO_VOICE_LANGUAGE: "  ",
+          ZENTIC_DICTATION_LANGUAGE: "es",
+          ZENTIC_VOICE_LANGUAGE: "  ",
         } as NodeJS.ProcessEnv,
         persisted,
       });
@@ -181,7 +181,7 @@ describe("resolveSpeechConfig", () => {
     });
 
     const result = resolveSpeechConfig({
-      paseoHome: "/tmp/paseo-home",
+      zenticHome: "/tmp/zentic-home",
       env: {} as NodeJS.ProcessEnv,
       persisted,
     });
@@ -211,7 +211,7 @@ describe("resolveSpeechConfig", () => {
     // models directory is configured; otherwise voice mode reports
     // turn_detection_unavailable.
     expect(result.speech.local).toEqual({
-      modelsDir: path.join("/tmp/paseo-home", "models", "local-speech"),
+      modelsDir: path.join("/tmp/zentic-home", "models", "local-speech"),
       models: {
         dictationStt: "parakeet-tdt-0.6b-v2-int8",
         voiceStt: "parakeet-tdt-0.6b-v2-int8",
@@ -237,7 +237,7 @@ describe("resolveSpeechConfig", () => {
     });
 
     const result = resolveSpeechConfig({
-      paseoHome: "/tmp/paseo-home",
+      zenticHome: "/tmp/zentic-home",
       env: {} as NodeJS.ProcessEnv,
       persisted,
     });
@@ -248,7 +248,7 @@ describe("resolveSpeechConfig", () => {
       enabled: true,
     });
     expect(result.speech.local).toEqual({
-      modelsDir: path.join("/tmp/paseo-home", "models", "local-speech"),
+      modelsDir: path.join("/tmp/zentic-home", "models", "local-speech"),
       models: {
         dictationStt: "parakeet-tdt-0.6b-v2-int8",
         voiceStt: "parakeet-tdt-0.6b-v2-int8",
@@ -271,7 +271,7 @@ describe("resolveSpeechConfig", () => {
     });
 
     const result = resolveSpeechConfig({
-      paseoHome: "/tmp/paseo-home",
+      zenticHome: "/tmp/zentic-home",
       env: {} as NodeJS.ProcessEnv,
       persisted,
     });
@@ -293,7 +293,7 @@ describe("resolveSpeechConfig", () => {
     });
 
     const result = resolveSpeechConfig({
-      paseoHome: "/tmp/paseo-home",
+      zenticHome: "/tmp/zentic-home",
       env: {} as NodeJS.ProcessEnv,
       persisted,
     });

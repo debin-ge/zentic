@@ -211,7 +211,7 @@ export function SponsorSpotSection() {
 }
 
 /** The /sponsor page's first section: the note and the ways to back the work. */
-export function SponsorPaseoSection() {
+export function SponsorZenticSection() {
   const { t } = useTranslation();
   return (
     <section>
@@ -273,7 +273,7 @@ interface SponsorsSectionProps {
 }
 
 /**
- * The companies sponsoring Paseo: one monochrome logo per sponsor and, while
+ * The companies sponsoring Zentic: one monochrome logo per sponsor and, while
  * spots are open, a quiet invitation. Every page shows it once.
  */
 export function SponsorsSection({ placement }: SponsorsSectionProps) {

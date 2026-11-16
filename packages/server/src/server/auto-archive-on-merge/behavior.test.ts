@@ -17,7 +17,7 @@ import {
 import { createGitHubService } from "../../services/github-service.js";
 import { archiveIfSafe } from "./archive-if-safe.js";
 import { killTerminalsForWorkspace } from "../workspace-archive-service.js";
-import { isPaseoOwnedWorktreeCwd, createWorktree } from "../../utils/worktree.js";
+import { isZenticOwnedWorktreeCwd, createWorktree } from "../../utils/worktree.js";
 
 type PullRequestState = "open" | "closed" | "merged";
 
@@ -44,21 +44,21 @@ async function createWorkspaceFiles() {
   cleanupPaths.push(tempDir);
   const repoDir = path.join(tempDir, "repo");
   run(tempDir, ["init", "-b", "main", repoDir]);
-  run(repoDir, ["config", "user.email", "test@getpaseo.local"]);
-  run(repoDir, ["config", "user.name", "Paseo Test"]);
+  run(repoDir, ["config", "user.email", "test@getzentic.local"]);
+  run(repoDir, ["config", "user.name", "Zentic Test"]);
   writeFileSync(path.join(repoDir, "README.md"), "workspace journey\n");
   run(repoDir, ["add", "README.md"]);
   run(repoDir, ["-c", "commit.gpgsign=false", "commit", "-m", "initial"]);
 
-  const paseoHome = path.join(tempDir, ".paseo");
+  const zenticHome = path.join(tempDir, ".zentic");
   const worktree = await createWorktree({
     cwd: repoDir,
     worktreeSlug: "workspace",
     source: { kind: "branch-off", baseBranch: "main", branchName: "workspace" },
 
-    paseoHome,
+    zenticHome,
   });
-  return { repoDir, paseoHome, worktree };
+  return { repoDir, zenticHome, worktree };
 }
 
 async function createWorkspaceJourney() {
@@ -82,7 +82,7 @@ async function createWorkspaceJourney() {
         mainRepoRoot: repoDir,
         currentBranch: branch,
         remoteUrl: "https://github.com/acme/repo.git",
-        isPaseoOwnedWorktree: true,
+        isZenticOwnedWorktree: true,
         isDirty: false,
         baseRef: "main",
         aheadBehind: { ahead: 0, behind: 0 },
@@ -167,7 +167,7 @@ async function createUnobservedWorkspace(journeyOptions?: {
 }) {
   const { archiveBarrier, changeBeforeArchiveRead: shouldChange = false } = journeyOptions ?? {};
   let changeBeforeArchiveRead = shouldChange;
-  const { repoDir, paseoHome, worktree } = await createWorkspaceFiles();
+  const { repoDir, zenticHome, worktree } = await createWorkspaceFiles();
   const cwd = worktree.worktreePath;
   run(repoDir, ["remote", "add", "origin", "https://github.com/acme/repo.git"]);
   run(repoDir, ["update-ref", "refs/remotes/origin/workspace", "HEAD"]);
@@ -185,7 +185,7 @@ async function createUnobservedWorkspace(journeyOptions?: {
   let active = true;
   const service = new WorkspaceGitServiceImpl({
     logger,
-    paseoHome,
+    zenticHome,
     deps: {
       forgeOverrides: { github },
       getPullRequestStatus: async (_cwd, _forge, options) => {
@@ -208,7 +208,7 @@ async function createUnobservedWorkspace(journeyOptions?: {
   cleanupServices.push(service);
   const options = {
     logger,
-    paseoHome,
+    zenticHome,
     daemonConfigStore: { get: () => ({ autoArchiveAfterMerge: true }) },
     workspaceGitService: {
       onSnapshotUpdated: service.onSnapshotUpdated.bind(service),
@@ -235,7 +235,7 @@ async function createUnobservedWorkspace(journeyOptions?: {
       await archiveIfSafe({
         ...input,
         deps: {
-          isPaseoOwnedWorktreeCwd,
+          isZenticOwnedWorktreeCwd,
           killTerminalsForWorkspace,
           archiveByScope: async (_options, request) => {
             if (request.scope.kind !== "workspace") throw new Error("Expected workspace archive");
@@ -333,7 +333,7 @@ describe("workspace auto-archive behavior", () => {
       expect(merged.git).toMatchObject({
         isDirty: false,
         aheadOfOrigin: 0,
-        isPaseoOwnedWorktree: true,
+        isZenticOwnedWorktree: true,
       });
       await expect.poll(() => workspace.archives).toEqual(["workspace-under-test"]);
       expect(workspace.isActive()).toBe(true);

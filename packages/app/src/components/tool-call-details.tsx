@@ -10,11 +10,11 @@ import { ScrollView as GHScrollView } from "react-native-gesture-handler";
 import { StyleSheet } from "react-native-unistyles";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
-import type { ToolCallDetail } from "@getpaseo/protocol/agent-types";
+import type { ToolCallDetail } from "@getzentic/protocol/agent-types";
 import {
-  buildPaseoToolDetailSections,
-  type PaseoToolDetailSection,
-} from "@getpaseo/protocol/paseo-tool-presentation/index";
+  buildZenticToolDetailSections,
+  type ZenticToolDetailSection,
+} from "@getzentic/protocol/zentic-tool-presentation/index";
 import { buildLineDiff, parseUnifiedDiff, type DiffLine } from "@/utils/tool-call-parsers";
 import { highlightDiffLines } from "@/utils/diff-highlight";
 import { hasMeaningfulToolCallDetail } from "@/utils/tool-call-detail-state";
@@ -411,20 +411,20 @@ function buildUnknownSections(detail: UnknownDetail, ds: DetailStyles, t: TFunct
   return out;
 }
 
-function PaseoDetailSection({ section }: { section: PaseoToolDetailSection }) {
+function ZenticDetailSection({ section }: { section: ZenticToolDetailSection }) {
   return (
-    <View style={styles.paseoSection}>
-      <Text style={styles.paseoSectionTitle}>{section.title}</Text>
+    <View style={styles.zenticSection}>
+      <Text style={styles.zenticSectionTitle}>{section.title}</Text>
       {section.kind === "prose" ? (
-        <Text selectable style={styles.paseoProse}>
+        <Text selectable style={styles.zenticProse}>
           {section.text}
         </Text>
       ) : (
-        <View style={styles.paseoFields}>
+        <View style={styles.zenticFields}>
           {section.fields.map((field) => (
-            <View key={field.label} style={styles.paseoFieldRow}>
-              <Text style={styles.paseoFieldLabel}>{field.label}</Text>
-              <Text selectable style={styles.paseoFieldValue}>
+            <View key={field.label} style={styles.zenticFieldRow}>
+              <Text style={styles.zenticFieldLabel}>{field.label}</Text>
+              <Text selectable style={styles.zenticFieldValue}>
                 {field.value}
               </Text>
             </View>
@@ -435,14 +435,14 @@ function PaseoDetailSection({ section }: { section: PaseoToolDetailSection }) {
   );
 }
 
-function buildPaseoUnknownSections(
+function buildZenticUnknownSections(
   toolName: string | undefined,
   detail: UnknownDetail,
 ): ReactNode[] | null {
   if (!toolName) return null;
-  const sections = buildPaseoToolDetailSections(toolName, detail.input, detail.output);
+  const sections = buildZenticToolDetailSections(toolName, detail.input, detail.output);
   if (!sections) return null;
-  return sections.map((section) => <PaseoDetailSection key={section.title} section={section} />);
+  return sections.map((section) => <ZenticDetailSection key={section.title} section={section} />);
 }
 
 function buildDetailSections(
@@ -499,7 +499,7 @@ function buildDetailSections(
     return [<ScrollablePlainTextSection key="plain-text" text={detail.text} ds={ds} />];
   }
   if (detail.type === "unknown") {
-    return buildPaseoUnknownSections(toolName, detail) ?? buildUnknownSections(detail, ds, t);
+    return buildZenticUnknownSections(toolName, detail) ?? buildUnknownSections(detail, ds, t);
   }
   return [];
 }
@@ -595,39 +595,39 @@ const styles = StyleSheet.create((theme) => {
       fontSize: theme.fontSize.base,
       fontWeight: theme.fontWeight.normal,
     },
-    paseoSection: {
+    zenticSection: {
       gap: theme.spacing[3],
       paddingHorizontal: theme.spacing[4],
       paddingVertical: theme.spacing[4],
       borderBottomWidth: theme.borderWidth[1],
       borderBottomColor: theme.colors.border,
     },
-    paseoSectionTitle: {
+    zenticSectionTitle: {
       color: theme.colors.foreground,
       fontSize: theme.fontSize.base,
       fontWeight: theme.fontWeight.medium,
     },
-    paseoProse: {
+    zenticProse: {
       color: theme.colors.foreground,
       fontSize: theme.fontSize.content,
       lineHeight: Math.round(theme.fontSize.content * 1.5),
       overflowWrap: "anywhere",
     },
-    paseoFields: {
+    zenticFields: {
       gap: theme.spacing[3],
     },
-    paseoFieldRow: {
+    zenticFieldRow: {
       flexDirection: "row",
       alignItems: "flex-start",
       gap: theme.spacing[4],
     },
-    paseoFieldLabel: {
+    zenticFieldLabel: {
       width: 120,
       color: theme.colors.foregroundMuted,
       fontSize: theme.fontSize.sm,
       lineHeight: Math.round(theme.fontSize.base * 1.5),
     },
-    paseoFieldValue: {
+    zenticFieldValue: {
       flex: 1,
       minWidth: 0,
       color: theme.colors.foreground,

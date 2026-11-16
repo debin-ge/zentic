@@ -1,8 +1,8 @@
 import type { WorkspaceRef, AgentRef, ProjectRef, TerminalRef } from "../refs.js";
 import type { PluginText } from "../text.js";
 import type { ComponentType } from "react";
-import type { PluginPaseoApi } from "./reference-api.js";
-import type { AgentTimelineItem, JsonValue } from "@getpaseo/protocol/agent-types";
+import type { PluginZenticApi } from "./reference-api.js";
+import type { AgentTimelineItem, JsonValue } from "@getzentic/protocol/agent-types";
 import type { ZodType, input as ZodInput, output as ZodOutput } from "zod";
 import type { PluginFile } from "./file.js";
 import type {
@@ -257,7 +257,7 @@ export interface PluginClientContext extends PluginCommandCapabilities, PluginCl
   ): PluginCleanup;
   openPanel(id: string, options: PluginClientOpenPanelOptions): void;
   /**
-   * Subscribes to a plugin subscription on this client's host. Paseo re-subscribes after a
+   * Subscribes to a plugin subscription on this client's host. Zentic re-subscribes after a
    * reconnect and releases what is left when the plugin stops.
    */
   subscribe<InputSchema extends ZodType, EventSchema extends ZodType>(
@@ -355,7 +355,7 @@ export interface PluginTimelineRendererContribution<Schema extends ZodType = Zod
 }
 
 export interface PluginCommandCapabilities {
-  paseo: PluginPaseoApi;
+  zentic: PluginZenticApi;
   rpc<InputSchema extends ZodType, OutputSchema extends ZodType>(
     contract: PluginRpcContract<InputSchema, OutputSchema>,
     input: PluginWireInput<ZodInput<InputSchema>>,

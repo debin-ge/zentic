@@ -1,4 +1,4 @@
-import type { JsonValue } from "@getpaseo/protocol/agent-types";
+import type { JsonValue } from "@getzentic/protocol/agent-types";
 import { z } from "zod";
 
 export const PROVIDER_PROTOCOL_VERSION = 1 as const;
@@ -150,7 +150,7 @@ export interface ProviderPrompt {
 
 interface ProviderForgeChangeRequestAttachment {
   type: "forge_change_request";
-  mimeType: "application/paseo-forge-change-request";
+  mimeType: "application/zentic-forge-change-request";
   forge?: string;
   number: number;
   title: string;
@@ -163,7 +163,7 @@ interface ProviderForgeChangeRequestAttachment {
 
 interface ProviderForgeIssueAttachment {
   type: "forge_issue";
-  mimeType: "application/paseo-forge-issue";
+  mimeType: "application/zentic-forge-issue";
   forge?: string;
   number: number;
   title: string;
@@ -211,7 +211,7 @@ interface ProviderTextAttachment {
 
 interface ProviderReviewAttachment {
   type: "review";
-  mimeType: "application/paseo-review";
+  mimeType: "application/zentic-review";
   cwd: string;
   mode: "uncommitted" | "base" | "all";
   baseRef?: string | null;
@@ -321,7 +321,7 @@ export interface ProviderMode {
 }
 
 /**
- * Draws one top-level option key in the composer. The control holds no value: Paseo reads it
+ * Draws one top-level option key in the composer. The control holds no value: Zentic reads it
  * from the agent's options.
  */
 export type ProviderOptionControl =
@@ -821,7 +821,7 @@ const providerContentSchema: z.ZodType<ProviderContent> = z.union([
   z
     .object({
       type: z.literal("forge_change_request"),
-      mimeType: z.literal("application/paseo-forge-change-request"),
+      mimeType: z.literal("application/zentic-forge-change-request"),
       forge: z.string().optional(),
       number: z.number().int().positive(),
       title: z.string(),
@@ -835,7 +835,7 @@ const providerContentSchema: z.ZodType<ProviderContent> = z.union([
   z
     .object({
       type: z.literal("forge_issue"),
-      mimeType: z.literal("application/paseo-forge-issue"),
+      mimeType: z.literal("application/zentic-forge-issue"),
       forge: z.string().optional(),
       number: z.number().int().positive(),
       title: z.string(),
@@ -879,7 +879,7 @@ const providerContentSchema: z.ZodType<ProviderContent> = z.union([
   z
     .object({
       type: z.literal("review"),
-      mimeType: z.literal("application/paseo-review"),
+      mimeType: z.literal("application/zentic-review"),
       cwd: z.string(),
       mode: z.enum(["uncommitted", "base", "all"]),
       baseRef: z.string().nullable().optional(),

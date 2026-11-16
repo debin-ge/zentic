@@ -4,10 +4,10 @@ import { createRequire } from "node:module";
 import net from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { buildRelayWebSocketUrl } from "@getpaseo/protocol/daemon-endpoints";
-import { parseConnectionOfferFromUrl } from "@getpaseo/protocol/connection-offer";
-import { generateLocalPairingOffer } from "@getpaseo/server/pairing";
-import { DaemonClient } from "@getpaseo/client/internal/daemon-client";
+import { buildRelayWebSocketUrl } from "@getzentic/protocol/daemon-endpoints";
+import { parseConnectionOfferFromUrl } from "@getzentic/protocol/connection-offer";
+import { generateLocalPairingOffer } from "@getzentic/server/pairing";
+import { DaemonClient } from "@getzentic/client/internal/daemon-client";
 import { WebSocket } from "ws";
 import { getAvailablePort } from "../helpers/network.ts";
 import { createE2ETestContext } from "../helpers/test-daemon.ts";
@@ -180,14 +180,14 @@ async function waitForDaemonRelayRegistered(offerUrl: string, timeoutMs = 30_000
     ctx = await createE2ETestContext({
       timeout: 60_000,
       env: {
-        PASEO_RELAY_ENABLED: "true",
-        PASEO_RELAY_ENDPOINT: relayEndpoint,
-        PASEO_RELAY_PUBLIC_ENDPOINT: relayEndpoint,
+        ZENTIC_RELAY_ENABLED: "true",
+        ZENTIC_RELAY_ENDPOINT: relayEndpoint,
+        ZENTIC_RELAY_PUBLIC_ENDPOINT: relayEndpoint,
       },
     });
 
     const offer = await generateLocalPairingOffer({
-      paseoHome: ctx.paseoHome,
+      zenticHome: ctx.zenticHome,
       relayEnabled: true,
       relayEndpoint,
       relayPublicEndpoint: relayEndpoint,
@@ -210,17 +210,17 @@ async function waitForDaemonRelayRegistered(offerUrl: string, timeoutMs = 30_000
     }
   }, SHUTDOWN_TIMEOUT_MS);
 
-  it("runs `paseo --host <offer-url> ls` over the relay and matches direct ls output", async () => {
+  it("runs `zentic --host <offer-url> ls` over the relay and matches direct ls output", async () => {
     if (!ctx) throw new Error("test context not initialized");
 
-    const direct = await ctx.paseo(["ls", "--json"]);
+    const direct = await ctx.zentic(["ls", "--json"]);
     expect(direct.exitCode, `direct ls failed: ${direct.stderr}`).toBe(0);
     const directAgents = JSON.parse(direct.stdout.trim() || "[]");
     expect(Array.isArray(directAgents)).toBe(true);
 
-    const relay = await ctx.paseo(["ls", "--json", "--host", offerUrl], {
+    const relay = await ctx.zentic(["ls", "--json", "--host", offerUrl], {
       timeout: 30_000,
-      env: { PASEO_HOST: offerUrl },
+      env: { ZENTIC_HOST: offerUrl },
     });
     expect(relay.exitCode, `relay ls failed: ${relay.stderr}\nstdout: ${relay.stdout}`).toBe(0);
     const relayAgents = JSON.parse(relay.stdout.trim() || "[]");

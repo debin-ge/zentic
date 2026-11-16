@@ -1,4 +1,4 @@
-import type { PluginServerContext } from "@getpaseo/plugin/server";
+import type { PluginServerContext } from "@getzentic/plugin/server";
 import { inputSchema } from "./shared/input.js";
 import { fetchUsage, discover, discoverSession } from "./server/usage.js";
 

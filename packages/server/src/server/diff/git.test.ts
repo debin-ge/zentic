@@ -453,7 +453,7 @@ test.each(["worktree", "index", "rev"] as const)(
 
 test("highlighted BOM source content survives the production frame codec", async () => {
   const { encodeDiffFrame, decodeDiffFrame } =
-    await import("@getpaseo/protocol/binary-frames/index");
+    await import("@getzentic/protocol/binary-frames/index");
   const cwd = await mkdtemp(join(tmpdir(), "diff-bom-"));
   const git = (...args: string[]) => execFileSync("git", args, { cwd, encoding: "utf8" });
   try {
@@ -524,7 +524,7 @@ test.skipIf(process.platform === "win32")(
   "highlighted symlink replacements use stored link text instead of target contents",
   async () => {
     const { encodeDiffFrame, decodeDiffFrame } =
-      await import("@getpaseo/protocol/binary-frames/index");
+      await import("@getzentic/protocol/binary-frames/index");
     const cwd = await mkdtemp(join(tmpdir(), "diff-highlighted-link-"));
     const git = (...args: string[]) => execFileSync("git", args, { cwd, encoding: "utf8" });
     const { symlink, unlink } = await import("node:fs/promises");
@@ -561,7 +561,7 @@ test.skipIf(process.platform === "win32")(
 
 test("files removed between listing and highlighting retain their deletion patch", async () => {
   const { encodeDiffFrame, decodeDiffFrame } =
-    await import("@getpaseo/protocol/binary-frames/index");
+    await import("@getzentic/protocol/binary-frames/index");
   const cwd = await mkdtemp(join(tmpdir(), "diff-source-disappeared-"));
   const git = (...args: string[]) => execFileSync("git", args, { cwd, encoding: "utf8" });
   try {

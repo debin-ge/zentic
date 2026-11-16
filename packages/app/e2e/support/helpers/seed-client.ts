@@ -1,6 +1,6 @@
 import path from "node:path";
 import { readFileSync } from "node:fs";
-import type { TerminalActivity } from "@getpaseo/protocol/terminal-activity";
+import type { TerminalActivity } from "@getzentic/protocol/terminal-activity";
 import { connectDaemonClient } from "./daemon-client-loader";
 import { withProjectOwnership } from "./project-ownership";
 import { createTempDirectory, createTempGitRepo } from "./workspace";
@@ -29,9 +29,11 @@ interface SeedProjectDescriptor {
  */
 export interface SeedDaemonClient {
   patchDaemonConfig(
-    config: import("@getpaseo/protocol/messages").MutableDaemonConfigPatch,
-  ): Promise<{ config: import("@getpaseo/protocol/messages").MutableDaemonConfig }>;
-  getDaemonConfig(): Promise<{ config: import("@getpaseo/protocol/messages").MutableDaemonConfig }>;
+    config: import("@getzentic/protocol/messages").MutableDaemonConfigPatch,
+  ): Promise<{ config: import("@getzentic/protocol/messages").MutableDaemonConfig }>;
+  getDaemonConfig(): Promise<{
+    config: import("@getzentic/protocol/messages").MutableDaemonConfig;
+  }>;
   connect(): Promise<void>;
   close(): Promise<void>;
   addProject(cwd: string): Promise<{
@@ -162,7 +164,7 @@ export interface SeedDaemonClient {
   ): Promise<void>;
   listAgentBackgroundWork(
     agentId: string,
-  ): Promise<import("@getpaseo/client").PaseoAgentBackgroundWorkItem[]>;
+  ): Promise<import("@getzentic/client").ZenticAgentBackgroundWorkItem[]>;
   waitForFinish(
     agentId: string,
     timeout?: number,
@@ -203,7 +205,7 @@ export interface SeedDaemonClient {
 
 export async function connectSeedClient(options?: {
   port?: number;
-  /** Use only with a private host whose teardown removes its entire PASEO_HOME. */
+  /** Use only with a private host whose teardown removes its entire ZENTIC_HOME. */
   projectOwnership?: "client" | "host";
 }): Promise<SeedDaemonClient> {
   const client = await connectDaemonClient<SeedDaemonClient>({

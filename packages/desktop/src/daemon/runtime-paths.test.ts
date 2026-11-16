@@ -50,8 +50,8 @@ describe("runtime-paths", () => {
     mocks.existsSync.mockReturnValue(true);
     setProcessRuntime({
       platform: "darwin",
-      execPath: "/Applications/Paseo.app/Contents/MacOS/Paseo",
-      resourcesPath: "/Applications/Paseo.app/Contents/Resources",
+      execPath: "/Applications/Zentic.app/Contents/MacOS/Zentic",
+      resourcesPath: "/Applications/Zentic.app/Contents/Resources",
     });
   });
 
@@ -66,7 +66,7 @@ describe("runtime-paths", () => {
 
   it("uses the macOS Helper executable for packaged daemon node launches", () => {
     expect(resolveNodeExecPath()).toBe(
-      "/Applications/Paseo.app/Contents/Frameworks/Paseo Helper.app/Contents/MacOS/Paseo Helper",
+      "/Applications/Zentic.app/Contents/Frameworks/Zentic Helper.app/Contents/MacOS/Zentic Helper",
     );
   });
 });

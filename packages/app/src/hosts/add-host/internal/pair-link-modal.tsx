@@ -7,7 +7,7 @@ import { Link } from "lucide-react-native";
 import type { HostProfile } from "@/types/host-connection";
 import { useHosts, useHostMutations, type PasswordRequiredPairing } from "@/runtime/host-runtime";
 import { parseRelayConnectionUri } from "@/utils/daemon-endpoints";
-import { parseConnectionOfferFromUrl } from "@getpaseo/protocol/connection-offer";
+import { parseConnectionOfferFromUrl } from "@getzentic/protocol/connection-offer";
 import {
   AdaptiveModalSheet,
   AdaptiveTextInput,
@@ -219,7 +219,7 @@ function PairLinkModalContent({
           nativeID="pair-link-input"
           accessibilityLabel={t("pairing.link.label")}
           onChangeText={handleChangeOfferUrl}
-          placeholder="https://app.paseo.sh/#offer=..."
+          placeholder="https://app.zentic.sh/#offer=..."
           style={styles.input}
           autoFocus
           autoCapitalize="none"

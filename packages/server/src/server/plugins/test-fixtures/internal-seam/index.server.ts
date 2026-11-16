@@ -1,5 +1,5 @@
-import { defineRpc } from "@getpaseo/plugin";
-import type { PluginServerContext } from "@getpaseo/plugin/server";
+import { defineRpc } from "@getzentic/plugin";
+import type { PluginServerContext } from "@getzentic/plugin/server";
 import { z } from "zod";
 
 const state = defineRpc({

@@ -1,9 +1,9 @@
 import { expect, test } from "vitest";
-import { createPaseoApi } from "@getpaseo/client";
-import { DaemonClient } from "@getpaseo/client/internal/daemon-client";
+import { createZenticApi } from "@getzentic/client";
+import { DaemonClient } from "@getzentic/client/internal/daemon-client";
 import { validateBeforeResult, PluginHookHandlers } from "./index.js";
 
-const paseo = createPaseoApi(
+const zentic = createZenticApi(
   new DaemonClient({ url: "ws://127.0.0.1:1/ws", clientId: "lifecycle-unit" }),
 );
 
@@ -23,7 +23,7 @@ test("removing an old registration twice preserves a newer registration for the 
     {
       source: { kind: "directory", path: "/project" },
     },
-    paseo,
+    zentic,
   );
   expect(output).toEqual({ source: { kind: "directory", path: "/project" }, title: "new" });
 });
@@ -40,7 +40,7 @@ test("before hooks compose returned requests and preserve the original input", a
     return { ...request, title: request.title + ":second" };
   });
   const input = { source: { kind: "directory", path: "/project" } };
-  expect(await hooks.invoke("operation", "workspace.create.before", input, paseo)).toEqual({
+  expect(await hooks.invoke("operation", "workspace.create.before", input, zentic)).toEqual({
     source: { kind: "directory", path: "/project" },
     title: "first:second",
   });
@@ -66,7 +66,7 @@ test("teardown aborts an active callback and removes its registrations", async (
     {
       source: { kind: "directory", path: "/project" },
     },
-    paseo,
+    zentic,
   );
   hooks.close();
   await expect(invocation).rejects.toThrow("Hook aborted");
@@ -96,7 +96,7 @@ test("session-open hooks reject changes to session identity instead of silently 
         tools: [],
         mcpServers: {},
       },
-      paseo,
+      zentic,
     ),
   ).rejects.toThrow("agent.open.before hooks can only change env");
 });
@@ -119,7 +119,7 @@ test("a create hook that omits metadata passes on what an earlier hook added", a
     "operation",
     "agent.create.before",
     { config: { provider: "codex", cwd: "/project" }, env: {}, metadata: { original: true } },
-    paseo,
+    zentic,
   );
   expect(result).toMatchObject({ metadata: { original: true, "new.plugin": { ticket: 42 } } });
   expect(seen).toEqual([{ original: true, "new.plugin": { ticket: 42 } }]);
@@ -140,7 +140,7 @@ test("a workspace create hook that omits metadata passes on what an earlier hook
     "operation",
     "workspace.create.before",
     { source: { kind: "directory", path: "/project" }, metadata: { original: true } },
-    paseo,
+    zentic,
   );
   expect(result).toMatchObject({ metadata: { original: true, "new.plugin": { ticket: 42 } } });
   expect(seen).toEqual([{ original: true, "new.plugin": { ticket: 42 } }]);
@@ -155,7 +155,7 @@ test("a workspace create hook that omits metadata passes on what an earlier hook
       "operation",
       "workspace.create.before",
       { source: { kind: "directory", path: "/project" }, metadata: { original: true } },
-      paseo,
+      zentic,
     ),
   ).resolves.toMatchObject({ metadata: {} });
 });
@@ -193,7 +193,7 @@ test("a session-open hook that returns its own object without metadata or backgr
       reason: "resume",
       purpose: "interactive",
     },
-    paseo,
+    zentic,
   );
   expect(result).toMatchObject({
     env: { HOOK: "1" },
@@ -226,7 +226,7 @@ test.each([{ title: "Changed" }, { labels: { changed: "true" } }, { background: 
           reason: "create",
           purpose: "interactive",
         },
-        paseo,
+        zentic,
       ),
     ).rejects.toThrow("agent.open.before hooks can only change env, tools, and mcpServers");
   },
@@ -250,7 +250,7 @@ test("new request-changing registrations compose with legacy registrations in re
       {
         source: { kind: "directory", path: "/project" },
       },
-      paseo,
+      zentic,
     ),
   ).toEqual({ source: { kind: "directory", path: "/project" }, title: "legacy:new:last" });
 });
@@ -310,10 +310,10 @@ test("legacy notifications and addHook share payloads, registration order, and c
       archivedAt: null,
     },
   };
-  await hooks.invoke("first", "workspace.create.after", payload, paseo);
+  await hooks.invoke("first", "workspace.create.after", payload, zentic);
   remove();
   remove();
-  await hooks.invoke("second", "workspace.create.after", payload, paseo);
+  await hooks.invoke("second", "workspace.create.after", payload, zentic);
   expect(received).toEqual([
     ["old", payload],
     ["new", payload],
@@ -338,7 +338,7 @@ test("a waiting after hook propagates failures and stops later handlers", async 
       {
         worktree: { path: "/worktree", branch: "feature", sourceCheckout: "/source" },
       },
-      paseo,
+      zentic,
     ),
   ).rejects.toThrow("cannot initialize worktree");
   expect(received).toEqual(["/worktree"]);

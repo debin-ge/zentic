@@ -42,13 +42,13 @@ const COMMUNITY = [
     name: "GitHub",
     icon: <GitHubIcon className="h-6 w-6" />,
     body: "github",
-    href: "https://github.com/getpaseo/paseo",
+    href: "https://github.com/getzentic/zentic",
   },
   {
     name: "Reddit",
     icon: <RedditIcon className="h-6 w-6" />,
     body: "reddit",
-    href: "https://www.reddit.com/r/PaseoAI/",
+    href: "https://www.reddit.com/r/ZenticAI/",
   },
 ] as const;
 

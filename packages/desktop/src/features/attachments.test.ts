@@ -4,21 +4,21 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { copyAttachmentFileToManagedStorage } from "./attachments";
 
-const originalPaseoHome = process.env.PASEO_HOME;
+const originalZenticHome = process.env.ZENTIC_HOME;
 let testHome: string | null = null;
 
-async function useTempPaseoHome(): Promise<string> {
-  testHome = await mkdtemp(path.join(os.tmpdir(), "paseo-desktop-attachments-"));
-  process.env.PASEO_HOME = testHome;
+async function useTempZenticHome(): Promise<string> {
+  testHome = await mkdtemp(path.join(os.tmpdir(), "zentic-desktop-attachments-"));
+  process.env.ZENTIC_HOME = testHome;
   return testHome;
 }
 
 describe("desktop attachment files", () => {
   afterEach(async () => {
-    if (originalPaseoHome === undefined) {
-      delete process.env.PASEO_HOME;
+    if (originalZenticHome === undefined) {
+      delete process.env.ZENTIC_HOME;
     } else {
-      process.env.PASEO_HOME = originalPaseoHome;
+      process.env.ZENTIC_HOME = originalZenticHome;
     }
 
     if (testHome) {
@@ -28,8 +28,8 @@ describe("desktop attachment files", () => {
   });
 
   it("accepts dot-prefixed picker extensions for managed copies", async () => {
-    const paseoHome = await useTempPaseoHome();
-    const sourcePath = path.join(paseoHome, "report.md");
+    const zenticHome = await useTempZenticHome();
+    const sourcePath = path.join(zenticHome, "report.md");
     await writeFile(sourcePath, "# Report\n");
 
     const result = await copyAttachmentFileToManagedStorage({
@@ -39,15 +39,15 @@ describe("desktop attachment files", () => {
     });
 
     expect(result).toEqual({
-      path: path.join(paseoHome, "desktop-attachments", "att_markdown.md"),
+      path: path.join(zenticHome, "desktop-attachments", "att_markdown.md"),
       byteSize: 9,
     });
     await expect(readFile(result.path, "utf8")).resolves.toBe("# Report\n");
   });
 
   it("normalizes legacy bare extensions for managed copies", async () => {
-    const paseoHome = await useTempPaseoHome();
-    const sourcePath = path.join(paseoHome, "report.md");
+    const zenticHome = await useTempZenticHome();
+    const sourcePath = path.join(zenticHome, "report.md");
     await writeFile(sourcePath, "# Report\n");
 
     const result = await copyAttachmentFileToManagedStorage({
@@ -57,7 +57,7 @@ describe("desktop attachment files", () => {
     });
 
     expect(result).toEqual({
-      path: path.join(paseoHome, "desktop-attachments", "att_markdown_legacy.md"),
+      path: path.join(zenticHome, "desktop-attachments", "att_markdown_legacy.md"),
       byteSize: 9,
     });
     await expect(readFile(result.path, "utf8")).resolves.toBe("# Report\n");

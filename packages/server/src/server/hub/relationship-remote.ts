@@ -171,8 +171,8 @@ export class DirectHubRelationshipRemote implements HubRelationshipRemote {
       handshakeTimeout: this.requestTimeoutMs,
       headers: {
         authorization: `Bearer ${input.credential}`,
-        "x-paseo-daemon-id": input.daemonId,
-        "x-paseo-session-protocol": "1",
+        "x-zentic-daemon-id": input.daemonId,
+        "x-zentic-session-protocol": "1",
       },
     });
     let settled = false;
@@ -193,7 +193,7 @@ export class DirectHubRelationshipRemote implements HubRelationshipRemote {
       lastPongAt = Date.now();
     });
     socket.once("upgrade", (response) => {
-      if (response.headers["x-paseo-session-protocol"] === "1") {
+      if (response.headers["x-zentic-session-protocol"] === "1") {
         sessionProtocol = "session-v1";
       }
     });

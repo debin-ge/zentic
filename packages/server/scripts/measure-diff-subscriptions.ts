@@ -5,12 +5,12 @@ import {
   encodeDiffFrame,
   DiffOpcode,
   type DiffFrame,
-} from "@getpaseo/protocol/binary-frames/index";
+} from "@getzentic/protocol/binary-frames/index";
 import { DiffSubscriptions } from "../src/server/diff/index.js";
 import { createFileObserver } from "../src/server/file-observer/index.js";
 import { runGitCommand } from "../src/utils/run-git-command.js";
 import { parseAndHighlightDiff } from "../src/server/utils/diff-highlighter.js";
-import { validateWSOutboundMessage } from "@getpaseo/protocol/validation/ws-outbound";
+import { validateWSOutboundMessage } from "@getzentic/protocol/validation/ws-outbound";
 
 const cwd = resolve(import.meta.dirname, "../../..");
 const artifacts = resolve(cwd, ".artifacts/diff-subscription");

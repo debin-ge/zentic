@@ -1,6 +1,6 @@
 import { LOCALES, type Locale, languageAlternates, localizePath, OPEN_GRAPH_LOCALES } from "~/i18n";
 
-export const SITE_ORIGIN = "https://paseo.sh";
+export const SITE_ORIGIN = "https://zentic.sh";
 
 interface PageMetaInput {
   title: string;

@@ -1,18 +1,18 @@
-import { createHostClient, parseHostTarget } from "@getpaseo/client/node";
+import { createHostClient, parseHostTarget } from "@getzentic/client/node";
 import {
   waitForDaemonReady,
-  resolvePaseoHome,
+  resolveZenticHome,
   type DaemonInstance,
   readLocalCredentialForTarget,
-} from "@getpaseo/server/daemon-control";
+} from "@getzentic/server/daemon-control";
 import { describeDaemonTarget, type DaemonTarget } from "./daemon-target.js";
 export type { DaemonTarget } from "./daemon-target.js";
 import {
   buildDaemonWebSocketUrl,
   normalizeHostPort,
   parseConnectionUri,
-} from "@getpaseo/protocol/daemon-endpoints";
-import { DaemonClient } from "@getpaseo/client/internal/daemon-client";
+} from "@getzentic/protocol/daemon-endpoints";
+import { DaemonClient } from "@getzentic/client/internal/daemon-client";
 import { getOrCreateCliClientId } from "./client-id.js";
 import { resolveCliVersion } from "../version.js";
 
@@ -21,11 +21,11 @@ export interface ConnectOptions {
   timeout?: number;
   instance?: DaemonInstance;
 }
-export function resolveClientPaseoHome(
+export function resolveClientZenticHome(
   target: DaemonTarget,
   env: Readonly<Record<string, string | undefined>> = process.env,
 ): string {
-  return target.kind === "instance" ? target.home : resolvePaseoHome(env);
+  return target.kind === "instance" ? target.home : resolveZenticHome(env);
 }
 const DEFAULT_TIMEOUT = 15000;
 type TransportTarget =
@@ -57,11 +57,11 @@ export function buildDaemonConnectionCommandError(options: ConnectOptions & { er
 
 function describeConnectionRemedy(code: string, target: DaemonTarget): string {
   if (code === "AUTH_REQUIRED")
-    return "The daemon requires a password. Set PASEO_PASSWORD and retry.";
+    return "The daemon requires a password. Set ZENTIC_PASSWORD and retry.";
   if (code === "AUTH_FAILED")
-    return "The daemon rejected the password. Check PASEO_PASSWORD and retry.";
+    return "The daemon rejected the password. Check ZENTIC_PASSWORD and retry.";
   if (target.kind === "instance")
-    return `Start with: paseo daemon start --home ${JSON.stringify(target.home)}`;
+    return `Start with: zentic daemon start --home ${JSON.stringify(target.home)}`;
   return "Check the selected endpoint and credentials. SSH transport does not install or start the daemon.";
 }
 
@@ -164,7 +164,7 @@ export function resolveDaemonTarget(host: string): TransportTarget {
 export function resolveDaemonPassword(host: string): string | undefined {
   const fromUri = parseHostTarget(host).password;
   if (fromUri) return fromUri;
-  const fromEnv = process.env.PASEO_PASSWORD;
+  const fromEnv = process.env.ZENTIC_PASSWORD;
   return fromEnv && fromEnv.length > 0 ? fromEnv : undefined;
 }
 
@@ -189,7 +189,7 @@ async function connectSelectedDaemon(options: ConnectOptions): Promise<DaemonCli
             instance: options.instance,
           })
         ).listen;
-  const home = resolveClientPaseoHome(options.target);
+  const home = resolveClientZenticHome(options.target);
   const credential = resolveDaemonCredential(host, home);
   const client = createHostClient(host, {
     clientId: await getOrCreateCliClientId(home),

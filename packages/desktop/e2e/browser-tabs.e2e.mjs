@@ -91,7 +91,7 @@ function writeJson(filePath, value) {
   fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`);
 }
 
-function seedPaseoHome(paseoHome, listen, workspaceRoot) {
+function seedZenticHome(zenticHome, listen, workspaceRoot) {
   const timestamp = "2026-01-01T00:00:00.000Z";
   const projects = workspaceIds.map((workspaceId, index) => {
     const cwd = path.join(workspaceRoot, `workspace-${index + 1}`);
@@ -122,7 +122,7 @@ function seedPaseoHome(paseoHome, listen, workspaceRoot) {
     pinnedAt: null,
   }));
 
-  writeJson(path.join(paseoHome, "config.json"), {
+  writeJson(path.join(zenticHome, "config.json"), {
     version: 1,
     daemon: {
       listen,
@@ -132,8 +132,8 @@ function seedPaseoHome(paseoHome, listen, workspaceRoot) {
       cors: { allowedOrigins: ["*"] },
     },
   });
-  writeJson(path.join(paseoHome, "projects", "projects.json"), projects);
-  writeJson(path.join(paseoHome, "projects", "workspaces.json"), workspaces);
+  writeJson(path.join(zenticHome, "projects", "projects.json"), projects);
+  writeJson(path.join(zenticHome, "projects", "workspaces.json"), workspaces);
 }
 
 function spawnLogged(name, command, args, options, logDir) {
@@ -185,8 +185,8 @@ async function waitForDesktopStatus(page) {
   while (Date.now() < deadline) {
     try {
       const status = await page.evaluate(async () => {
-        if (typeof window.paseoDesktop?.invoke !== "function") return null;
-        return await window.paseoDesktop.invoke("desktop_daemon_status");
+        if (typeof window.zenticDesktop?.invoke !== "function") return null;
+        return await window.zenticDesktop.invoke("desktop_daemon_status");
       });
       if (typeof status?.serverId === "string") return status;
     } catch (error) {
@@ -343,7 +343,7 @@ async function waitForGuestSelector(client, browserId) {
   while (Date.now() < deadline) {
     const evaluated = await callBrowserTool(client, "browser_evaluate", {
       browserId,
-      function: "() => Boolean(globalThis.__paseoSelector)",
+      function: "() => Boolean(globalThis.__zenticSelector)",
     });
     if (JSON.parse(evaluated.resultJson) === true) {
       return true;
@@ -439,7 +439,7 @@ async function createCallerAgent(daemonPort, workspaceId = workspaceIds[0]) {
 
 async function readGuest(page, browserId) {
   return await page.evaluate((id) => {
-    const webview = document.querySelector(`[data-paseo-browser-id="${id}"]`);
+    const webview = document.querySelector(`[data-zentic-browser-id="${id}"]`);
     if (!(webview instanceof HTMLElement) || typeof webview.getWebContentsId !== "function") {
       return null;
     }
@@ -454,12 +454,12 @@ async function readGuest(page, browserId) {
 
 async function readPresentation(page, browserId) {
   return await page.evaluate((id) => {
-    const surface = document.querySelector(`[data-paseo-browser-surface="${id}"]`);
+    const surface = document.querySelector(`[data-zentic-browser-surface="${id}"]`);
     const clip = document.querySelector(`[data-testid="browser-webview-clip-${id}"]`);
     if (!(surface instanceof HTMLElement) || !(clip instanceof HTMLElement)) return null;
     const surfaceRect = surface.getBoundingClientRect();
     const clipRect = clip.getBoundingClientRect();
-    const webview = surface.querySelector(`[data-paseo-browser-id="${id}"]`);
+    const webview = surface.querySelector(`[data-zentic-browser-id="${id}"]`);
     if (!(webview instanceof HTMLElement)) return null;
     const webviewRect = webview.getBoundingClientRect();
     const outsidePoint = {
@@ -510,7 +510,7 @@ async function clickGuestElement(page, client, browserId, selector) {
   });
   const elementRect = JSON.parse(evaluated.resultJson);
   assert(elementRect, `Guest element ${selector} was unavailable`);
-  await page.locator(`[data-paseo-browser-id="${browserId}"]`).click({
+  await page.locator(`[data-zentic-browser-id="${browserId}"]`).click({
     position: {
       x: elementRect.x + elementRect.width / 2,
       y: elementRect.y + elementRect.height / 2,
@@ -800,7 +800,7 @@ async function runRegression({
   await originalDeck.getByTestId(`workspace-tab-browser_${browserId}`).click();
   await page.waitForFunction(
     (id) => {
-      const webview = document.querySelector(`[data-paseo-browser-id="${id}"]`);
+      const webview = document.querySelector(`[data-zentic-browser-id="${id}"]`);
       const surface = webview?.parentElement;
       return (
         surface?.getAttribute("aria-hidden") === "false" && surface.style.pointerEvents === "auto"
@@ -824,7 +824,7 @@ async function runRegression({
     "Physical browser click did not focus the guest input",
   );
   const focusedGuest = await page.evaluate(
-    (id) => window.paseoDesktop?.browser?.focus?.(id),
+    (id) => window.zenticDesktop?.browser?.focus?.(id),
     browserId,
   );
   assert(focusedGuest === true, "Electron did not focus the registered browser guest");
@@ -869,7 +869,7 @@ async function runRegression({
   );
   await page.waitForFunction(
     ({ id, width, height }) => {
-      const webview = document.querySelector(`[data-paseo-browser-id="${id}"]`);
+      const webview = document.querySelector(`[data-zentic-browser-id="${id}"]`);
       return (
         webview instanceof HTMLElement &&
         Math.round(webview.getBoundingClientRect().width) === width &&
@@ -913,9 +913,9 @@ async function runRegression({
   await originalDeck.getByTestId(`workspace-tab-agent_${callerAgentId}`).click();
   await page.waitForFunction(
     ({ id, webContentsId }) => {
-      const webview = document.querySelector(`[data-paseo-browser-id="${id}"]`);
+      const webview = document.querySelector(`[data-zentic-browser-id="${id}"]`);
       return (
-        webview?.parentElement?.getAttribute("data-paseo-browser-surface") === id &&
+        webview?.parentElement?.getAttribute("data-zentic-browser-surface") === id &&
         webview.parentElement.style.width === "1px" &&
         webview.parentElement.style.pointerEvents === "none" &&
         webview.getWebContentsId() === webContentsId
@@ -939,19 +939,19 @@ async function runRegression({
   await callBrowserTool(client, "browser_evaluate", {
     browserId,
     function: `() => {
-      globalThis.__paseoFocusContinuity = ${JSON.stringify(focusContinuitySentinel)};
-      globalThis.__paseoViewportTransitions = [{ width: innerWidth, height: innerHeight }];
+      globalThis.__zenticFocusContinuity = ${JSON.stringify(focusContinuitySentinel)};
+      globalThis.__zenticViewportTransitions = [{ width: innerWidth, height: innerHeight }];
       addEventListener('resize', () => {
-        globalThis.__paseoViewportTransitions.push({ width: innerWidth, height: innerHeight });
+        globalThis.__zenticViewportTransitions.push({ width: innerWidth, height: innerHeight });
       });
-      return globalThis.__paseoFocusContinuity;
+      return globalThis.__zenticFocusContinuity;
     }`,
   });
   await page.evaluate((id) => {
-    const webview = document.querySelector(`[data-paseo-browser-id="${id}"]`);
+    const webview = document.querySelector(`[data-zentic-browser-id="${id}"]`);
     if (!webview) throw new Error(`Browser webview ${id} was unavailable`);
     const events = [];
-    globalThis.__paseoBrowserReactivationEvents = events;
+    globalThis.__zenticBrowserReactivationEvents = events;
     for (const name of [
       "did-start-loading",
       "did-navigate-in-page",
@@ -971,9 +971,9 @@ async function runRegression({
   await originalDeck.getByTestId(`workspace-tab-browser_${browserId}`).click();
   await page.waitForFunction(
     ({ id, webContentsId }) => {
-      const webview = document.querySelector(`[data-paseo-browser-id="${id}"]`);
+      const webview = document.querySelector(`[data-zentic-browser-id="${id}"]`);
       return (
-        webview?.parentElement?.getAttribute("data-paseo-browser-surface") === id &&
+        webview?.parentElement?.getAttribute("data-zentic-browser-surface") === id &&
         webview.parentElement.style.pointerEvents === "auto" &&
         webview.getWebContentsId() === webContentsId
       );
@@ -983,7 +983,7 @@ async function runRegression({
   );
   await page.waitForTimeout(1_500);
   const reactivationEvents = await page.evaluate(
-    () => globalThis.__paseoBrowserReactivationEvents ?? [],
+    () => globalThis.__zenticBrowserReactivationEvents ?? [],
   );
   const unexpectedReactivationCommits = reactivationEvents.filter(
     (event) => event.name === "did-navigate-in-page" || event.name === "load-commit",
@@ -994,7 +994,7 @@ async function runRegression({
   );
   const viewportTransitionsResult = await callBrowserTool(client, "browser_evaluate", {
     browserId,
-    function: "() => globalThis.__paseoViewportTransitions ?? []",
+    function: "() => globalThis.__zenticViewportTransitions ?? []",
   });
   const viewportTransitions = JSON.parse(viewportTransitionsResult.resultJson);
   const collapsedViewport = viewportTransitions.find(
@@ -1006,7 +1006,7 @@ async function runRegression({
   );
   const continuityResult = await callBrowserTool(client, "browser_evaluate", {
     browserId,
-    function: "() => globalThis.__paseoFocusContinuity ?? null",
+    function: "() => globalThis.__zenticFocusContinuity ?? null",
   });
   const continuityValue = JSON.parse(continuityResult.resultJson);
   if (continuityValue !== focusContinuitySentinel) {
@@ -1024,9 +1024,9 @@ async function runRegression({
 
   await page.waitForFunction(
     ({ id, previousWebContentsId }) => {
-      const webview = document.querySelector(`[data-paseo-browser-id="${id}"]`);
+      const webview = document.querySelector(`[data-zentic-browser-id="${id}"]`);
       return (
-        webview?.parentElement?.getAttribute("data-paseo-browser-surface") === id &&
+        webview?.parentElement?.getAttribute("data-zentic-browser-surface") === id &&
         webview.parentElement.style.width === "1px" &&
         typeof webview.getWebContentsId === "function" &&
         webview.getWebContentsId() === previousWebContentsId
@@ -1072,9 +1072,9 @@ async function runRegression({
   await originalDeck.getByTestId(`workspace-tab-browser_${browserId}`).click();
   await page.waitForFunction(
     ({ id, webContentsId }) => {
-      const webview = document.querySelector(`[data-paseo-browser-id="${id}"]`);
+      const webview = document.querySelector(`[data-zentic-browser-id="${id}"]`);
       return (
-        webview?.parentElement?.getAttribute("data-paseo-browser-surface") === id &&
+        webview?.parentElement?.getAttribute("data-zentic-browser-surface") === id &&
         webview.parentElement.style.pointerEvents === "auto" &&
         webview.getWebContentsId() === webContentsId
       );
@@ -1091,9 +1091,9 @@ async function runRegression({
 
   const annotateButton = originalDeck.getByRole("button", { name: "Annotate element" });
   await page.evaluate((id) => {
-    const webview = document.querySelector(`[data-paseo-browser-id="${id}"]`);
+    const webview = document.querySelector(`[data-zentic-browser-id="${id}"]`);
     if (!(webview instanceof HTMLElement)) throw new Error(`Browser webview ${id} was unavailable`);
-    globalThis.__paseoOriginalIsLoadingDescriptor = Object.getOwnPropertyDescriptor(
+    globalThis.__zenticOriginalIsLoadingDescriptor = Object.getOwnPropertyDescriptor(
       webview,
       "isLoading",
     );
@@ -1110,7 +1110,7 @@ async function runRegression({
   );
   const selectorDuringLoad = await callBrowserTool(client, "browser_evaluate", {
     browserId,
-    function: "() => Boolean(globalThis.__paseoSelector)",
+    function: "() => Boolean(globalThis.__zenticSelector)",
   });
   assert(
     JSON.parse(selectorDuringLoad.resultJson) === false,
@@ -1121,12 +1121,12 @@ async function runRegression({
     "Element selector loading failure was not visible",
   );
   await page.evaluate((id) => {
-    const webview = document.querySelector(`[data-paseo-browser-id="${id}"]`);
+    const webview = document.querySelector(`[data-zentic-browser-id="${id}"]`);
     if (!(webview instanceof HTMLElement)) throw new Error(`Browser webview ${id} was unavailable`);
-    const descriptor = globalThis.__paseoOriginalIsLoadingDescriptor;
+    const descriptor = globalThis.__zenticOriginalIsLoadingDescriptor;
     if (descriptor) Object.defineProperty(webview, "isLoading", descriptor);
     else delete webview.isLoading;
-    delete globalThis.__paseoOriginalIsLoadingDescriptor;
+    delete globalThis.__zenticOriginalIsLoadingDescriptor;
   }, browserId);
 
   const readyStateResult = await callBrowserTool(client, "browser_evaluate", {
@@ -1141,7 +1141,7 @@ async function runRegression({
   // Reproduce the report's mismatch: the guest is complete, but the pane's
   // last loading signal says it is not ready.
   await page.evaluate((id) => {
-    const webview = document.querySelector(`[data-paseo-browser-id="${id}"]`);
+    const webview = document.querySelector(`[data-zentic-browser-id="${id}"]`);
     if (!(webview instanceof HTMLElement)) {
       throw new Error(`Browser webview ${id} was unavailable`);
     }
@@ -1166,7 +1166,7 @@ async function runRegression({
   await delay(20_500);
   const selectorAfterPriorTimeout = await callBrowserTool(client, "browser_evaluate", {
     browserId,
-    function: "() => Boolean(globalThis.__paseoSelector)",
+    function: "() => Boolean(globalThis.__zenticSelector)",
   });
   if (JSON.parse(selectorAfterPriorTimeout.resultJson) !== true) {
     failures.push("a previous selector timeout does not destroy the current selector session");
@@ -1230,14 +1230,14 @@ async function runRegression({
 
 async function main() {
   const artifactDir =
-    process.env.PASEO_DESKTOP_BROWSER_E2E_ARTIFACT_DIR ??
-    fs.mkdtempSync(path.join(os.tmpdir(), "paseo-desktop-browser-e2e-artifacts-"));
-  const runtimeDir = fs.mkdtempSync(path.join(os.tmpdir(), "paseo-desktop-browser-e2e-"));
+    process.env.ZENTIC_DESKTOP_BROWSER_E2E_ARTIFACT_DIR ??
+    fs.mkdtempSync(path.join(os.tmpdir(), "zentic-desktop-browser-e2e-artifacts-"));
+  const runtimeDir = fs.mkdtempSync(path.join(os.tmpdir(), "zentic-desktop-browser-e2e-"));
   fs.mkdirSync(artifactDir, { recursive: true });
-  const paseoHome = path.join(runtimeDir, "paseo-home");
+  const zenticHome = path.join(runtimeDir, "zentic-home");
   const userData = path.join(runtimeDir, "electron-user-data");
   const workspaceRoot = path.join(runtimeDir, "workspaces");
-  fs.mkdirSync(paseoHome, { recursive: true });
+  fs.mkdirSync(zenticHome, { recursive: true });
 
   const [daemonPort, expoPort, cdpPort, inspectorPort, remotePort] = await Promise.all([
     reservePort(),
@@ -1247,11 +1247,11 @@ async function main() {
     reservePort(),
   ]);
   const listen = `127.0.0.1:${daemonPort}`;
-  seedPaseoHome(paseoHome, listen, workspaceRoot);
+  seedZenticHome(zenticHome, listen, workspaceRoot);
   const target = await startTargetPage();
-  seedPluginLinks(paseoHome, workspaceIds[0], target.url, workspaceIds[1]);
+  seedPluginLinks(zenticHome, workspaceIds[0], target.url, workspaceIds[1]);
   const remoteHome = path.join(runtimeDir, "remote-home");
-  seedPaseoHome(remoteHome, `127.0.0.1:${remotePort}`, path.join(runtimeDir, "remote-workspaces"));
+  seedZenticHome(remoteHome, `127.0.0.1:${remotePort}`, path.join(runtimeDir, "remote-workspaces"));
   const children = [];
   let browser = null;
   let client = null;
@@ -1264,20 +1264,20 @@ async function main() {
     fs.writeFileSync(externalOpenLog, "");
     fs.writeFileSync(
       path.join(openerDirectory, "xdg-open"),
-      '#!/bin/sh\nprintf "%s\\n" "$1" >> "$PASEO_TEST_EXTERNAL_OPEN_LOG"\n',
+      '#!/bin/sh\nprintf "%s\\n" "$1" >> "$ZENTIC_TEST_EXTERNAL_OPEN_LOG"\n',
       { mode: 0o755 },
     );
     const commonEnv = {
       ...process.env,
       PATH: `${openerDirectory}${path.delimiter}${process.env.PATH}`,
-      PASEO_TEST_EXTERNAL_OPEN_LOG: externalOpenLog,
-      PASEO_HOME: paseoHome,
-      PASEO_LISTEN: listen,
-      PASEO_DAEMON_ENDPOINT: `localhost:${daemonPort}`,
-      PASEO_CORS_ORIGINS: "*",
-      PASEO_LOCAL_SPEECH_AUTO_DOWNLOAD: "0",
-      PASEO_DICTATION_ENABLED: "0",
-      PASEO_VOICE_MODE_ENABLED: "0",
+      ZENTIC_TEST_EXTERNAL_OPEN_LOG: externalOpenLog,
+      ZENTIC_HOME: zenticHome,
+      ZENTIC_LISTEN: listen,
+      ZENTIC_DAEMON_ENDPOINT: `localhost:${daemonPort}`,
+      ZENTIC_CORS_ORIGINS: "*",
+      ZENTIC_LOCAL_SPEECH_AUTO_DOWNLOAD: "0",
+      ZENTIC_DICTATION_ENABLED: "0",
+      ZENTIC_VOICE_MODE_ENABLED: "0",
       FORCE_COLOR: "0",
       NO_COLOR: "1",
     };
@@ -1285,7 +1285,7 @@ async function main() {
       "daemon",
       process.execPath,
       ["--import", "tsx", path.join(rootDir, "packages/server/scripts/dev-runner.ts")],
-      { cwd: rootDir, env: { ...commonEnv, PASEO_NODE_ENV: "development" } },
+      { cwd: rootDir, env: { ...commonEnv, ZENTIC_NODE_ENV: "development" } },
       artifactDir,
     );
     children.push(daemon.child);
@@ -1299,10 +1299,10 @@ async function main() {
         cwd: rootDir,
         env: {
           ...commonEnv,
-          PASEO_HOME: remoteHome,
-          PASEO_LISTEN: `127.0.0.1:${remotePort}`,
-          PASEO_SERVER_ID: "plugin-links-remote",
-          PASEO_NODE_ENV: "development",
+          ZENTIC_HOME: remoteHome,
+          ZENTIC_LISTEN: `127.0.0.1:${remotePort}`,
+          ZENTIC_SERVER_ID: "plugin-links-remote",
+          ZENTIC_NODE_ENV: "development",
         },
       },
       artifactDir,
@@ -1332,9 +1332,9 @@ async function main() {
           EXPO_UNSTABLE_HEADLESS: "1",
           EXPO_PORT: String(expoPort),
           EXPO_DEV_URL: `http://localhost:${expoPort}`,
-          PASEO_ELECTRON_REMOTE_DEBUGGING_PORT: String(cdpPort),
-          PASEO_ELECTRON_USER_DATA_DIR: userData,
-          PASEO_ELECTRON_FLAGS: `--remote-debugging-address=127.0.0.1 --remote-debugging-port=${cdpPort}`,
+          ZENTIC_ELECTRON_REMOTE_DEBUGGING_PORT: String(cdpPort),
+          ZENTIC_ELECTRON_USER_DATA_DIR: userData,
+          ZENTIC_ELECTRON_FLAGS: `--remote-debugging-address=127.0.0.1 --remote-debugging-port=${cdpPort}`,
         },
       },
       artifactDir,
@@ -1358,7 +1358,7 @@ async function main() {
         artifactDir,
         externalOpenLog: process.platform === "linux" ? externalOpenLog : null,
       });
-    if (process.env.PASEO_DESKTOP_PLUGIN_LINKS_ONLY === "1") {
+    if (process.env.ZENTIC_DESKTOP_PLUGIN_LINKS_ONLY === "1") {
       const pluginLinks = await checkPluginLinks();
       writeJson(path.join(artifactDir, "result.json"), { pluginLinks });
       console.log("Plugin external links and workspace browser passed.");
@@ -1367,13 +1367,13 @@ async function main() {
     const settingsScroll = await runSettingsScrollRegression(page, (size) =>
       resizeDesktopWindow(inspectorPort, size),
     );
-    if (process.env.PASEO_DESKTOP_SETTINGS_SCROLL_ONLY === "1") {
+    if (process.env.ZENTIC_DESKTOP_SETTINGS_SCROLL_ONLY === "1") {
       writeJson(path.join(artifactDir, "result.json"), { settingsScroll });
       console.log("Desktop Settings scroll regression passed.");
       return;
     }
     const settingsMemory = await runSettingsMemoryRegression(page);
-    if (process.env.PASEO_DESKTOP_SETTINGS_MEMORY_ONLY === "1") {
+    if (process.env.ZENTIC_DESKTOP_SETTINGS_MEMORY_ONLY === "1") {
       writeJson(path.join(artifactDir, "result.json"), { settingsMemory });
       console.log(
         `Desktop Settings memory regression passed: ${settingsMemory.detachedAfterWarmRound} detached panes after warm and stress rotations.`,

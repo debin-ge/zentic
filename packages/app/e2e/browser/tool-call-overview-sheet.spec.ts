@@ -156,7 +156,7 @@ type OverviewChatDisplay = "collapseToolCalls" | "collapseTurns";
 async function configureOverviewToolCalls(page: Page, chatDisplay: OverviewChatDisplay) {
   await page.addInitScript((display) => {
     localStorage.setItem(
-      "@paseo:app-settings",
+      "@zentic:app-settings",
       JSON.stringify({ chatDisplay: display, autoExpandReasoning: true }),
     );
   }, chatDisplay);

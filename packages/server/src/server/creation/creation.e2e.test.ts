@@ -1,23 +1,23 @@
 import { execFileSync } from "node:child_process";
 import type { z } from "zod";
-import { BUILTIN_PROVIDER_IDS } from "@getpaseo/protocol/provider-manifest";
+import { BUILTIN_PROVIDER_IDS } from "@getzentic/protocol/provider-manifest";
 import { WebSocket } from "ws";
-import { SessionInboundMessageSchema, WSOutboundMessageSchema } from "@getpaseo/protocol/messages";
+import { SessionInboundMessageSchema, WSOutboundMessageSchema } from "@getzentic/protocol/messages";
 import { randomUUID } from "node:crypto";
 import { mkdtemp, rm, writeFile, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, test, vi } from "vitest";
 import pino from "pino";
-import type { CreationSnapshot, SessionOutboundMessage } from "@getpaseo/protocol/messages";
+import type { CreationSnapshot, SessionOutboundMessage } from "@getzentic/protocol/messages";
 import type { AgentTimelineItem } from "../agent/agent-sdk-types.js";
 import { DaemonClient } from "../test-utils/daemon-client.js";
 import { createTestAgentClients } from "../test-utils/fake-agent-client.js";
-import { createTestPaseoDaemon } from "../test-utils/paseo-daemon.js";
+import { createTestZenticDaemon } from "../test-utils/zentic-daemon.js";
 
-function createCreationDaemon(options: Parameters<typeof createTestPaseoDaemon>[0] = {}) {
+function createCreationDaemon(options: Parameters<typeof createTestZenticDaemon>[0] = {}) {
   const agentClients = options.agentClients ?? createTestAgentClients();
-  return createTestPaseoDaemon({
+  return createTestZenticDaemon({
     ...options,
     agentClients,
     // Installed provider CLIs must not change when background naming starts.
@@ -484,7 +484,7 @@ test.each(["create_agent_request", "agent.create.request"] as const)(
 async function initializeSetupRepository(directory: string): Promise<void> {
   execFileSync("git", ["init", "-b", "main", directory], { stdio: "pipe" });
   await writeFile(
-    join(directory, "paseo.json"),
+    join(directory, "zentic.json"),
     JSON.stringify({
       worktree: {
         setup: [
@@ -493,7 +493,7 @@ async function initializeSetupRepository(directory: string): Promise<void> {
       },
     }),
   );
-  execFileSync("git", ["add", "paseo.json"], { cwd: directory });
+  execFileSync("git", ["add", "zentic.json"], { cwd: directory });
   execFileSync(
     "git",
     [

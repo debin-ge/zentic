@@ -8,37 +8,37 @@ describe("starter trigger connections", () => {
         {
           github: [
             {
-              slug: "github-getpaseo",
-              accountLogin: "getpaseo",
+              slug: "github-getzentic",
+              accountLogin: "getzentic",
               accountType: "Organization",
-              repositories: ["getpaseo/paseo"],
+              repositories: ["getzentic/zentic"],
             },
           ],
-          slack: [{ slug: "paseo", teamName: "Paseo" }],
-          discord: [{ slug: "paseo-discord", guildName: "Paseo Discord" }],
+          slack: [{ slug: "zentic", teamName: "Zentic" }],
+          discord: [{ slug: "zentic-discord", guildName: "Zentic Discord" }],
           daemons: [],
           linear: [],
         },
-        "getpaseo/paseo",
+        "getzentic/zentic",
       ),
     ).toEqual([
       {
-        id: "github:getpaseo/paseo",
-        label: "GitHub — getpaseo/paseo",
+        id: "github:getzentic/zentic",
+        label: "GitHub — getzentic/zentic",
         provider: "github",
-        filters: { connection: "github-getpaseo", repo: "getpaseo/paseo" },
+        filters: { connection: "github-getzentic", repo: "getzentic/zentic" },
       },
       {
-        id: "slack:paseo",
-        label: "Slack — Paseo",
+        id: "slack:zentic",
+        label: "Slack — Zentic",
         provider: "slack",
-        filters: { connection: "paseo" },
+        filters: { connection: "zentic" },
       },
       {
-        id: "discord:paseo-discord",
-        label: "Discord — Paseo Discord",
+        id: "discord:zentic-discord",
+        label: "Discord — Zentic Discord",
         provider: "discord",
-        filters: { connection: "paseo-discord" },
+        filters: { connection: "zentic-discord" },
       },
     ]);
   });
@@ -49,10 +49,10 @@ describe("starter trigger connections", () => {
         {
           github: [
             {
-              slug: "github-getpaseo",
-              accountLogin: "getpaseo",
+              slug: "github-getzentic",
+              accountLogin: "getzentic",
               accountType: "Organization",
-              repositories: ["getpaseo/hub"],
+              repositories: ["getzentic/hub"],
             },
           ],
           slack: [],
@@ -60,7 +60,7 @@ describe("starter trigger connections", () => {
           daemons: [],
           linear: [],
         },
-        "getpaseo/paseo",
+        "getzentic/zentic",
       ),
     ).toEqual([]);
   });

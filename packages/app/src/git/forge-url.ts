@@ -15,8 +15,8 @@ import {
   forgeWebHost,
   isForgeCloudHost,
   parseGitRemoteLocation,
-} from "@getpaseo/protocol/git-remote";
-import type { ForgeWeb } from "@getpaseo/protocol/messages";
+} from "@getzentic/protocol/git-remote";
+import type { ForgeWeb } from "@getzentic/protocol/messages";
 import type { ForgeReferenceSigil } from "@/git/client-forge-module";
 import { getClientForgeLogicModule } from "@/git/forges";
 

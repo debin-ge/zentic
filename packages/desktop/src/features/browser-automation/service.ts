@@ -9,7 +9,7 @@ import type {
   BrowserAutomationExecuteResponse,
   BrowserAutomationExecuteRequest,
   BrowserAutomationNetworkLogEntry,
-} from "@getpaseo/protocol/browser-automation/rpc-schemas";
+} from "@getzentic/protocol/browser-automation/rpc-schemas";
 import { waitForActionableTarget, type ActionabilityResult } from "./actionability.js";
 import { BrowserSnapshotEngine } from "./snapshot-engine.js";
 import {
@@ -40,7 +40,7 @@ export interface TabContents {
   withFrameProduction<T>(capture: () => Promise<T>): Promise<T>;
   sendInputEvent(event: IsolatedKeyboardInputEvent): void;
   // Commits text into this tab's focused element. CDP Input.insertText would
-  // commit into whichever element has focus in the Paseo window instead.
+  // commit into whichever element has focus in the Zentic window instead.
   insertText(text: string): Promise<void>;
   getConsoleMessages?(): BrowserAutomationConsoleLogEntry[];
   captureDialogs?<T>(
@@ -1412,7 +1412,7 @@ async function executeUpload(
     }
     const evaluated = (await target.contents.sendDebugCommand("Runtime.evaluate", {
       expression,
-      objectGroup: "paseo-browser-automation",
+      objectGroup: "zentic-browser-automation",
       returnByValue: false,
     })) as CdpRuntimeEvaluateResult;
     const objectId = evaluated.result?.objectId;
@@ -1583,7 +1583,7 @@ function buildEvaluateScript(
   elementExpression: string | undefined,
 ): string {
   return String.raw`(async (readFunction) => {
-    const __PASEO_BROWSER_EVALUATE__ = true;
+    const __ZENTIC_BROWSER_EVALUATE__ = true;
     try {
       const userFunction = readFunction();
       if (typeof userFunction !== 'function') {

@@ -264,7 +264,7 @@ describe("AgentStorage", () => {
           systemPrompt: "Be terse and explicit.",
           providerOptions: { allowedTools: ["Read"] },
           mcpServers: {
-            paseo: {
+            zentic: {
               type: "stdio",
               command: "node",
               args: ["/tmp/mcp-stdio-socket-bridge-cli.mjs", "--socket", "/tmp/test.sock"],
@@ -282,7 +282,7 @@ describe("AgentStorage", () => {
     expect(record.config?.model).toBe("gpt-5.1");
     expect(record.config?.systemPrompt).toBe("Be terse and explicit.");
     expect(record.config?.mcpServers).toEqual({
-      paseo: {
+      zentic: {
         type: "stdio",
         command: "node",
         args: ["/tmp/mcp-stdio-socket-bridge-cli.mjs", "--socket", "/tmp/test.sock"],

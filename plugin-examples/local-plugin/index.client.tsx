@@ -1,4 +1,4 @@
-import type { PluginClientContext } from "@getpaseo/plugin/client";
+import type { PluginClientContext } from "@getzentic/plugin/client";
 import { counterIcon } from "./client/icons";
 import { contributeClient, ExamplePanel } from "./client/main";
 

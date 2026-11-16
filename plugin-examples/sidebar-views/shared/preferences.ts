@@ -1,4 +1,4 @@
-import { defineSettings } from "@getpaseo/plugin";
+import { defineSettings } from "@getzentic/plugin";
 import { z } from "zod";
 export const folders = defineSettings({
   id: "folders",

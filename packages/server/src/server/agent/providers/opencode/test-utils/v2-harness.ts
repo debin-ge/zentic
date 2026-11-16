@@ -98,7 +98,7 @@ export class V2Harness {
       list: async () => ({
         location: { directory: this.info.location.directory },
         data: [
-          { id: "paseo", source: { type: "builtin" }, features: {}, state: { status: "active" } },
+          { id: "zentic", source: { type: "builtin" }, features: {}, state: { status: "active" } },
         ],
       }),
     },

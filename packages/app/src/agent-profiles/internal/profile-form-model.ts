@@ -5,8 +5,8 @@ import type {
   AgentModelDefinition,
   AgentSelectOption,
   ProviderSnapshotEntry,
-} from "@getpaseo/protocol/agent-types";
-import type { AgentProfile } from "@getpaseo/protocol/messages";
+} from "@getzentic/protocol/agent-types";
+import type { AgentProfile } from "@getzentic/protocol/messages";
 import { withoutLostControls } from "@/agent-controls/lost-controls";
 import { formatAgentModeLabel, formatThinkingOptionLabel } from "@/agent-controls/labels";
 import { filterSelectableModels } from "@/provider-selection/model-catalog";

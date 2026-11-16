@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import type { PluginThemeContribution } from "@getpaseo/plugin";
+import type { PluginThemeContribution } from "@getzentic/plugin";
 import { buildPluginTheme } from "@/plugins/themes";
 import { contrastRatio } from "@/utils/color";
 import { THEME_OPTIONS, type Theme } from "./theme";
 
 // Palettes of the plugin themes users run into: Catppuccin (the e2e fixture) and
-// @mousebomb/paseo-solarized 0.1.1, the palette behind issue #7471.
+// @mousebomb/zentic-solarized 0.1.1, the palette behind issue #7471.
 const LATTE: PluginThemeContribution = {
   id: "latte",
   name: "Catppuccin Latte",
@@ -80,7 +80,7 @@ const themes: Array<{ name: string; theme: Theme }> = [
   })),
 ];
 
-// Contrast floors. A state is a fixed step from the surface it sits on; the built-in Paseo dark
+// Contrast floors. A state is a fixed step from the surface it sits on; the built-in Zentic dark
 // and Light themes sit at about 1.11/1.25 and 1.15/1.35.
 const HOVER_STEP = 1.08;
 const SELECTED_STEP = 1.2;

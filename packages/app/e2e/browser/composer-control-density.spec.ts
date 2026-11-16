@@ -124,7 +124,7 @@ test.describe("Composer control density across tab switches", () => {
     try {
       await page.addInitScript(() => {
         localStorage.setItem(
-          "@paseo:create-agent-preferences",
+          "@zentic:create-agent-preferences",
           JSON.stringify({
             provider: "mock",
             providerPreferences: { mock: { mode: "load-test" } },

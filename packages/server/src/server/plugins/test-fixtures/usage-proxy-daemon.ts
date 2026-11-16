@@ -1,7 +1,7 @@
 import path from "node:path";
 import { initializeEnvironmentProxy } from "../../network/index.js";
 import { DaemonClient } from "../../test-utils/daemon-client.js";
-import { createTestPaseoDaemon } from "../../test-utils/paseo-daemon.js";
+import { createTestZenticDaemon } from "../../test-utils/zentic-daemon.js";
 import { BuiltinPluginLoader, resolveBuiltinPluginsRoot } from "../builtin/index.js";
 
 const mode = process.argv[2];
@@ -9,7 +9,7 @@ if (mode !== "builtin" && mode !== "directory") throw new Error("Expected builti
 const sources = ["claude-usage-source", "codex-usage-source"];
 // Built-ins run inside the daemon; directory plugins initialize their own subprocess network.
 if (mode === "builtin") initializeEnvironmentProxy();
-const daemon = await createTestPaseoDaemon({
+const daemon = await createTestZenticDaemon({
   pluginsEnabled: mode === "directory",
   builtinPlugins: new BuiltinPluginLoader(
     resolveBuiltinPluginsRoot(),

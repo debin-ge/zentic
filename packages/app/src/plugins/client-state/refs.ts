@@ -1,3 +1,3 @@
-import { createEntityRefs } from "@getpaseo/plugin/client/host";
+import { createEntityRefs } from "@getzentic/plugin/client/host";
 
 export const entityRefs = createEntityRefs();

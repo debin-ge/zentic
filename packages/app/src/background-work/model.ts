@@ -1,4 +1,4 @@
-import type { PaseoAgentBackgroundWorkItem as AgentBackgroundWorkItem } from "@getpaseo/client";
+import type { ZenticAgentBackgroundWorkItem as AgentBackgroundWorkItem } from "@getzentic/client";
 
 interface Port {
   list(): Promise<AgentBackgroundWorkItem[]>;

@@ -43,14 +43,14 @@ function createRepoWithGatedTeardown(): GatedRepo {
   const teardownStartedPath = path.join(tempRoot, "teardown-started");
   const releasePath = path.join(tempRoot, "release-teardown");
   execFileSync("git", ["init", "-b", "main", repoDir], { stdio: "pipe" });
-  git(repoDir, ["config", "user.email", "test@getpaseo.local"]);
-  git(repoDir, ["config", "user.name", "Paseo Test"]);
+  git(repoDir, ["config", "user.email", "test@getzentic.local"]);
+  git(repoDir, ["config", "user.name", "Zentic Test"]);
   const teardown = `node -e "const fs=require('fs');fs.writeFileSync('${teardownStartedPath}','started');const timer=setInterval(()=>{if(fs.existsSync('${releasePath}'))clearInterval(timer)},20)"`;
   writeFileSync(
-    path.join(repoDir, "paseo.json"),
+    path.join(repoDir, "zentic.json"),
     JSON.stringify({ worktree: { teardown: [teardown] } }),
   );
-  git(repoDir, ["add", "paseo.json"]);
+  git(repoDir, ["add", "zentic.json"]);
   git(repoDir, ["-c", "commit.gpgsign=false", "commit", "-m", "gated teardown"]);
   return {
     repoDir,
@@ -298,7 +298,7 @@ test.each(["restore", "undo", "reopen", "refresh", "legacy"] as const)(
     ]);
     await ctx.cleanup();
     ctx = await createDaemonTestContext({
-      paseoHomeRoot: path.join(tempRoot, "home"),
+      zenticHomeRoot: path.join(tempRoot, "home"),
       cleanup: false,
     });
     const created = await ctx.client.createWorkspace({
@@ -327,7 +327,7 @@ test.each(["restore", "undo", "reopen", "refresh", "legacy"] as const)(
     }
     await ctx.cleanup();
     ctx = await createDaemonTestContext({
-      paseoHomeRoot: path.join(tempRoot, "home"),
+      zenticHomeRoot: path.join(tempRoot, "home"),
       cleanup: false,
     });
     expect(await isAgentArchived(a.id)).toBe(true);

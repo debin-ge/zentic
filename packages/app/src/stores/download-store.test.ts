@@ -19,17 +19,17 @@ const FILE_NAME = "données été.bin";
 const MIME_TYPE = "application/octet-stream";
 
 const relayConnection: RelayHostConnection = {
-  id: "relay:relay.paseo.sh:443",
+  id: "relay:relay.zentic.sh:443",
   type: "relay",
-  relayEndpoint: "relay.paseo.sh:443",
+  relayEndpoint: "relay.zentic.sh:443",
   daemonPublicKeyB64: "cHVibGljLWtleQ==",
 };
 
 // The #3753 shape: the relay hostname stored as a directTcp entry that nothing can reach.
 const staleTcpConnection: DirectTcpHostConnection = {
-  id: "direct:relay.paseo.sh:443",
+  id: "direct:relay.zentic.sh:443",
   type: "directTcp",
-  endpoint: "relay.paseo.sh:443",
+  endpoint: "relay.zentic.sh:443",
 };
 
 const localTcpConnection: DirectTcpHostConnection = {

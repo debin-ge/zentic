@@ -1,6 +1,6 @@
 import { basename } from "node:path";
 
-import { isPaseoOwnedWorktreeCwd } from "../../utils/worktree.js";
+import { isZenticOwnedWorktreeCwd } from "../../utils/worktree.js";
 import {
   archiveByScope,
   resolveWorkspaceIdAtPath,
@@ -8,24 +8,24 @@ import {
   type ArchiveScope,
 } from "../workspace-archive-service.js";
 import type {
-  CreatePaseoWorktreeInput,
-  CreatePaseoWorktreeResult,
-} from "../paseo-worktree-service.js";
+  CreateZenticWorktreeInput,
+  CreateZenticWorktreeResult,
+} from "../zentic-worktree-service.js";
 import { toWorktreeWireError, type WorktreeWireError } from "../worktree-errors.js";
 import type { WorkspaceGitService, WorkspaceGitWorktreeInfo } from "../workspace-git-service.js";
 
-export interface ListPaseoWorktreesCommandDependencies {
+export interface ListZenticWorktreesCommandDependencies {
   workspaceGitService: Pick<WorkspaceGitService, "listWorktrees">;
 }
 
-export interface ListPaseoWorktreesCommandInput {
+export interface ListZenticWorktreesCommandInput {
   cwd: string;
   reason?: string;
 }
 
-export async function listPaseoWorktreesCommand(
-  dependencies: ListPaseoWorktreesCommandDependencies,
-  input: ListPaseoWorktreesCommandInput,
+export async function listZenticWorktreesCommand(
+  dependencies: ListZenticWorktreesCommandDependencies,
+  input: ListZenticWorktreesCommandInput,
 ): Promise<WorkspaceGitWorktreeInfo[]> {
   if (input.reason) {
     return dependencies.workspaceGitService.listWorktrees(input.cwd, { reason: input.reason });
@@ -33,24 +33,24 @@ export async function listPaseoWorktreesCommand(
   return dependencies.workspaceGitService.listWorktrees(input.cwd);
 }
 
-type CreatePaseoWorktreeWorkflow<Result extends CreatePaseoWorktreeResult> = (
-  input: CreatePaseoWorktreeInput,
+type CreateZenticWorktreeWorkflow<Result extends CreateZenticWorktreeResult> = (
+  input: CreateZenticWorktreeInput,
 ) => Promise<Result>;
 
-export interface CreatePaseoWorktreeCommandDependencies<
-  Result extends CreatePaseoWorktreeResult = CreatePaseoWorktreeResult,
+export interface CreateZenticWorktreeCommandDependencies<
+  Result extends CreateZenticWorktreeResult = CreateZenticWorktreeResult,
 > {
-  paseoHome?: string;
+  zenticHome?: string;
   worktreesRoot?: string;
-  createPaseoWorktreeWorkflow?: CreatePaseoWorktreeWorkflow<Result>;
+  createZenticWorktreeWorkflow?: CreateZenticWorktreeWorkflow<Result>;
 }
 
-export type CreatePaseoWorktreeCommandInput = Omit<CreatePaseoWorktreeInput, "paseoHome"> & {
-  paseoHome?: string;
+export type CreateZenticWorktreeCommandInput = Omit<CreateZenticWorktreeInput, "zenticHome"> & {
+  zenticHome?: string;
   worktreesRoot?: string;
 };
 
-export type CreatePaseoWorktreeCommandResult<Result extends CreatePaseoWorktreeResult> =
+export type CreateZenticWorktreeCommandResult<Result extends CreateZenticWorktreeResult> =
   | {
       ok: true;
       createdWorktree: Result;
@@ -61,19 +61,19 @@ export type CreatePaseoWorktreeCommandResult<Result extends CreatePaseoWorktreeR
       cause: unknown;
     };
 
-export async function createPaseoWorktreeCommand<Result extends CreatePaseoWorktreeResult>(
-  dependencies: CreatePaseoWorktreeCommandDependencies<Result>,
-  input: CreatePaseoWorktreeCommandInput,
-): Promise<CreatePaseoWorktreeCommandResult<Result>> {
+export async function createZenticWorktreeCommand<Result extends CreateZenticWorktreeResult>(
+  dependencies: CreateZenticWorktreeCommandDependencies<Result>,
+  input: CreateZenticWorktreeCommandInput,
+): Promise<CreateZenticWorktreeCommandResult<Result>> {
   try {
-    if (!dependencies.createPaseoWorktreeWorkflow) {
-      throw new Error("Paseo worktree service is not configured");
+    if (!dependencies.createZenticWorktreeWorkflow) {
+      throw new Error("Zentic worktree service is not configured");
     }
 
-    const createdWorktree = await dependencies.createPaseoWorktreeWorkflow({
+    const createdWorktree = await dependencies.createZenticWorktreeWorkflow({
       ...input,
 
-      paseoHome: input.paseoHome ?? dependencies.paseoHome,
+      zenticHome: input.zenticHome ?? dependencies.zenticHome,
       worktreesRoot: input.worktreesRoot ?? dependencies.worktreesRoot,
     });
     return { ok: true, createdWorktree };
@@ -124,9 +124,9 @@ export async function archiveCommand(
 ): Promise<ArchiveCommandResult> {
   const targetPath = await resolveArchiveTarget(dependencies, input);
   const scope = input.scope ?? "workspace";
-  const ownership = await isPaseoOwnedWorktreeCwd(targetPath, {
-    paseoHome: dependencies.paseoHome,
-    worktreesRoot: dependencies.paseoWorktreesBaseRoot,
+  const ownership = await isZenticOwnedWorktreeCwd(targetPath, {
+    zenticHome: dependencies.zenticHome,
+    worktreesRoot: dependencies.zenticWorktreesBaseRoot,
   });
 
   if (scope === "worktree") {
@@ -134,7 +134,7 @@ export async function archiveCommand(
       return {
         ok: false,
         code: "NOT_ALLOWED",
-        message: "Worktree is not a Paseo-owned worktree",
+        message: "Worktree is not a Zentic-owned worktree",
         removedAgents: [],
       };
     }
@@ -195,7 +195,7 @@ async function resolveArchiveTarget(
     const worktrees = await dependencies.workspaceGitService.listWorktrees(repoRoot);
     const match = worktrees.find((entry) => entry.branchName === input.branchName);
     if (!match) {
-      throw new Error(`Paseo worktree not found for branch ${input.branchName}`);
+      throw new Error(`Zentic worktree not found for branch ${input.branchName}`);
     }
     return match.path;
   }
@@ -217,8 +217,8 @@ async function resolveWorktreeSlugPath(
     const found = worktrees.map((entry) => basename(entry.path));
     throw new Error(
       found.length > 0
-        ? `Paseo worktree not found for slug ${worktreeSlug}: found ${found.join(", ")}`
-        : `Paseo worktree not found for slug ${worktreeSlug}`,
+        ? `Zentic worktree not found for slug ${worktreeSlug}: found ${found.join(", ")}`
+        : `Zentic worktree not found for slug ${worktreeSlug}`,
     );
   }
   return match.path;

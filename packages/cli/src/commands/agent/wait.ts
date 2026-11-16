@@ -101,8 +101,8 @@ export function buildWaitResult(args: {
 
   if (state.status === "timeout") {
     const timeoutMessage = timeoutLabel
-      ? `Agent did not finish within ${timeoutLabel}. Run \`paseo wait ${resolvedAgentId}\` again to keep waiting.`
-      : `Agent wait timed out. Run \`paseo wait ${resolvedAgentId}\` again to keep waiting.`;
+      ? `Agent did not finish within ${timeoutLabel}. Run \`zentic wait ${resolvedAgentId}\` again to keep waiting.`
+      : `Agent wait timed out. Run \`zentic wait ${resolvedAgentId}\` again to keep waiting.`;
     return {
       agentId: resolvedAgentId,
       status: "timeout",
@@ -126,7 +126,7 @@ export function buildWaitResult(args: {
       throw {
         code: "AGENT_NOT_FOUND",
         message: state.error ?? `Agent not found: ${resolvedAgentId}`,
-        details: "Use `paseo ls` to list available agents",
+        details: "Use `zentic ls` to list available agents",
       } satisfies CommandError;
     }
     return {
@@ -159,7 +159,7 @@ export async function runWaitCommand(
     throw {
       code: "MISSING_AGENT_ID",
       message: "Agent ID is required",
-      details: "Usage: paseo agent wait <id>",
+      details: "Usage: zentic agent wait <id>",
     } satisfies CommandError;
   }
 

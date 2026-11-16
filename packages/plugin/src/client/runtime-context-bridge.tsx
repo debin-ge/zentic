@@ -8,7 +8,7 @@ import {
 } from "./composer.js";
 import { PluginClientStateProvider, usePluginClientStateSource } from "./client-state.js";
 import { PluginNewWorkspaceProvider, usePluginNewWorkspaceValue } from "./new-workspace.js";
-import { PaseoApiProvider, usePaseoContextValue } from "./paseo-context.js";
+import { ZenticApiProvider, useZenticContextValue } from "./zentic-context.js";
 import { PluginRpcProvider, usePluginRpcContextValue } from "./rpc-context.js";
 
 export type PluginRuntimeContextBridge = (children: ReactNode) => ReactNode;
@@ -16,14 +16,14 @@ export type PluginRuntimeContextBridge = (children: ReactNode) => ReactNode;
 /** Rebuilds plugin runtime contexts inside React Native portal hosts. */
 export function usePluginRuntimeContextBridge(): PluginRuntimeContextBridge {
   const translations = usePluginTranslationRuntime();
-  const paseo = usePaseoContextValue();
+  const zentic = useZenticContextValue();
   const rpc = usePluginRpcContextValue();
   const state = usePluginClientStateSource();
   const composer = usePluginComposerValue();
   const composers = usePluginComposersSource();
   const newWorkspace = usePluginNewWorkspaceValue();
 
-  if (!paseo || !rpc) {
+  if (!zentic || !rpc) {
     throw new Error("Plugin UI must run inside a contributed plugin surface");
   }
 
@@ -52,13 +52,13 @@ export function usePluginRuntimeContextBridge(): PluginRuntimeContextBridge {
         withNewWorkspace
       );
       return (
-        <PaseoApiProvider paseo={paseo}>
+        <ZenticApiProvider zentic={zentic}>
           <PluginRpcProvider invoke={rpc.invoke} subscribe={rpc.subscribe}>
             <PluginTranslationProvider runtime={translations}>{content}</PluginTranslationProvider>
           </PluginRpcProvider>
-        </PaseoApiProvider>
+        </ZenticApiProvider>
       );
     },
-    [composer, composers, newWorkspace, paseo, rpc, state, translations],
+    [composer, composers, newWorkspace, zentic, rpc, state, translations],
   );
 }

@@ -1,6 +1,6 @@
 import { stat } from "node:fs/promises";
 import { readPluginManifest } from "./manifest.js";
-import { assertPluginCompatibility } from "@getpaseo/protocol/plugin-requirements";
+import { assertPluginCompatibility } from "@getzentic/protocol/plugin-requirements";
 import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { isBuiltin } from "node:module";
 import path from "node:path";
@@ -114,7 +114,7 @@ function createRuntimeBoundaryPlugin(target: PluginBuildTarget, pluginDirectory:
   const boundaryResolution = {};
   const linkedDependencyRoots = new Set<string>();
   return {
-    name: `paseo-plugin-${target}-runtime-boundary`,
+    name: `zentic-plugin-${target}-runtime-boundary`,
     setup(buildContext) {
       const checked = new Set<string>();
       const imports = createPluginImportReader(pluginDirectory);
@@ -192,7 +192,7 @@ function createRuntimeBoundaryPlugin(target: PluginBuildTarget, pluginDirectory:
           // Protocol types are shared host contracts, also exposed by the SDK's peer
           // dependency during development. Erased imports need no plugin-local install;
           // runtime imports still go through normal dependency resolution below.
-          if (typeOnly && specifier.startsWith("@getpaseo/protocol/")) continue;
+          if (typeOnly && specifier.startsWith("@getzentic/protocol/")) continue;
           // Host modules have separately enforced SDK boundaries and need no local installation.
           if (
             (PLUGIN_SDK_SPECIFIERS as readonly string[]).includes(specifier) ||
@@ -279,12 +279,12 @@ function runtimeSpecifierError(
   importer: string,
 ): OnResolveResult | null {
   let kind: string | null = null;
-  if (specifier === "@getpaseo/plugin/client/host") kind = "host-private";
+  if (specifier === "@getzentic/plugin/client/host") kind = "host-private";
   else if (
-    (specifier === "@getpaseo/plugin" ||
-      specifier.startsWith("@getpaseo/plugin/") ||
-      specifier === "@paseo/plugin" ||
-      specifier.startsWith("@paseo/plugin/")) &&
+    (specifier === "@getzentic/plugin" ||
+      specifier.startsWith("@getzentic/plugin/") ||
+      specifier === "@zentic/plugin" ||
+      specifier.startsWith("@zentic/plugin/")) &&
     !(PLUGIN_SDK_SPECIFIERS as readonly string[]).includes(specifier)
   )
     kind = "Unknown SDK";
@@ -427,7 +427,7 @@ async function resolveEntryPaths(directory: string): Promise<{
   const legacyEntry = await findEntry(directory, ["index.ts", "index.tsx"]);
   if (legacyEntry) {
     throw new Error(
-      "This plugin was made for an older version of Paseo and cannot run on Paseo v0.8. Ask its author to update it. Plugin authors can follow the migration guide: https://paseo.sh/docs/plugins/migration",
+      "This plugin was made for an older version of Zentic and cannot run on Zentic v0.8. Ask its author to update it. Plugin authors can follow the migration guide: https://zentic.sh/docs/plugins/migration",
     );
   }
   throw new Error(

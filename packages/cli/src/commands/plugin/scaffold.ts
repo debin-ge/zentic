@@ -1,14 +1,14 @@
 import { mkdir, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { PluginIdSchema } from "@getpaseo/protocol/messages";
+import { PluginIdSchema } from "@getzentic/protocol/messages";
 import { resolveCliVersion } from "../../version.js";
 
 const OVERVIEW = `<!--
 OVERVIEW.md is required to list your plugin in the registry. Keep it beside
-paseo-plugin.json in your repository at the pinned commit and in your npm package.
+zentic-plugin.json in your repository at the pinned commit and in your npm package.
 Replace this comment with useful facts before publishing.
 
-This overview is for people choosing a plugin in Paseo, on the plugin page under
+This overview is for people choosing a plugin in Zentic, on the plugin page under
 its install command. README assumes a GitHub audience and includes technical
 details, installation instructions, and badges. Long, AI-generated READMEs leave
 people reading past that material to understand what the plugin does.
@@ -51,8 +51,8 @@ const TSCONFIG = {
   include: ["**/*.ts", "**/*.tsx"],
 };
 
-const CLIENT_ENTRY = `import type { PluginClientContext, PluginSidebarItemProps } from "@getpaseo/plugin/client";
-import { SidebarRow } from "@getpaseo/plugin/client/ui";
+const CLIENT_ENTRY = `import type { PluginClientContext, PluginSidebarItemProps } from "@getzentic/plugin/client";
+import { SidebarRow } from "@getzentic/plugin/client/ui";
 import { GreetingScreen } from "./client/greeting";
 
 function GreetingItem({ currentScreen, openScreen }: PluginSidebarItemProps) {
@@ -72,7 +72,7 @@ export default function contribute(client: PluginClientContext) {
 }
 `;
 
-const SERVER_ENTRY = `import type { PluginServerContext } from "@getpaseo/plugin/server";
+const SERVER_ENTRY = `import type { PluginServerContext } from "@getzentic/plugin/server";
 import { createGreeting } from "./server/greeting";
 import { greetingRpc } from "./shared/greeting";
 
@@ -82,7 +82,7 @@ export default function contribute(server: PluginServerContext) {
 }
 `;
 
-const SHARED_GREETING = `import { defineRpc } from "@getpaseo/plugin";
+const SHARED_GREETING = `import { defineRpc } from "@getzentic/plugin";
 import { z } from "zod";
 
 export const greetingRpc = defineRpc({
@@ -92,7 +92,7 @@ export const greetingRpc = defineRpc({
 });
 `;
 
-const SERVER_GREETING = `import type { RpcInput } from "@getpaseo/plugin";
+const SERVER_GREETING = `import type { RpcInput } from "@getzentic/plugin";
 import { greetingRpc } from "../shared/greeting";
 
 export function createGreeting({ name }: RpcInput<typeof greetingRpc>) {
@@ -100,8 +100,8 @@ export function createGreeting({ name }: RpcInput<typeof greetingRpc>) {
 }
 `;
 
-const CLIENT_GREETING = `import type { PluginScreenProps } from "@getpaseo/plugin/client";
-import { useRpc } from "@getpaseo/plugin/client";
+const CLIENT_GREETING = `import type { PluginScreenProps } from "@getzentic/plugin/client";
+import { useRpc } from "@getzentic/plugin/client";
 import { useMutation } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -131,17 +131,17 @@ export function GreetingScreen({ theme, layout }: PluginScreenProps) {
         accessibilityRole="button"
         accessibilityLabel="Create greeting"
         style={styles.button}
-        onPress={() => greeting.mutate({ name: "Paseo" })}
+        onPress={() => greeting.mutate({ name: "Zentic" })}
       >
         <Text style={styles.buttonText}>Create greeting</Text>
       </Pressable>
       <Pressable
         accessibilityRole="link"
-        accessibilityLabel="Open the Paseo website"
+        accessibilityLabel="Open the Zentic website"
         style={styles.button}
-        onPress={() => openExternal("https://paseo.sh")}
+        onPress={() => openExternal("https://zentic.sh")}
       >
-        <Text style={styles.buttonText}>Open paseo.sh</Text>
+        <Text style={styles.buttonText}>Open zentic.sh</Text>
       </Pressable>
     </View>
   );
@@ -185,7 +185,7 @@ export async function scaffoldPluginDirectory(
     private: true,
     version: "0.0.0",
     files: [
-      "paseo-plugin.json",
+      "zentic-plugin.json",
       "OVERVIEW.md",
       "OVERVIEW.*.md",
       "index.client.ts",
@@ -198,7 +198,7 @@ export async function scaffoldPluginDirectory(
     ],
     scripts: { typecheck: "tsc --noEmit" },
     devDependencies: {
-      "@getpaseo/plugin": version,
+      "@getzentic/plugin": version,
       "@tanstack/react-query": "^5.90.11",
       "@types/react": "~19.2.0",
       react: "19.1.0",
@@ -209,14 +209,14 @@ export async function scaffoldPluginDirectory(
   };
   const files = new Map<string, string>([
     [
-      "paseo-plugin.json",
+      "zentic-plugin.json",
       `${JSON.stringify(
         {
           id,
           $comment:
             'Add "name": "My plugin" to set a display name. Add "icon": "assets/icon.png" for a PNG inside the package. Add image or video paths (relative to this manifest) or HTTPS URLs to media. Include local assets in package.json files.',
           media: [],
-          requirements: { paseo: `>=${version}` },
+          requirements: { zentic: `>=${version}` },
         },
         null,
         2,

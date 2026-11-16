@@ -1,5 +1,5 @@
-import type { AgentProviderDefinition } from "@getpaseo/protocol/provider-manifest";
-import type { AgentModelDefinition, AgentProvider } from "@getpaseo/protocol/agent-types";
+import type { AgentProviderDefinition } from "@getzentic/protocol/provider-manifest";
+import type { AgentModelDefinition, AgentProvider } from "@getzentic/protocol/agent-types";
 import type { FormPreferences } from "@/hooks/use-form-preferences";
 import {
   INITIAL_AGENT_FORM_RESOLUTION,

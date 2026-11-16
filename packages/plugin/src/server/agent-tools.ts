@@ -1,10 +1,10 @@
-import type { PaseoApi } from "@getpaseo/client";
+import type { ZenticApi } from "@getzentic/client";
 import type { z } from "zod";
 import type { PluginHookAgent } from "./lifecycle.js";
 
 export interface AgentToolContext {
   agent: PluginHookAgent;
-  paseo: PaseoApi;
+  zentic: ZenticApi;
   signal: AbortSignal;
 }
 

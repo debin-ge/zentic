@@ -2,7 +2,7 @@ import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import type { Page } from "@playwright/test";
-import type { UsageReportEntry } from "@getpaseo/protocol/messages";
+import type { UsageReportEntry } from "@getzentic/protocol/messages";
 import { expect, test } from "../support/fixtures";
 import { gotoAppShell, openSettings } from "../support/helpers/app";
 import { addConnectedHostAndReload } from "../support/helpers/hosts";
@@ -47,7 +47,7 @@ import {
   usageItem,
 } from "../support/helpers/usage-sidebar-item";
 
-const emptyHome = path.join(tmpdir(), `paseo-usage-empty-${randomUUID()}`);
+const emptyHome = path.join(tmpdir(), `zentic-usage-empty-${randomUUID()}`);
 test.use({
   e2eDaemonEnvironment: {
     HOME: emptyHome,
@@ -86,9 +86,9 @@ function twoHoursAgo(): string {
   return new Date(Date.now() - 2 * 60 * 60_000).toISOString();
 }
 
-/** Set PASEO_QA_SCREENSHOT_DIR to keep a QA screenshot. */
+/** Set ZENTIC_QA_SCREENSHOT_DIR to keep a QA screenshot. */
 async function qaScreenshot(page: Page, name: string, target: "page" | "summary" = "page") {
-  const directory = process.env.PASEO_QA_SCREENSHOT_DIR;
+  const directory = process.env.ZENTIC_QA_SCREENSHOT_DIR;
   if (!directory) return;
   await page.waitForTimeout(600);
   await page.addStyleTag({ content: ".__expo_fast_refresh { display: none !important; }" });
@@ -606,7 +606,7 @@ for (const theme of ["light", "dark"] as const) {
     test(`Usage Settings cog ${size} ${theme}`, async ({ page }, testInfo) => {
       test.setTimeout(120_000);
       await page.addInitScript((value) => {
-        const key = "@paseo:app-settings";
+        const key = "@zentic:app-settings";
         const current = JSON.parse(localStorage.getItem(key) ?? "{}");
         localStorage.setItem(key, JSON.stringify({ ...current, theme: value }));
       }, theme);

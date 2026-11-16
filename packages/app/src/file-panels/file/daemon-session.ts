@@ -1,5 +1,5 @@
-import type { DaemonClient, FileReadResult } from "@getpaseo/client/internal/daemon-client";
-import type { FileVersion } from "@getpaseo/protocol/messages";
+import type { DaemonClient, FileReadResult } from "@getzentic/client/internal/daemon-client";
+import type { FileVersion } from "@getzentic/protocol/messages";
 import {
   persistAttachmentFromBytes,
   releaseAttachmentPreviewUrl,

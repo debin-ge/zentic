@@ -7,7 +7,7 @@ import { afterEach, expect, test } from "vitest";
 import { compilePlugin } from "../compiler.js";
 import { readPluginManifest } from "../manifest.js";
 import { DaemonClient } from "../../test-utils/daemon-client.js";
-import { createTestPaseoDaemon } from "../../test-utils/paseo-daemon.js";
+import { createTestZenticDaemon } from "../../test-utils/zentic-daemon.js";
 import { BuiltinPluginLoader, builtinPlugins, resolveBuiltinPluginsRoot } from "./index.js";
 
 const roots: string[] = [];
@@ -19,8 +19,8 @@ async function fixture(root: string, id: string, client = false): Promise<string
   const directory = path.join(root, id);
   await mkdir(directory, { recursive: true });
   await writeFile(
-    path.join(directory, "paseo-plugin.json"),
-    JSON.stringify({ id, requirements: { paseo: ">=0.9.2" } }),
+    path.join(directory, "zentic-plugin.json"),
+    JSON.stringify({ id, requirements: { zentic: ">=0.9.2" } }),
   );
   await writeFile(
     path.join(directory, "index.server.ts"),
@@ -56,11 +56,11 @@ test("listed built-ins resolve to matching manifests and compile", async () => {
 });
 
 test("listed client bundle is published while plugins are disabled; unlisted directory is inert", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "paseo-builtin-fixture-"));
+  const root = await mkdtemp(path.join(os.tmpdir(), "zentic-builtin-fixture-"));
   roots.push(root);
   await fixture(root, "listed", true);
   await fixture(root, "unlisted", true);
-  const daemon = await createTestPaseoDaemon({
+  const daemon = await createTestZenticDaemon({
     daemonVersion: "0.9.2",
     pluginsEnabled: false,
     builtinPlugins: new BuiltinPluginLoader(root, ["listed"]),
@@ -79,7 +79,7 @@ test("listed client bundle is published while plugins are disabled; unlisted dir
 }, 60_000);
 
 test("a repeated catalog fetch leaves out the client bundle the client already holds", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "paseo-builtin-catalog-cache-"));
+  const root = await mkdtemp(path.join(os.tmpdir(), "zentic-builtin-catalog-cache-"));
   roots.push(root);
   const directory = await fixture(root, "large", true);
   // About the size of a real plugin client bundle.
@@ -88,7 +88,7 @@ test("a repeated catalog fetch leaves out the client bundle the client already h
     `const payload = ${JSON.stringify("x".repeat(1_000_000))};
 export default function contribute() { void payload; return () => {}; }`,
   );
-  const daemon = await createTestPaseoDaemon({
+  const daemon = await createTestZenticDaemon({
     daemonVersion: "0.9.2",
     pluginsEnabled: false,
     builtinPlugins: new BuiltinPluginLoader(root, ["large"]),
@@ -118,22 +118,22 @@ export default function contribute() { void payload; return () => {}; }`,
 }, 60_000);
 
 test("directory, Git, and npm installs reject a built-in ID", async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), "paseo-builtin-install-"));
+  const root = await mkdtemp(path.join(os.tmpdir(), "zentic-builtin-install-"));
   roots.push(root);
   const directory = await fixture(root, "reserved");
   const gitDirectory = await fixture(root, "git-source");
   await writeFile(
-    path.join(gitDirectory, "paseo-plugin.json"),
-    JSON.stringify({ id: "reserved", requirements: { paseo: ">=0.9.2" } }),
+    path.join(gitDirectory, "zentic-plugin.json"),
+    JSON.stringify({ id: "reserved", requirements: { zentic: ">=0.9.2" } }),
   );
   execFileSync("git", ["init", "-q", gitDirectory]);
   execFileSync("git", [
     "-C",
     gitDirectory,
     "-c",
-    "user.name=Paseo Tests",
+    "user.name=Zentic Tests",
     "-c",
-    "user.email=paseo@example.test",
+    "user.email=zentic@example.test",
     "add",
     ".",
   ]);
@@ -141,14 +141,14 @@ test("directory, Git, and npm installs reject a built-in ID", async () => {
     "-C",
     gitDirectory,
     "-c",
-    "user.name=Paseo Tests",
+    "user.name=Zentic Tests",
     "-c",
-    "user.email=paseo@example.test",
+    "user.email=zentic@example.test",
     "commit",
     "-qm",
     "fixture",
   ]);
-  const daemon = await createTestPaseoDaemon({
+  const daemon = await createTestZenticDaemon({
     daemonVersion: "0.9.2",
     pluginsEnabled: false,
     builtinPlugins: new BuiltinPluginLoader(root, ["reserved"]),

@@ -12,7 +12,7 @@ import {
 import { connectSeedClient, type SeedDaemonClient } from "./helpers/seed-client";
 import { createWithWorkspace, type WithWorkspace } from "./helpers/with-workspace";
 
-const EXTRA_HOSTS_KEY = "@paseo:e2e-extra-hosts";
+const EXTRA_HOSTS_KEY = "@zentic:e2e-extra-hosts";
 
 interface TrackedProjectPickerFixture extends ProjectPickerFixture {
   rememberProjectId: (projectId: string) => void;
@@ -39,18 +39,18 @@ const daemonTest = metroTest.extend<
     e2eDaemonConfig: Record<string, unknown> | undefined;
     e2eDaemonEnvironment: Record<string, string>;
     e2eForkProviders: string[];
-    e2eInjectPaseoTools: boolean;
+    e2eInjectZenticTools: boolean;
     e2eWorker: void;
     e2eWorkerClient: SeedDaemonClient;
   }
 >({
   e2eForkProviders: [[], { scope: "worker", option: true }],
-  e2eInjectPaseoTools: [false, { scope: "worker", option: true }],
+  e2eInjectZenticTools: [false, { scope: "worker", option: true }],
   e2eDaemonConfig: [undefined, { scope: "worker", option: true }],
   e2eDaemonEnvironment: [{}, { scope: "worker", option: true }],
   e2eWorker: [
     async (
-      { e2eDaemonConfig, e2eDaemonEnvironment, e2eForkProviders, e2eInjectPaseoTools },
+      { e2eDaemonConfig, e2eDaemonEnvironment, e2eForkProviders, e2eInjectZenticTools },
       provide,
       workerInfo,
     ) => {
@@ -58,7 +58,7 @@ const daemonTest = metroTest.extend<
         daemonConfig: e2eDaemonConfig,
         environment: e2eDaemonEnvironment,
         forkProviders: e2eForkProviders,
-        injectPaseoTools: e2eInjectPaseoTools,
+        injectZenticTools: e2eInjectZenticTools,
       });
       try {
         await provide();
@@ -109,7 +109,7 @@ const daemonTest = metroTest.extend<
 const test = daemonTest.extend<{
   /** Specs start past first-run setup; onboarding specs opt out to see a fresh install. */
   e2eOnboardingCompleted: boolean;
-  paseoE2ESetup: void;
+  zenticE2ESetup: void;
   outdatedDaemon: OutdatedDaemon;
   desktopManagedOutdatedDaemon: OutdatedDaemon;
   relayConfigOutdatedDaemon: OutdatedDaemon;
@@ -117,7 +117,7 @@ const test = daemonTest.extend<{
   withWorkspace: WithWorkspace;
 }>({
   e2eOnboardingCompleted: [true, { option: true }],
-  paseoE2ESetup: [
+  zenticE2ESetup: [
     async ({ page, e2eOnboardingCompleted }, provide, testInfo) => {
       const daemonPort = getE2EDaemonPort();
       const metroPort = process.env.E2E_METRO_PORT;
@@ -164,7 +164,7 @@ const test = daemonTest.extend<{
           // `addInitScript` runs on every navigation (including reloads). Some tests intentionally
           // override storage and reload; they can opt out of seeding for the *next* navigation by
           // setting this flag before the reload.
-          const disableOnceKey = "@paseo:e2e-disable-default-seed-once";
+          const disableOnceKey = "@zentic:e2e-disable-default-seed-once";
           const disableValue = localStorage.getItem(disableOnceKey);
           if (disableValue) {
             localStorage.removeItem(disableOnceKey);
@@ -173,25 +173,25 @@ const test = daemonTest.extend<{
             }
           }
 
-          localStorage.setItem("@paseo:e2e", "1");
-          localStorage.setItem("@paseo:e2e-seed-nonce", nonce);
+          localStorage.setItem("@zentic:e2e", "1");
+          localStorage.setItem("@zentic:e2e-seed-nonce", nonce);
 
           const rawExtraHosts = localStorage.getItem(extraHostsKey);
           const extraHosts = rawExtraHosts ? JSON.parse(rawExtraHosts) : [];
 
           // Hard-reset anything that could point to a developer's real daemon.
-          localStorage.setItem("@paseo:daemon-registry", JSON.stringify([daemon, ...extraHosts]));
-          localStorage.removeItem("@paseo:settings");
-          localStorage.setItem("@paseo:create-agent-preferences", JSON.stringify(preferences));
+          localStorage.setItem("@zentic:daemon-registry", JSON.stringify([daemon, ...extraHosts]));
+          localStorage.removeItem("@zentic:settings");
+          localStorage.setItem("@zentic:create-agent-preferences", JSON.stringify(preferences));
           // New installs collapse finished turns; specs assert on the rows inside them, so they
           // start from the full chat unless they seed their own settings.
-          if (!localStorage.getItem("@paseo:app-settings")) {
-            localStorage.setItem("@paseo:app-settings", JSON.stringify({ chatDisplay: "full" }));
+          if (!localStorage.getItem("@zentic:app-settings")) {
+            localStorage.setItem("@zentic:app-settings", JSON.stringify({ chatDisplay: "full" }));
           }
           // The shared daemon often has no projects, which would open first-run setup over the app.
-          if (onboardingCompleted && !localStorage.getItem("@paseo:onboarding")) {
+          if (onboardingCompleted && !localStorage.getItem("@zentic:onboarding")) {
             localStorage.setItem(
-              "@paseo:onboarding",
+              "@zentic:onboarding",
               JSON.stringify({ completedAt: new Date(0).toISOString() }),
             );
           }

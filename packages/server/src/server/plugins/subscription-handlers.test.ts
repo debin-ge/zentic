@@ -1,7 +1,7 @@
-import { defineSubscription } from "@getpaseo/plugin";
-import { subscribePluginRpc } from "@getpaseo/plugin/client/host";
-import type { PluginSubscriptionContext } from "@getpaseo/plugin/server";
-import type { PaseoApi } from "@getpaseo/client";
+import { defineSubscription } from "@getzentic/plugin";
+import { subscribePluginRpc } from "@getzentic/plugin/client/host";
+import type { PluginSubscriptionContext } from "@getzentic/plugin/server";
+import type { ZenticApi } from "@getzentic/client";
 import { expect, test } from "vitest";
 import { z } from "zod";
 import type { PluginProcessMessage } from "./plugin-process-protocol.js";
@@ -29,7 +29,7 @@ function connect(handler: (input: unknown, context: PluginSubscriptionContext) =
     observer = next;
     handlers.start(
       { type: "subscribe", requestId: "r", subscriptionId: "s", method, input },
-      {} as PaseoApi,
+      {} as ZenticApi,
     );
     return Object.assign(() => handlers.release("s"), {
       ready: Promise.resolve(),

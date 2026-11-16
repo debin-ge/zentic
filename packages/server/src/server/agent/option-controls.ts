@@ -1,5 +1,5 @@
 import { isDeepStrictEqual } from "node:util";
-import type { ProviderOptions } from "@getpaseo/protocol/agent-types";
+import type { ProviderOptions } from "@getzentic/protocol/agent-types";
 
 /**
  * A patch over an agent's own options: top-level keys replace, `null` removes the key so the

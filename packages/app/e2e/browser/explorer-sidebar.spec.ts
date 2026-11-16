@@ -366,11 +366,11 @@ test("updates populated code and diff appearance without losing the editor insta
     await writeFile(`${workspace.repoPath}/appearance.ts`, source);
     await page.addInitScript(() => {
       localStorage.setItem(
-        "@paseo:app-settings",
+        "@zentic:app-settings",
         JSON.stringify({ codeFontSize: 13, theme: "light" }),
       );
       localStorage.setItem(
-        "@paseo:changes-preferences",
+        "@zentic:changes-preferences",
         JSON.stringify({ inlineDiff: true, layout: "unified" }),
       );
     });

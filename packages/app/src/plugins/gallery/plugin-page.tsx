@@ -6,13 +6,13 @@ import { useTranslation } from "react-i18next";
 import { Image, ScrollView, Text, View } from "react-native";
 import { AttachmentLightbox, type ImageLightboxSource } from "@/components/attachment-lightbox";
 import { StyleSheet } from "react-native-unistyles";
-import type { PluginListItem, PluginUpdatePreview } from "@getpaseo/protocol/messages";
-import { formatPluginInstallation } from "@getpaseo/protocol/plugin-source-reference";
+import type { PluginListItem, PluginUpdatePreview } from "@getzentic/protocol/messages";
+import { formatPluginInstallation } from "@getzentic/protocol/plugin-source-reference";
 import type {
   PluginListingIndex,
   PluginListing,
   PluginListingDetail,
-} from "@getpaseo/protocol/plugin-registry";
+} from "@getzentic/protocol/plugin-registry";
 import { MarkdownRenderer } from "@/components/markdown/renderer";
 import { SettingsCard, SettingsRow, SettingsSection } from "@/components/settings";
 import { Alert } from "@/components/ui/alert";

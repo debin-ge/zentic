@@ -7,8 +7,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type {
   DaemonClient,
   FetchRecentProviderSessionEntry,
-} from "@getpaseo/client/internal/daemon-client";
-import type { ProviderSnapshotEntry } from "@getpaseo/protocol/agent-types";
+} from "@getzentic/client/internal/daemon-client";
+import type { ProviderSnapshotEntry } from "@getzentic/protocol/agent-types";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ImportSessionSheet } from "@/components/import-session-sheet";
 
@@ -274,7 +274,7 @@ function renderSheet(
     },
   });
 
-  const cwd = options && "cwd" in options ? (options.cwd ?? undefined) : "/repo/paseo";
+  const cwd = options && "cwd" in options ? (options.cwd ?? undefined) : "/repo/zentic";
 
   return render(
     <QueryClientProvider client={queryClient}>
@@ -306,7 +306,7 @@ function createImportedAgentSnapshot(id: string): Awaited<ReturnType<DaemonClien
   return {
     id,
     provider: "custom-provider",
-    cwd: "/repo/paseo",
+    cwd: "/repo/zentic",
     model: null,
     createdAt: "2026-04-30T10:00:00.000Z",
     updatedAt: "2026-04-30T10:00:00.000Z",
@@ -346,7 +346,7 @@ function createProviderSessionEntry(
     providerId: "custom-provider",
     providerLabel: "Custom Agent",
     providerHandleId: "provider-thread-1",
-    cwd: "/repo/paseo",
+    cwd: "/repo/zentic",
     title: "Import me",
     firstPromptPreview: "Import this external provider session",
     lastPromptPreview: "Import this external provider session",
@@ -503,7 +503,7 @@ describe("ImportSessionSheet", () => {
 
     await waitFor(() => {
       expect(fetchRecentProviderSessions).toHaveBeenCalledWith({
-        cwd: "/repo/paseo",
+        cwd: "/repo/zentic",
         providers: ["claude"],
         limit: 15,
       });
@@ -545,7 +545,7 @@ describe("ImportSessionSheet", () => {
             visible={visible}
             client={client}
             serverId="server-1"
-            cwd="/repo/paseo"
+            cwd="/repo/zentic"
             onClose={vi.fn()}
             onImportedAgent={vi.fn()}
           />
@@ -565,7 +565,7 @@ describe("ImportSessionSheet", () => {
     await screen.findByText("Cached importable session");
     await waitFor(() => {
       expect(fetchRecentProviderSessions).toHaveBeenCalledWith({
-        cwd: "/repo/paseo",
+        cwd: "/repo/zentic",
         providers: ["claude"],
         limit: 15,
       });
@@ -587,7 +587,7 @@ describe("ImportSessionSheet", () => {
           createProviderSessionEntry({
             providerId: "claude",
             providerLabel: "Claude Code",
-            cwd: "/repo/paseo-realpath",
+            cwd: "/repo/zentic-realpath",
           }),
         ],
       };
@@ -627,7 +627,7 @@ describe("ImportSessionSheet", () => {
       expect(importAgent).toHaveBeenCalledWith({
         providerId: "claude",
         providerHandleId: "provider-thread-1",
-        cwd: "/repo/paseo-realpath",
+        cwd: "/repo/zentic-realpath",
         workspaceId: "ws-current",
       });
       expect(events).toEqual(["fetch", "close", "navigate"]);
@@ -666,7 +666,7 @@ describe("ImportSessionSheet", () => {
     expect(importAgent).toHaveBeenCalledWith({
       providerId: "claude",
       providerHandleId: "provider-thread-1",
-      cwd: "/repo/paseo",
+      cwd: "/repo/zentic",
     });
     expect(onImportedAgent).not.toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
@@ -709,13 +709,13 @@ describe("ImportSessionSheet", () => {
 
     await waitFor(() => {
       expect(fetchRecentProviderSessions).toHaveBeenCalledWith({
-        cwd: "/repo/paseo",
+        cwd: "/repo/zentic",
         providers: ["claude"],
         limit: 15,
       });
     });
     expect(fetchRecentProviderSessions).toHaveBeenCalledWith({
-      cwd: "/repo/paseo",
+      cwd: "/repo/zentic",
       providers: ["codex"],
       limit: 15,
     });
@@ -723,7 +723,7 @@ describe("ImportSessionSheet", () => {
       expect.objectContaining({ providers: ["opencode"] }),
     );
     expect(fetchRecentProviderSessions).toHaveBeenCalledWith({
-      cwd: "/repo/paseo",
+      cwd: "/repo/zentic",
       providers: ["z-ai"],
       limit: 15,
     });
@@ -994,8 +994,8 @@ describe("ImportSessionSheet", () => {
         createProviderSessionEntry({
           providerId: "claude",
           providerHandleId: "newest",
-          cwd: "/home/me/paseo",
-          title: "Newest in paseo",
+          cwd: "/home/me/zentic",
+          title: "Newest in zentic",
           lastActivityAt: "2026-04-30T12:00:00.000Z",
         }),
         createProviderSessionEntry({
@@ -1008,14 +1008,14 @@ describe("ImportSessionSheet", () => {
         createProviderSessionEntry({
           providerId: "claude",
           providerHandleId: "older",
-          cwd: "/home/me/paseo",
-          title: "Older in paseo",
+          cwd: "/home/me/zentic",
+          title: "Older in zentic",
           lastActivityAt: "2026-04-30T10:00:00.000Z",
         }),
         createProviderSessionEntry({
           providerId: "claude",
           providerHandleId: "worktree",
-          cwd: "/home/me/paseo/.dev/worktrees/zebra",
+          cwd: "/home/me/zentic/.dev/worktrees/zebra",
           title: "Worktree session",
           lastActivityAt: "2026-04-30T09:00:00.000Z",
         }),
@@ -1030,7 +1030,7 @@ describe("ImportSessionSheet", () => {
       >,
       {
         cwd: null,
-        projects: [{ iconWorkingDir: "/home/me/paseo", projectName: "paseo" }],
+        projects: [{ iconWorkingDir: "/home/me/zentic", projectName: "zentic" }],
         snapshot: { supportsSnapshot: true, entries: [createSnapshotEntry("claude")] },
       },
     );
@@ -1048,7 +1048,7 @@ describe("ImportSessionSheet", () => {
     ]);
     expect(
       screen.getAllByTestId(/^import-session-row-folder-/).map((folder) => folder.textContent),
-    ).toEqual(["paseo", "/tmp/scratch", "paseo", "paseo · .dev/worktrees/zebra"]);
+    ).toEqual(["zentic", "/tmp/scratch", "zentic", "zentic · .dev/worktrees/zebra"]);
   });
 
   it("leaves the folder off every row when the sheet is scoped to one workspace", async () => {
@@ -1058,7 +1058,7 @@ describe("ImportSessionSheet", () => {
         createProviderSessionEntry({
           providerId: "claude",
           providerHandleId: "scoped",
-          cwd: "/repo/paseo",
+          cwd: "/repo/zentic",
           title: "Scoped session",
         }),
       ],
@@ -1072,7 +1072,7 @@ describe("ImportSessionSheet", () => {
       >,
       {
         workspaceId: "ws-current",
-        projects: [{ iconWorkingDir: "/repo/paseo", projectName: "paseo" }],
+        projects: [{ iconWorkingDir: "/repo/zentic", projectName: "zentic" }],
         snapshot: { supportsSnapshot: true, entries: [createSnapshotEntry("claude")] },
       },
     );
@@ -1217,7 +1217,7 @@ describe("ImportSessionSheet", () => {
 
     await waitFor(() => {
       expect(fetchRecentProviderSessions).toHaveBeenCalledWith({
-        cwd: "/repo/paseo",
+        cwd: "/repo/zentic",
         providers: ["claude"],
         limit: 15,
       });

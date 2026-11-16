@@ -1,13 +1,13 @@
 import { checkoutDiffSnapshot, type CheckoutDiffSnapshot } from "@/git/diff-snapshot";
-import type { DiffState } from "@getpaseo/client";
-import type { OwnedSubscription } from "@getpaseo/client";
-import type { ProviderSnapshotEntry } from "@getpaseo/protocol/agent-types";
+import type { DiffState } from "@getzentic/client";
+import type { OwnedSubscription } from "@getzentic/client";
+import type { ProviderSnapshotEntry } from "@getzentic/protocol/agent-types";
 import type { Query, QueryCacheNotifyEvent, QueryClient, QueryKey } from "@tanstack/react-query";
 import type {
   ListTerminalsResponse,
   MutableDaemonConfig,
   SessionOutboundMessage,
-} from "@getpaseo/protocol/messages";
+} from "@getzentic/protocol/messages";
 import { invalidateCommandsForProviderChange } from "@/agent-commands/cache";
 import { shareCheckoutDiff } from "@/git/diff-sharing";
 import { orderCheckoutDiffFiles } from "@/git/diff-order";
@@ -70,10 +70,10 @@ export interface ServerDataQueryMeta extends Record<string, unknown> {
 export type ProvidersSnapshotUpdate = ProvidersSnapshotUpdateMessage;
 
 interface ServerDataPushClient {
-  getProvidersSnapshot: import("@getpaseo/client/internal/daemon-client").DaemonClient["getProvidersSnapshot"];
-  observeEvents: import("@getpaseo/client/internal/daemon-client").DaemonClient["observeEvents"];
-  observeDiff: import("@getpaseo/client/internal/daemon-client").DaemonClient["observeDiff"];
-  observeTerminals: import("@getpaseo/client/internal/daemon-client").DaemonClient["observeTerminals"];
+  getProvidersSnapshot: import("@getzentic/client/internal/daemon-client").DaemonClient["getProvidersSnapshot"];
+  observeEvents: import("@getzentic/client/internal/daemon-client").DaemonClient["observeEvents"];
+  observeDiff: import("@getzentic/client/internal/daemon-client").DaemonClient["observeDiff"];
+  observeTerminals: import("@getzentic/client/internal/daemon-client").DaemonClient["observeTerminals"];
 }
 
 interface PushRouterInput {

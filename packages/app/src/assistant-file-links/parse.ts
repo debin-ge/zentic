@@ -302,7 +302,7 @@ export function parseAssistantFileLink(
   if (options.decodeHref) {
     let parsedUrl: URL;
     try {
-      parsedUrl = new URL(trimmed, "http://paseo.invalid");
+      parsedUrl = new URL(trimmed, "http://zentic.invalid");
     } catch {
       return null;
     }

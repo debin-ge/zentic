@@ -61,27 +61,27 @@ import { setupApplicationMenu } from "./features/menu.js";
 import {
   BROWSER_NEW_TAB_REQUEST_EVENT,
   decideBrowserWindowOpenRequest,
-  getPaseoBrowserIdForWebContents,
-  getPaseoBrowserWebContentsForHostWindow,
-  getPaseoBrowserWebviewRegistry,
-  listRegisteredPaseoBrowserIds,
-  isPaseoBrowserWebviewAttach,
-  preparePaseoBrowserWebContents,
+  getZenticBrowserIdForWebContents,
+  getZenticBrowserWebContentsForHostWindow,
+  getZenticBrowserWebviewRegistry,
+  listRegisteredZenticBrowserIds,
+  isZenticBrowserWebviewAttach,
+  prepareZenticBrowserWebContents,
   PendingBrowserWindowOpenRequests,
   registerBrowserWebviewNavigationGuards,
-  unregisterPaseoBrowserFromHost,
-  registerAttachedPaseoBrowser,
-  setWorkspaceActivePaseoBrowserId,
-  unregisterPaseoBrowserHost,
+  unregisterZenticBrowserFromHost,
+  registerAttachedZenticBrowser,
+  setWorkspaceActiveZenticBrowserId,
+  unregisterZenticBrowserHost,
 } from "./features/browser-webviews/index.js";
 import {
-  clearPaseoBrowserProfile,
-  getLegacyPaseoBrowserProfileSession,
-  PASEO_BROWSER_PROFILE_PARTITION,
-  getPaseoBrowserProfileSession,
-  getPaseoBrowserProfileSessions,
-  listPaseoBrowserProfileGuests,
-  readLegacyPaseoBrowserIds,
+  clearZenticBrowserProfile,
+  getLegacyZenticBrowserProfileSession,
+  ZENTIC_BROWSER_PROFILE_PARTITION,
+  getZenticBrowserProfileSession,
+  getZenticBrowserProfileSessions,
+  listZenticBrowserProfileGuests,
+  readLegacyZenticBrowserIds,
 } from "./features/browser-profile.js";
 import { parseOpenProjectPathFromArgv } from "./open-project-routing.js";
 import {
@@ -108,17 +108,17 @@ import {
   buildAgentDeepLinkRoute,
   parseAgentDeepLink,
   type AgentDeepLinkTarget,
-} from "@getpaseo/protocol/agent-deep-link";
+} from "@getzentic/protocol/agent-deep-link";
 import { AgentNavigationInbox, parseAgentDeepLinkFromArgv } from "./agent-navigation.js";
 
 const DEV_SERVER_URL = process.env.EXPO_DEV_URL ?? "http://localhost:8081";
-const APP_SCHEME = "paseo";
-const PASEO_DEBUG = process.env.PASEO_DEBUG === "1";
-const DISABLE_SINGLE_INSTANCE_LOCK = process.env.PASEO_DISABLE_SINGLE_INSTANCE_LOCK === "1";
-const APP_NAME = process.env.PASEO_TEST_APP_NAME?.trim() || "Paseo";
+const APP_SCHEME = "zentic";
+const ZENTIC_DEBUG = process.env.ZENTIC_DEBUG === "1";
+const DISABLE_SINGLE_INSTANCE_LOCK = process.env.ZENTIC_DISABLE_SINGLE_INSTANCE_LOCK === "1";
+const APP_NAME = process.env.ZENTIC_TEST_APP_NAME?.trim() || "Zentic";
 const DESKTOP_WINDOW_CHROME_MODE = resolveDesktopWindowChromeMode({
   platform: process.platform,
-  override: process.env.PASEO_DESKTOP_WINDOW_CONTROLS,
+  override: process.env.ZENTIC_DESKTOP_WINDOW_CONTROLS,
   isPackaged: app.isPackaged,
 });
 const UPDATE_QUIT_DEADLINE_MS = 5_000;
@@ -187,7 +187,7 @@ function readActiveBrowserInput(
   return { workspaceId: record.workspaceId.trim(), browserId: browserId || null };
 }
 
-const browserKeyboard = new BrowserKeyboard(getPaseoBrowserWebviewRegistry());
+const browserKeyboard = new BrowserKeyboard(getZenticBrowserWebviewRegistry());
 browserKeyboard.registerIpc();
 
 function showBrowserWebviewContextMenu(
@@ -206,7 +206,7 @@ function showBrowserWebviewContextMenu(
             click: () => {
               log.info("[browser-devtools] inspect-element.request", {
                 webContentsId: contents.id,
-                browserId: getPaseoBrowserIdForWebContents(contents),
+                browserId: getZenticBrowserIdForWebContents(contents),
                 x: params.x,
                 y: params.y,
                 isDevToolsOpened: contents.isDevToolsOpened(),
@@ -232,7 +232,7 @@ function getBrowserPopupWindowOptions(
     show: true,
     autoHideMenuBar: true,
     webPreferences: {
-      partition: PASEO_BROWSER_PROFILE_PARTITION,
+      partition: ZENTIC_BROWSER_PROFILE_PARTITION,
       nodeIntegration: false,
       nodeIntegrationInSubFrames: false,
       nodeIntegrationInWorker: false,
@@ -271,7 +271,7 @@ function installBrowserWindowOpenHandler(input: {
       };
     }
 
-    const sourceBrowserId = getPaseoBrowserIdForWebContents(sourceContents);
+    const sourceBrowserId = getZenticBrowserIdForWebContents(sourceContents);
     if (sourceBrowserId) {
       mainWindow.webContents.send(BROWSER_NEW_TAB_REQUEST_EVENT, {
         sourceBrowserId,
@@ -300,7 +300,7 @@ function installBrowserWindowOpenHandler(input: {
 // In dev mode, detect git worktrees and isolate each instance so multiple
 // Electron windows can run side-by-side (separate userData = separate lock).
 let devWorktreeName: string | null = null;
-const forcedUserDataDir = process.env.PASEO_ELECTRON_USER_DATA_DIR?.trim();
+const forcedUserDataDir = process.env.ZENTIC_ELECTRON_USER_DATA_DIR?.trim();
 if (forcedUserDataDir) {
   app.setPath("userData", forcedUserDataDir);
   log.info("[dev-user-data] forced userData dir:", forcedUserDataDir);
@@ -312,7 +312,7 @@ if (forcedUserDataDir) {
       windowsHide: true,
     }).trim();
     devWorktreeName = path.basename(topLevel);
-    // Main checkout (e.g. "paseo") gets default userData — only worktrees diverge.
+    // Main checkout (e.g. "zentic") gets default userData — only worktrees diverge.
     const commonDir = path.resolve(
       topLevel,
       execFileSync("git", ["rev-parse", "--git-common-dir"], {
@@ -324,7 +324,7 @@ if (forcedUserDataDir) {
     );
     const isWorktree = path.resolve(topLevel, ".git") !== commonDir;
     if (isWorktree) {
-      app.setPath("userData", path.join(app.getPath("appData"), `Paseo-${devWorktreeName}`));
+      app.setPath("userData", path.join(app.getPath("appData"), `Zentic-${devWorktreeName}`));
       log.info("[worktree] isolated userData for worktree:", devWorktreeName);
     } else {
       devWorktreeName = null;
@@ -334,10 +334,10 @@ if (forcedUserDataDir) {
   }
 }
 
-// Allow users to pass Chromium flags via PASEO_ELECTRON_FLAGS for debugging
+// Allow users to pass Chromium flags via ZENTIC_ELECTRON_FLAGS for debugging
 // rendering issues (e.g. "--disable-gpu --ozone-platform=x11").
 // Must run before app.whenReady().
-const electronFlags = process.env.PASEO_ELECTRON_FLAGS?.trim();
+const electronFlags = process.env.ZENTIC_ELECTRON_FLAGS?.trim();
 if (electronFlags) {
   for (const token of electronFlags.split(/\s+/)) {
     const [key, ...rest] = token.replace(/^--/, "").split("=");
@@ -348,11 +348,11 @@ if (electronFlags) {
 
 if (process.platform === "linux") {
   // Keep the desktop/dock identity independent of the wrapped Electron filename.
-  app.setDesktopName("Paseo.desktop");
-  if (!app.commandLine.hasSwitch("class")) app.commandLine.appendSwitch("class", "Paseo");
+  app.setDesktopName("Zentic.desktop");
+  if (!app.commandLine.hasSwitch("class")) app.commandLine.appendSwitch("class", "Zentic");
   log.info("[linux-sandbox]", {
     enabled: !app.commandLine.hasSwitch("no-sandbox"),
-    reason: process.env.PASEO_DESKTOP_SANDBOX_REASON ?? "Chromium default",
+    reason: process.env.ZENTIC_DESKTOP_SANDBOX_REASON ?? "Chromium default",
   });
 }
 
@@ -368,7 +368,7 @@ let pendingAgentNavigation = parseAgentDeepLinkFromArgv(process.argv);
 // racing a global.
 let desktopWindowOwner: DesktopWindowOwner<AgentDeepLinkTarget>;
 
-if (PASEO_DEBUG) {
+if (ZENTIC_DEBUG) {
   log.info("[open-project] argv:", process.argv);
   log.info("[open-project] isDefaultApp:", process.defaultApp);
   log.info("[open-project] pendingOpenProjectPath:", pendingOpenProjectPath);
@@ -376,7 +376,7 @@ if (PASEO_DEBUG) {
 
 // The renderer pulls the pending path on mount via IPC — this avoids
 // a race where the push event arrives before React registers its listener.
-ipcMain.handle("paseo:get-pending-open-project", (event) => {
+ipcMain.handle("zentic:get-pending-open-project", (event) => {
   const webContentsId = event.sender.id;
   const result = desktopWindowOwner.takePendingProject(webContentsId);
   log.info("[open-project] renderer requested pending path:", {
@@ -386,19 +386,19 @@ ipcMain.handle("paseo:get-pending-open-project", (event) => {
   return result;
 });
 
-ipcMain.handle("paseo:agent-navigation:ready", (event) => {
+ipcMain.handle("zentic:agent-navigation:ready", (event) => {
   return agentNavigationInbox.windowReady(event.sender.id);
 });
 
-ipcMain.handle("paseo:browser:register-attached", (event, rawInput: unknown) => {
+ipcMain.handle("zentic:browser:register-attached", (event, rawInput: unknown) => {
   const input = readAttachedBrowserInput(rawInput);
   if (!input) {
     throw new Error("Invalid attached browser registration");
   }
-  const registered = registerAttachedPaseoBrowser({
+  const registered = registerAttachedZenticBrowser({
     ...input,
     sender: event.sender,
-    profileSession: getPaseoBrowserProfileSession(session),
+    profileSession: getZenticBrowserProfileSession(session),
     findWebContents: (webContentsId) => webContents.fromId(webContentsId) ?? null,
   });
   if (!registered) {
@@ -412,7 +412,7 @@ ipcMain.handle("paseo:browser:register-attached", (event, rawInput: unknown) => 
   log.info("[browser-webview] registered", {
     browserId: input.browserId,
     webContentsId: input.webContentsId,
-    registeredBrowserIds: listRegisteredPaseoBrowserIds(),
+    registeredBrowserIds: listRegisteredZenticBrowserIds(),
   });
   for (const url of pendingBrowserWindowOpenRequests.take(input.webContentsId)) {
     event.sender.send(BROWSER_NEW_TAB_REQUEST_EVENT, {
@@ -422,21 +422,21 @@ ipcMain.handle("paseo:browser:register-attached", (event, rawInput: unknown) => 
   }
 });
 
-ipcMain.handle("paseo:browser:unregister-workspace-browser", async (event, browserId: unknown) => {
+ipcMain.handle("zentic:browser:unregister-workspace-browser", async (event, browserId: unknown) => {
   if (typeof browserId === "string" && browserId.trim().length > 0) {
     const normalizedBrowserId = browserId.trim();
-    const hasOtherHost = getPaseoBrowserWebviewRegistry().hasBrowserInOtherHostWindow(
+    const hasOtherHost = getZenticBrowserWebviewRegistry().hasBrowserInOtherHostWindow(
       event.sender.id,
       normalizedBrowserId,
     );
-    unregisterPaseoBrowserFromHost(event.sender.id, normalizedBrowserId);
+    unregisterZenticBrowserFromHost(event.sender.id, normalizedBrowserId);
     // COMPAT(browserProfile): added in v0.1.108; remove after 2027-01-15.
     const legacyProfile = hasOtherHost
       ? null
-      : getLegacyPaseoBrowserProfileSession(session, normalizedBrowserId);
+      : getLegacyZenticBrowserProfileSession(session, normalizedBrowserId);
     if (legacyProfile) {
       try {
-        await clearPaseoBrowserProfile({
+        await clearZenticBrowserProfile({
           profileSessions: [legacyProfile],
           listGuests: () => [],
           logReloadError: () => {},
@@ -451,18 +451,18 @@ ipcMain.handle("paseo:browser:unregister-workspace-browser", async (event, brows
   }
 });
 
-ipcMain.handle("paseo:browser:set-workspace-active-browser", (event, rawInput: unknown) => {
+ipcMain.handle("zentic:browser:set-workspace-active-browser", (event, rawInput: unknown) => {
   const input = readActiveBrowserInput(rawInput);
   if (input) {
-    setWorkspaceActivePaseoBrowserId({ ...input, hostWebContentsId: event.sender.id });
+    setWorkspaceActiveZenticBrowserId({ ...input, hostWebContentsId: event.sender.id });
   }
 });
 
-ipcMain.handle("paseo:browser:focus", (event, browserId: unknown): boolean => {
+ipcMain.handle("zentic:browser:focus", (event, browserId: unknown): boolean => {
   if (typeof browserId !== "string" || browserId.trim().length === 0) {
     return false;
   }
-  const contents = getPaseoBrowserWebContentsForHostWindow(browserId, event.sender.id);
+  const contents = getZenticBrowserWebContentsForHostWindow(browserId, event.sender.id);
   if (!contents) {
     return false;
   }
@@ -470,24 +470,24 @@ ipcMain.handle("paseo:browser:focus", (event, browserId: unknown): boolean => {
   return true;
 });
 
-ipcMain.handle("paseo:browser:open-devtools", (event, browserId: unknown) => {
+ipcMain.handle("zentic:browser:open-devtools", (event, browserId: unknown) => {
   if (typeof browserId !== "string" || browserId.trim().length === 0) {
     const result = {
       ok: false,
       reason: "invalid-browser-id",
       browserId,
-      registeredBrowserIds: listRegisteredPaseoBrowserIds(),
+      registeredBrowserIds: listRegisteredZenticBrowserIds(),
     };
     log.warn("[browser-devtools] open-devtools.invalid", result);
     return result;
   }
-  const contents = getPaseoBrowserWebContentsForHostWindow(browserId, event.sender.id);
+  const contents = getZenticBrowserWebContentsForHostWindow(browserId, event.sender.id);
   if (!contents) {
     const result = {
       ok: false,
       reason: "browser-webcontents-not-found",
       browserId,
-      registeredBrowserIds: listRegisteredPaseoBrowserIds(),
+      registeredBrowserIds: listRegisteredZenticBrowserIds(),
     };
     log.warn("[browser-devtools] open-devtools.not-found", result);
     return result;
@@ -497,7 +497,7 @@ ipcMain.handle("paseo:browser:open-devtools", (event, browserId: unknown) => {
     webContentsId: contents.id,
     isDestroyed: contents.isDestroyed(),
     isDevToolsOpened: contents.isDevToolsOpened(),
-    registeredBrowserIds: listRegisteredPaseoBrowserIds(),
+    registeredBrowserIds: listRegisteredZenticBrowserIds(),
   });
   contents.openDevTools({ mode: "detach" });
   const result = {
@@ -511,16 +511,16 @@ ipcMain.handle("paseo:browser:open-devtools", (event, browserId: unknown) => {
   return result;
 });
 
-ipcMain.handle("paseo:browser:clear-profile", async (_event, rawLegacyBrowserIds: unknown) => {
-  const profileSessions = getPaseoBrowserProfileSessions(
+ipcMain.handle("zentic:browser:clear-profile", async (_event, rawLegacyBrowserIds: unknown) => {
+  const profileSessions = getZenticBrowserProfileSessions(
     session,
-    readLegacyPaseoBrowserIds(rawLegacyBrowserIds),
+    readLegacyZenticBrowserIds(rawLegacyBrowserIds),
   );
   const profileSession = profileSessions[0];
-  await clearPaseoBrowserProfile({
+  await clearZenticBrowserProfile({
     profileSessions,
     listGuests: () =>
-      listPaseoBrowserProfileGuests({
+      listZenticBrowserProfileGuests({
         profileSession,
         webContents: webContents.getAllWebContents(),
       }),
@@ -531,7 +531,7 @@ ipcMain.handle("paseo:browser:clear-profile", async (_event, rawLegacyBrowserIds
 });
 
 const browserCapture = createBrowserCaptureService<Electron.NativeImage>({
-  findGuest: getPaseoBrowserWebContentsForHostWindow,
+  findGuest: getZenticBrowserWebContentsForHostWindow,
   decodeImage: (dataUrl) => nativeImage.createFromDataURL(dataUrl),
   clipboard: {
     write: async ({ text, image }) => {
@@ -549,11 +549,11 @@ const browserCapture = createBrowserCaptureService<Electron.NativeImage>({
   warn: (event, details) => log.warn(`[browser-capture] ${event}`, details),
 });
 
-ipcMain.handle("paseo:browser:capture-element", (event, browserId: unknown, rect: unknown) =>
+ipcMain.handle("zentic:browser:capture-element", (event, browserId: unknown, rect: unknown) =>
   browserCapture.capture({ browserId, hostWebContentsId: event.sender.id, rect }),
 );
 
-ipcMain.handle("paseo:browser:copy-element", (_event, payload: unknown) =>
+ipcMain.handle("zentic:browser:copy-element", (_event, payload: unknown) =>
   browserCapture.copy(payload),
 );
 
@@ -616,7 +616,7 @@ function getDevBuildLabel(): string | null {
   if (app.isPackaged) {
     return null;
   }
-  return process.env.EXPO_PUBLIC_PASEO_DEV_BUILD_LABEL?.trim() || null;
+  return process.env.EXPO_PUBLIC_ZENTIC_DEV_BUILD_LABEL?.trim() || null;
 }
 
 let cachedEffectiveIconPath: string | null = null;
@@ -721,7 +721,7 @@ async function createWindow(
   mainWindow.on("closed", () => {
     options.onClosed?.(webContentsId);
     agentNavigationInbox.removeWindow(webContentsId);
-    unregisterPaseoBrowserHost(webContentsId);
+    unregisterZenticBrowserHost(webContentsId);
     browserKeyboard.detachHost(webContentsId);
   });
 
@@ -741,7 +741,7 @@ async function createWindow(
   setupDefaultContextMenu(mainWindow);
   setupDragDropPrevention(mainWindow);
   mainWindow.webContents.on("will-attach-webview", (event, webPreferences, params) => {
-    if (!isPaseoBrowserWebviewAttach(params)) {
+    if (!isZenticBrowserWebviewAttach(params)) {
       event.preventDefault();
       return;
     }
@@ -762,7 +762,7 @@ async function createWindow(
     webPreferences.preload = getBrowserKeyboardPreloadPath();
   });
   mainWindow.webContents.on("did-attach-webview", (_event, contents) => {
-    preparePaseoBrowserWebContents(contents);
+    prepareZenticBrowserWebContents(contents);
     contents.once("destroyed", () => {
       pendingBrowserWindowOpenRequests.delete(contents.id);
     });
@@ -804,7 +804,7 @@ function ownedDesktopWindow(win: BrowserWindow): OwnedDesktopWindow<AgentDeepLin
     restore: () => win.restore(),
     show: () => win.show(),
     focus: () => win.focus(),
-    sendAgent: (target) => win.webContents.send("paseo:event:open-agent", target),
+    sendAgent: (target) => win.webContents.send("zentic:event:open-agent", target),
   };
 }
 
@@ -866,7 +866,7 @@ app.on("open-url", (event, url) => {
 
 function setupSingleInstanceLock(): boolean {
   if (DISABLE_SINGLE_INSTANCE_LOCK) {
-    log.info("[single-instance] disabled by PASEO_DISABLE_SINGLE_INSTANCE_LOCK");
+    log.info("[single-instance] disabled by ZENTIC_DISABLE_SINGLE_INSTANCE_LOCK");
     return true;
   }
 
@@ -891,7 +891,7 @@ function setupSingleInstanceLock(): boolean {
       isDefaultApp: false,
     });
     log.info("[open-project] second-instance openProjectPath:", openProjectPath);
-    // Relaunching the app (CLI `paseo [path]`, double-click, etc.) opens a new
+    // Relaunching the app (CLI `zentic [path]`, double-click, etc.) opens a new
     // window rather than focusing the existing one. Wait for bootstrap (not just
     // app.whenReady) so the protocol + IPC handlers exist before the window loads.
     void bootstrapComplete
@@ -970,13 +970,13 @@ async function bootstrap(): Promise<void> {
   registerDialogHandlers();
   registerNotificationHandlers();
   const openExternalUrl = createExternalUrlOpener({ open: shell.openExternal });
-  ipcMain.handle("paseo:opener:openUrl", (_event, value: unknown) => openExternalUrl(value));
+  ipcMain.handle("zentic:opener:openUrl", (_event, value: unknown) => openExternalUrl(value));
   registerEditorTargetHandlers();
   registerBrowserAutomationIpc();
 
   // In-app "Open in new window": opens a window that lands on the given project
   // via the same open-project flow as a CLI launch (no move, no ownership).
-  ipcMain.handle("paseo:window:openNew", async (_event, options?: unknown) => {
+  ipcMain.handle("zentic:window:openNew", async (_event, options?: unknown) => {
     const pendingPath =
       options && typeof options === "object" && "pendingOpenProjectPath" in options
         ? (options as { pendingOpenProjectPath?: unknown }).pendingOpenProjectPath
@@ -1026,7 +1026,7 @@ void runDesktopStartup({
 
 function showDaemonShutdownDialog(): void {
   for (const win of BrowserWindow.getAllWindows()) {
-    win.webContents.send("paseo:event:quitting", {});
+    win.webContents.send("zentic:event:quitting", {});
   }
 }
 

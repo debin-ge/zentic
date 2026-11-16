@@ -5,7 +5,7 @@ import path from "node:path";
 
 import { claudeProjectDirSync } from "../agent/providers/claude/project-dir.js";
 import { DaemonClient } from "../test-utils/daemon-client.js";
-import { createTestPaseoDaemon, type TestPaseoDaemon } from "../test-utils/paseo-daemon.js";
+import { createTestZenticDaemon, type TestZenticDaemon } from "../test-utils/zentic-daemon.js";
 
 const PROVIDER_ID = "claude-secondary";
 const SESSION_ID = "provider-config-dir-session";
@@ -22,19 +22,19 @@ function timelineText(entries: ReadonlyArray<{ item: { type: string; text?: stri
 
 describe("daemon E2E - Claude history lives in the provider's CLAUDE_CONFIG_DIR", () => {
   let tempRoot: string;
-  let paseoHomeRoot: string;
+  let zenticHomeRoot: string;
   let providerConfigDir: string;
   let cwd: string;
   let prevClaudeConfigDir: string | undefined;
-  let daemon: TestPaseoDaemon | undefined;
+  let daemon: TestZenticDaemon | undefined;
   let client: DaemonClient | undefined;
 
   beforeEach(() => {
     tempRoot = mkdtempSync(path.join(tmpdir(), "claude-provider-config-dir-"));
-    paseoHomeRoot = path.join(tempRoot, "paseo-home");
+    zenticHomeRoot = path.join(tempRoot, "zentic-home");
     providerConfigDir = path.join(tempRoot, "custom-claude-dir");
     cwd = path.join(tempRoot, "repo");
-    mkdirSync(paseoHomeRoot, { recursive: true });
+    mkdirSync(zenticHomeRoot, { recursive: true });
     mkdirSync(cwd, { recursive: true });
 
     const projectDir = claudeProjectDirSync(cwd, { configDir: providerConfigDir });
@@ -81,8 +81,8 @@ describe("daemon E2E - Claude history lives in the provider's CLAUDE_CONFIG_DIR"
   }, 60_000);
 
   async function startDaemon(): Promise<DaemonClient> {
-    daemon = await createTestPaseoDaemon({
-      paseoHomeRoot,
+    daemon = await createTestZenticDaemon({
+      zenticHomeRoot,
       cleanup: false,
       providerOverrides: {
         [PROVIDER_ID]: {

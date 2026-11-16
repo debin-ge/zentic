@@ -35,10 +35,10 @@ const TerminalWorkerRecordSchema = z.object({
   bootId: z.string().nullable(),
   createdAt: z.string().min(1),
   identity: LegacyTerminalWorkerIdentitySchema.optional(),
-  // Read loosely: a version this daemon cannot interpret marks a worker from a newer Paseo
+  // Read loosely: a version this daemon cannot interpret marks a worker from a newer Zentic
   // (classifyTerminalWorkerProtocol), not an unreadable record.
   protocolVersion: z.union([z.number(), z.string()]),
-  paseoVersion: z.string(),
+  zenticVersion: z.string(),
   socketPath: z.string().min(1),
   secret: z.string().min(1),
   // The copy of the worker's files it runs from (a directory name under terminal-worker/), or
@@ -72,39 +72,42 @@ export type TerminalWorkerRecordFile =
 
 // The worker's command line carries this marker followed by its record id, so a reused pid
 // running some other process (even another worker) never matches the record.
-export const TERMINAL_WORKER_MARKER_ARG = "--paseo-terminal-worker";
+export const TERMINAL_WORKER_MARKER_ARG = "--zentic-terminal-worker";
 
-export function terminalWorkerDirectory(paseoHome: string): string {
-  return path.join(paseoHome, "terminal-worker");
+export function terminalWorkerDirectory(zenticHome: string): string {
+  return path.join(zenticHome, "terminal-worker");
 }
 
-export function terminalWorkerRecordPath(paseoHome: string, workerPid: number): string {
-  return path.join(terminalWorkerDirectory(paseoHome), `${workerPid}.json`);
+export function terminalWorkerRecordPath(zenticHome: string, workerPid: number): string {
+  return path.join(terminalWorkerDirectory(zenticHome), `${workerPid}.json`);
 }
 
-export function terminalCleanupRecordPath(paseoHome: string, recordId: string): string {
-  return path.join(terminalWorkerDirectory(paseoHome), `closing-${recordId}.json`);
+export function terminalCleanupRecordPath(zenticHome: string, recordId: string): string {
+  return path.join(terminalWorkerDirectory(zenticHome), `closing-${recordId}.json`);
 }
 
-export function terminalWorkerLogPath(paseoHome: string): string {
-  return path.join(paseoHome, "terminal-worker.log");
+export function terminalWorkerLogPath(zenticHome: string): string {
+  return path.join(zenticHome, "terminal-worker.log");
 }
 
-export function writeTerminalWorkerRecord(paseoHome: string, record: TerminalWorkerRecord): string {
-  const recordPath = terminalWorkerRecordPath(paseoHome, record.pid);
+export function writeTerminalWorkerRecord(
+  zenticHome: string,
+  record: TerminalWorkerRecord,
+): string {
+  const recordPath = terminalWorkerRecordPath(zenticHome, record.pid);
   writePrivateFileAtomicSync(recordPath, `${JSON.stringify(record, null, 2)}\n`);
   return recordPath;
 }
 
 /** Writes the state of a cleanup that could not confirm every process gone. */
 export async function writeTerminalCleanupRecord(
-  paseoHome: string,
+  zenticHome: string,
   record: TerminalWorkerRecord & { closing: NonNullable<TerminalWorkerRecord["closing"]> },
 ): Promise<string> {
   if (!RECORD_ID_PATTERN.test(record.recordId)) {
     throw new Error(`Terminal worker record id is not a file name: ${record.recordId}`);
   }
-  const recordPath = terminalCleanupRecordPath(paseoHome, record.recordId);
+  const recordPath = terminalCleanupRecordPath(zenticHome, record.recordId);
   await writePrivateFileAtomic(recordPath, `${JSON.stringify(record, null, 2)}\n`);
   return recordPath;
 }
@@ -150,9 +153,9 @@ function recordKindOf(fileName: string): TerminalWorkerRecordKind | null {
  * retry covers everything the worker still runs.
  */
 export async function listTerminalWorkerRecords(
-  paseoHome: string,
+  zenticHome: string,
 ): Promise<TerminalWorkerRecordFile[]> {
-  const directory = terminalWorkerDirectory(paseoHome);
+  const directory = terminalWorkerDirectory(zenticHome);
   let names: string[];
   try {
     names = await readdir(directory);

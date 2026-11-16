@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { ToolCallDetail } from "@getpaseo/protocol/agent-types";
+import type { ToolCallDetail } from "@getzentic/protocol/agent-types";
 import type { StreamItem, ToolCallItem } from "@/types/stream";
 import {
   prepareToolCallHistory,
@@ -250,7 +250,7 @@ describe("tool call detail-level projection", () => {
         readFileCount: 2,
         searchCount: 0,
         otherToolCount: 0,
-        paseoActions: {},
+        zenticActions: {},
       },
     });
   });
@@ -262,7 +262,7 @@ describe("tool call detail-level projection", () => {
       toolCall("3", { type: "fetch", url: "https://github.com/org/repo" }),
       toolCall(
         "4",
-        { type: "search", query: "paseo", toolName: "web_search" },
+        { type: "search", query: "zentic", toolName: "web_search" },
         { status: "failed" },
       ),
       toolCall("5", { type: "fetch", url: "not a url" }),
@@ -303,33 +303,33 @@ describe("tool call detail-level projection", () => {
     });
   });
 
-  it("counts Paseo calls separately from other tools", () => {
+  it("counts Zentic calls separately from other tools", () => {
     const calls = [
-      toolCall("1", { type: "unknown", input: null, output: null }, { name: "paseo.list_agents" }),
+      toolCall("1", { type: "unknown", input: null, output: null }, { name: "zentic.list_agents" }),
       toolCall(
         "2",
         { type: "unknown", input: null, output: null },
-        { name: "mcp__paseo__list_worktrees" },
+        { name: "mcp__zentic__list_worktrees" },
       ),
-      toolCall("3", { type: "fetch", url: "https://paseo.sh" }),
-      toolCall("4", { type: "fetch", url: "https://github.com/getpaseo" }),
+      toolCall("3", { type: "fetch", url: "https://zentic.sh" }),
+      toolCall("4", { type: "fetch", url: "https://github.com/getzentic" }),
     ];
 
     const result = project({ level: "overview", head: calls });
 
     expect(result.groupsByHostId.get("1")).toMatchObject({
-      summary: { otherToolCount: 2, paseoActions: { "Listed agents": 1, "List worktrees": 1 } },
+      summary: { otherToolCount: 2, zenticActions: { "Listed agents": 1, "List worktrees": 1 } },
     });
   });
 
-  it("classifies direct Brave search and Paseo runtime tool names", () => {
+  it("classifies direct Brave search and Zentic runtime tool names", () => {
     const unknownDetail = { type: "unknown" as const, input: null, output: null };
     const calls = [
       toolCall("1", unknownDetail, { name: "brave-search_brave_web_search" }),
       toolCall("2", unknownDetail, { name: "brave-search_brave_llm_context" }),
-      toolCall("3", unknownDetail, { name: "paseo_list_providers" }),
-      toolCall("4", unknownDetail, { name: "paseo_list_worktrees" }),
-      toolCall("5", unknownDetail, { name: "paseo_list_worktrees" }),
+      toolCall("3", unknownDetail, { name: "zentic_list_providers" }),
+      toolCall("4", unknownDetail, { name: "zentic_list_worktrees" }),
+      toolCall("5", unknownDetail, { name: "zentic_list_worktrees" }),
       toolCall("6", unknownDetail, { name: "mcp__exa__web_search" }),
     ];
 
@@ -339,7 +339,7 @@ describe("tool call detail-level projection", () => {
       summary: {
         searchCount: 3,
         otherToolCount: 0,
-        paseoActions: { "Listed providers": 1, "List worktrees": 2 },
+        zenticActions: { "Listed providers": 1, "List worktrees": 2 },
       },
     });
   });

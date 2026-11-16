@@ -3,7 +3,7 @@ import type {
   PluginUpdateResult,
   PluginUpdateSelection,
   PluginUpdateProposal,
-} from "@getpaseo/protocol/messages";
+} from "@getzentic/protocol/messages";
 
 interface UpdateClient {
   previewPluginUpdates(input: {

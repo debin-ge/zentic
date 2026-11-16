@@ -2,8 +2,8 @@ import type {
   ResolvedPluginButtonBehavior as PluginButtonBehavior,
   ResolvedPluginButtonMenuEntry as PluginButtonMenuEntry,
 } from "./validation";
-import type { PluginButtonIcon, PluginHostProps } from "@getpaseo/plugin/client";
-import type { PluginTheme } from "@getpaseo/plugin";
+import type { PluginButtonIcon, PluginHostProps } from "@getzentic/plugin/client";
+import type { PluginTheme } from "@getzentic/plugin";
 import {
   useCallback,
   useMemo,

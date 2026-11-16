@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="packages/website/public/logo.svg" width="64" height="64" alt="Paseo logo">
+  <img src="packages/website/public/logo.svg" width="64" height="64" alt="Zentic logo">
 </p>
 
-<h1 align="center">Paseo</h1>
+<h1 align="center">Zentic</h1>
 
 <p align="center">
   <a href="README.md">English</a> ·
@@ -12,11 +12,11 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/getpaseo/paseo/stargazers">
-    <img src="https://img.shields.io/github/stars/getpaseo/paseo?style=flat&logo=github" alt="GitHub stars">
+  <a href="https://github.com/getzentic/zentic/stargazers">
+    <img src="https://img.shields.io/github/stars/getzentic/zentic?style=flat&logo=github" alt="GitHub stars">
   </a>
-  <a href="https://github.com/getpaseo/paseo/releases">
-    <img src="https://img.shields.io/github/v/release/getpaseo/paseo?style=flat&logo=github" alt="GitHub release">
+  <a href="https://github.com/getzentic/zentic/releases">
+    <img src="https://img.shields.io/github/v/release/getzentic/zentic?style=flat&logo=github" alt="GitHub release">
   </a>
   <a href="https://x.com/moboudra">
     <img src="https://img.shields.io/badge/%40moboudra-555?logo=x" alt="X">
@@ -24,7 +24,7 @@
   <a href="https://discord.gg/jz8T2uahpH">
     <img src="https://img.shields.io/badge/Discord-555?logo=discord" alt="Discord">
   </a>
-  <a href="https://www.reddit.com/r/PaseoAI/">
+  <a href="https://www.reddit.com/r/ZenticAI/">
     <img src="https://img.shields.io/badge/Reddit-555?logo=reddit" alt="Reddit">
   </a>
 </p>
@@ -32,11 +32,11 @@
 <p align="center">Claude Code、Codex、Copilot、OpenCode、Pi のエージェントを、ひとつのインターフェースで。</p>
 
 <p align="center">
-  <img src="https://paseo.sh/hero-mockup.png" alt="Paseo アプリのスクリーンショット" width="100%">
+  <img src="https://zentic.sh/hero-mockup.png" alt="Zentic アプリのスクリーンショット" width="100%">
 </p>
 
 <p align="center">
-  <img src="https://paseo.sh/mobile-mockup.png" alt="Paseo モバイルアプリ" width="100%">
+  <img src="https://zentic.sh/mobile-mockup.png" alt="Zentic モバイルアプリ" width="100%">
 </p>
 
 > [!NOTE]
@@ -51,22 +51,22 @@
 - **マルチプロバイダー:** Claude Code、Codex、Copilot、OpenCode、Pi を同一のインターフェースで利用。タスクに合ったモデルを選べます。
 - **音声コントロール:** 音声モードでタスクを口述したり問題を話し合ったりできます。ハンズフリーが必要なときに便利です。
 - **クロスデバイス:** iOS、Android、デスクトップ、Web、CLI に対応。机で作業を始め、スマートフォンで確認し、ターミナルから自動化できます。
-- **プライバシー優先:** Paseo にはテレメトリー・トラッキング・強制ログインは一切ありません。
+- **プライバシー優先:** Zentic にはテレメトリー・トラッキング・強制ログインは一切ありません。
 
 ## スポンサー
 
 <!-- Sponsors: one cell per sponsor in the order of packages/website/src/data/sponsors.ts, then "become a sponsor" cells up to three. -->
 <table>
   <tr>
-    <td align="center" width="33%"><a href="https://hoplite.sh/?utm_source=paseo&utm_medium=readme&utm_campaign=sponsor"><picture><source media="(prefers-color-scheme: dark)" srcset="packages/website/public/sponsors/hoplite-on-dark.svg"><img src="packages/website/public/sponsors/hoplite-on-light.svg" alt="Hoplite" height="40"></picture></a><br><sub>Cloud coding agents</sub></td>
-    <td align="center" width="33%"><a href="https://paseo.sh/sponsor">Paseo のスポンサーになる</a></td>
-    <td align="center" width="33%"><a href="https://paseo.sh/sponsor">Paseo のスポンサーになる</a></td>
+    <td align="center" width="33%"><a href="https://hoplite.sh/?utm_source=zentic&utm_medium=readme&utm_campaign=sponsor"><picture><source media="(prefers-color-scheme: dark)" srcset="packages/website/public/sponsors/hoplite-on-dark.svg"><img src="packages/website/public/sponsors/hoplite-on-light.svg" alt="Hoplite" height="40"></picture></a><br><sub>Cloud coding agents</sub></td>
+    <td align="center" width="33%"><a href="https://zentic.sh/sponsor">Zentic のスポンサーになる</a></td>
+    <td align="center" width="33%"><a href="https://zentic.sh/sponsor">Zentic のスポンサーになる</a></td>
   </tr>
 </table>
 
 ## はじめかた
 
-Paseo はコーディングエージェントを管理するローカルサーバー（デーモン）を起動します。デスクトップアプリ・モバイルアプリ・Web アプリ・CLI などのクライアントがこのデーモンに接続します。
+Zentic はコーディングエージェントを管理するローカルサーバー（デーモン）を起動します。デスクトップアプリ・モバイルアプリ・Web アプリ・CLI などのクライアントがこのデーモンに接続します。
 
 ### 前提条件
 
@@ -80,68 +80,68 @@ Paseo はコーディングエージェントを管理するローカルサー�
 
 ### デスクトップアプリ（推奨）
 
-[paseo.sh/download](https://paseo.sh/download) または [GitHub のリリースページ](https://github.com/getpaseo/paseo/releases)からダウンロードしてください。アプリを開くとデーモンが自動的に起動します。追加のインストールは不要です。
+[zentic.sh/download](https://zentic.sh/download) または [GitHub のリリースページ](https://github.com/getzentic/zentic/releases)からダウンロードしてください。アプリを開くとデーモンが自動的に起動します。追加のインストールは不要です。
 
 スマートフォンから接続するには、Settings 画面に表示される QR コードをスキャンしてください。
 
 ### CLI / ヘッドレス
 
-CLI をインストールして Paseo を起動します。
+CLI をインストールして Zentic を起動します。
 
 ```bash
-npm install -g @getpaseo/cli
-paseo
+npm install -g @getzentic/cli
+zentic
 ```
 
 ターミナルに QR コードが表示されます。どのクライアントからでも接続できます。サーバーやリモートマシンでの利用に適しています。
 
 詳しいセットアップと設定については以下を参照してください。
 
-- [ドキュメント](https://paseo.sh/docs)
-- [設定リファレンス](https://paseo.sh/docs/configuration)
+- [ドキュメント](https://zentic.sh/docs)
+- [設定リファレンス](https://zentic.sh/docs/configuration)
 
 ## CLI
 
 アプリでできることはすべてターミナルからも実行できます。
 
 ```bash
-paseo run --provider claude/opus-4.6 "implement user authentication"
-paseo run --provider codex/gpt-5.4 --worktree feature-x "implement feature X"
+zentic run --provider claude/opus-4.6 "implement user authentication"
+zentic run --provider codex/gpt-5.4 --worktree feature-x "implement feature X"
 
-paseo ls                           # 実行中のエージェントを一覧表示
-paseo attach abc123                # ライブ出力をストリーミング
-paseo send abc123 "also add tests" # 追加タスクを送信
+zentic ls                           # 実行中のエージェントを一覧表示
+zentic attach abc123                # ライブ出力をストリーミング
+zentic send abc123 "also add tests" # 追加タスクを送信
 
 # リモートデーモンで実行
-paseo --host workstation.local:6767 run "run the full test suite"
+zentic --host workstation.local:6767 run "run the full test suite"
 ```
 
-詳細は[完全な CLI リファレンス](https://paseo.sh/docs/cli)を参照してください。
+詳細は[完全な CLI リファレンス](https://zentic.sh/docs/cli)を参照してください。
 
 ## スキル
 
-スキルはエージェントに Paseo を使って他のエージェントをオーケストレーションする方法を教えます。
+スキルはエージェントに Zentic を使って他のエージェントをオーケストレーションする方法を教えます。
 
 ```bash
-npx skills add getpaseo/paseo
+npx skills add getzentic/zentic
 ```
 
 どのエージェントとの会話でも使用できます。
 
-- `/paseo-handoff` — エージェント間で作業を引き継ぎます。私はこれを使って Claude で計画し、Codex に実装を引き継いでいます。
-- `/paseo-advisor` — 単一のエージェントをアドバイザーとして起動し、作業を委任せずにセカンドオピニオンを得ます。
-- `/paseo-committee` — 対照的な2つのエージェントで委員会を構成し、一歩引いた視点で根本原因を分析して計画を作成します。
+- `/zentic-handoff` — エージェント間で作業を引き継ぎます。私はこれを使って Claude で計画し、Codex に実装を引き継いでいます。
+- `/zentic-advisor` — 単一のエージェントをアドバイザーとして起動し、作業を委任せずにセカンドオピニオンを得ます。
+- `/zentic-committee` — 対照的な2つのエージェントで委員会を構成し、一歩引いた視点で根本原因を分析して計画を作成します。
 
 ## 開発
 
 モノレポのパッケージ構成：
 
-- `packages/server`: Paseo デーモン（エージェントプロセスのオーケストレーション、WebSocket API、MCP サーバー）
+- `packages/server`: Zentic デーモン（エージェントプロセスのオーケストレーション、WebSocket API、MCP サーバー）
 - `packages/app`: Expo クライアント（iOS、Android、Web）
-- `packages/cli`: デーモンおよびエージェントワークフロー向け `paseo` CLI
+- `packages/cli`: デーモンおよびエージェントワークフロー向け `zentic` CLI
 - `packages/desktop`: Electron デスクトップアプリ
 - `packages/relay`: リモート接続用リレーパッケージ
-- `packages/website`: マーケティングサイトとドキュメント（`paseo.sh`）
+- `packages/website`: マーケティングサイトとドキュメント（`zentic.sh`）
 
 よく使うコマンド：
 
@@ -162,14 +162,14 @@ npm run build:server
 npm run typecheck
 ```
 
-## Paseo を支援する
+## Zentic を支援する
 
-Paseo は一人で開発しており、使ってくれる人たちの支援で成り立っています。[GitHub Sponsors](https://github.com/sponsors/boudra) で支援できます。企業として毎月[スポンサー](https://paseo.sh/sponsor#spot)になっていただくと、ロゴをこの README の冒頭と、paseo.sh のトップページおよびドキュメントに掲載します。
+Zentic は一人で開発しており、使ってくれる人たちの支援で成り立っています。[GitHub Sponsors](https://github.com/sponsors/boudra) で支援できます。企業として毎月[スポンサー](https://zentic.sh/sponsor#spot)になっていただくと、ロゴをこの README の冒頭と、zentic.sh のトップページおよびドキュメントに掲載します。
 
 ## 関連プロジェクト
 
-- [getpaseo/paseo-relay](https://github.com/getpaseo/paseo-relay) — Elixir 製の公式分散リレー
-- [paseo-vscode](https://marketplace.visualstudio.com/items?itemName=hinnes.paseo-vscode) — VS Code 拡張機能
+- [getzentic/zentic-relay](https://github.com/getzentic/zentic-relay) — Elixir 製の公式分散リレー
+- [zentic-vscode](https://marketplace.visualstudio.com/items?itemName=hinnes.zentic-vscode) — VS Code 拡張機能
 
 ## ライセンス
 

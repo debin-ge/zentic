@@ -8,7 +8,7 @@ import {
   decodeDiffFrame,
   DiffOpcode,
   type DiffFrame,
-} from "@getpaseo/protocol/binary-frames/index";
+} from "@getzentic/protocol/binary-frames/index";
 import { DiffSession, DiffSubscriptions } from "./index.js";
 import { createFileObserver } from "../file-observer/index.js";
 import { SessionDelivery } from "../session/owned-subscriptions/index.js";

@@ -2,7 +2,7 @@ import {
   TerminalStreamOpcode,
   TerminalReplayMetadataSchema,
   type TerminalStreamFrame,
-} from "@getpaseo/protocol/binary-frames/index";
+} from "@getzentic/protocol/binary-frames/index";
 
 export type TerminalReplayEvent =
   | { type: "begin"; rows?: number; cols?: number; retainedHistoryLines?: number }

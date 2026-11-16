@@ -1,9 +1,9 @@
 import type { WorkspaceArchiveRestoreRequest } from "../../workspace-archive-service.js";
-import type { JsonValue } from "@getpaseo/protocol/agent-types";
+import type { JsonValue } from "@getzentic/protocol/agent-types";
 import type { PluginLifecycle } from "../../plugins/lifecycle/index.js";
 import { describeHookWorkspace } from "../../plugins/lifecycle/index.js";
 import { basename, resolve } from "node:path";
-import type { ProjectCheckoutLitePayload } from "@getpaseo/protocol/messages";
+import type { ProjectCheckoutLitePayload } from "@getzentic/protocol/messages";
 import type { Logger } from "pino";
 import {
   generateWorkspaceId,
@@ -18,14 +18,14 @@ import {
   type WorkspaceRegistry,
 } from "../../workspace-registry.js";
 import type { WorkspaceGitService } from "../../workspace-git-service.js";
-import type { CreatePaseoWorktreeWorkflowResult } from "../../worktree-session.js";
+import type { CreateZenticWorktreeWorkflowResult } from "../../worktree-session.js";
 import { deriveProjectKey } from "../../project-key.js";
 import { areEquivalentPaths, createRealpathAwarePathMatcher } from "../../../utils/path.js";
 import type { UntrustedWorkspaceSource } from "../../workspace-automation-gate.js";
-import { readPaseoWorktreeMetadata } from "../../../utils/worktree-metadata.js";
+import { readZenticWorktreeMetadata } from "../../../utils/worktree-metadata.js";
 
 export interface ResolveOrCreateWorkspaceIdInput {
-  createdWorktree: CreatePaseoWorktreeWorkflowResult | null;
+  createdWorktree: CreateZenticWorktreeWorkflowResult | null;
   requestedWorkspaceId?: string;
   cwd: string;
   initialTitle: string | null;
@@ -270,8 +270,8 @@ export function createWorkspaceProvisioningService(deps: {
         await findOrCreateProjectForDirectory(normalizedCwd);
     const create = async () => {
       const baseMetadata =
-        checkout.isGit && checkout.isPaseoOwnedWorktree
-          ? await readPaseoWorktreeMetadata(checkout.worktreeRoot ?? normalizedCwd)
+        checkout.isGit && checkout.isZenticOwnedWorktree
+          ? await readZenticWorktreeMetadata(checkout.worktreeRoot ?? normalizedCwd)
           : null;
       const timestamp = new Date().toISOString();
       const workspace = createPersistedWorkspaceRecord({
@@ -291,7 +291,7 @@ export function createWorkspaceProvisioningService(deps: {
       emitWorkspaceCreated(workspace);
       return workspace;
     };
-    return deps.withCheckoutLock && checkout.isGit && checkout.isPaseoOwnedWorktree
+    return deps.withCheckoutLock && checkout.isGit && checkout.isZenticOwnedWorktree
       ? deps.withCheckoutLock(checkout.worktreeRoot ?? normalizedCwd, create)
       : create();
   }

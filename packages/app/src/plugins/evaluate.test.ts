@@ -3,7 +3,7 @@ import { useRevealedText } from "@/hooks/use-revealed-text";
 import { runPluginClientBundle, type PluginClientRuntime } from "./evaluate";
 
 const runtime = {
-  paseo: {},
+  zentic: {},
   async rpc() {},
   openSettings() {},
   openScreen() {},
@@ -631,7 +631,7 @@ describe("evaluatePluginClientBundle", () => {
     const plugin = evaluatePluginClientBundle(
       "review",
       bundle(`
-        if (!plugin.paseo || !plugin.rpc || !plugin.openSurface || !plugin.openPanel || !plugin.addComposerPill) {
+        if (!plugin.zentic || !plugin.rpc || !plugin.openSurface || !plugin.openPanel || !plugin.addComposerPill) {
           throw new Error("missing client runtime");
         }
       `),
@@ -760,11 +760,11 @@ describe("evaluatePluginClientBundle", () => {
     ).toThrow("must return a cleanup function");
   });
 
-  it("provides the host Icon component through @getpaseo/plugin/client/ui", () => {
+  it("provides the host Icon component through @getzentic/plugin/client/ui", () => {
     const plugin = evaluatePluginClientBundle(
       "example",
       `(function(require) {
-        const { Icon } = require("@getpaseo/plugin/client/ui");
+        const { Icon } = require("@getzentic/plugin/client/ui");
         const module = { exports: {} };
         module.exports.default = function(plugin) {
           plugin.addScreen({ id: "main", title: "Main", Component: function Surface() {
@@ -782,11 +782,11 @@ describe("evaluatePluginClientBundle", () => {
     expect(element).toMatchObject({ props: { size: 18, color: "#123456" } });
   });
 
-  it("provides Paseo UI through @getpaseo/plugin/client/ui", () => {
+  it("provides Zentic UI through @getzentic/plugin/client/ui", () => {
     const plugin = evaluatePluginClientBundle(
       "example",
       `(function(require) {
-        const { Icon, Modal, useToast, SettingsSection, SidebarRow, StreamedText } = require("@getpaseo/plugin/client/ui");
+        const { Icon, Modal, useToast, SettingsSection, SidebarRow, StreamedText } = require("@getzentic/plugin/client/ui");
         const module = { exports: {} };
         module.exports.default = function(plugin) {
           if (typeof Icon !== "function" || typeof Modal !== "function" || typeof Modal.Content !== "function" || typeof useToast !== "function" || typeof SettingsSection !== "function" || typeof SidebarRow !== "function" || typeof StreamedText !== "function") {
@@ -806,8 +806,8 @@ describe("evaluatePluginClientBundle", () => {
     const plugin = evaluatePluginClientBundle(
       "legacy-reveal",
       bundle(`
-        const legacy = require("@getpaseo/plugin/client/react-native");
-        const ui = require("@getpaseo/plugin/client/ui");
+        const legacy = require("@getzentic/plugin/client/react-native");
+        const ui = require("@getzentic/plugin/client/ui");
         if (typeof legacy.useRevealedText !== "function") throw new Error("Missing legacy reveal hook");
         if (legacy.StreamedText !== ui.StreamedText) throw new Error("Missing current UI exports");
         if ("useRevealedText" in ui) throw new Error("Legacy hook leaked into current UI");
@@ -822,13 +822,13 @@ describe("evaluatePluginClientBundle", () => {
       evaluatePluginClientBundle(
         "example",
         `(function(require) {
-      const shared = require("@getpaseo/plugin");
-      const client = require("@getpaseo/plugin/client");
-      const { ExternalLink, Loading, Markdown } = require("@getpaseo/plugin/client/ui");
+      const shared = require("@getzentic/plugin");
+      const client = require("@getzentic/plugin/client");
+      const { ExternalLink, Loading, Markdown } = require("@getzentic/plugin/client/ui");
       if (typeof Markdown !== "function") throw new Error("Markdown");
       if (typeof ExternalLink !== "function") throw new Error("ExternalLink");
       if (typeof Loading !== "function") throw new Error("Loading");
-      for (const name of ["usePaseo", "useRpc", "useSettings", "useAgent", "useWorkspace", "openExternalUrl", "useFileText", "useFileBytes", "useFileUrl", "PluginFileConflictError", "PluginFileDeletedError"]) {
+      for (const name of ["useZentic", "useRpc", "useSettings", "useAgent", "useWorkspace", "openExternalUrl", "useFileText", "useFileBytes", "useFileUrl", "PluginFileConflictError", "PluginFileDeletedError"]) {
         if (name in shared || typeof client[name] !== "function") throw new Error(name);
       }
       if ("Icon" in shared || typeof shared.PluginAttachmentItemSchema.parse !== "function") throw new Error("shared exports");
@@ -839,14 +839,14 @@ describe("evaluatePluginClientBundle", () => {
   });
 
   it.each([
-    "@getpaseo/plugin/server",
-    "@getpaseo/plugin/server/provider",
-    "@getpaseo/plugin/server/acp",
-    "@getpaseo/plugin/client/host",
-    "@getpaseo/plugin/react-native",
-    "@getpaseo/plugin/ui",
-    "@getpaseo/plugin/host",
-    "@paseo/plugin",
+    "@getzentic/plugin/server",
+    "@getzentic/plugin/server/provider",
+    "@getzentic/plugin/server/acp",
+    "@getzentic/plugin/client/host",
+    "@getzentic/plugin/react-native",
+    "@getzentic/plugin/ui",
+    "@getzentic/plugin/host",
+    "@zentic/plugin",
   ])("rejects %s in the client loader", (specifier) => {
     expect(() =>
       evaluatePluginClientBundle(
@@ -856,11 +856,11 @@ describe("evaluatePluginClientBundle", () => {
     ).toThrow("not available in plugin client code");
   });
 
-  it("resolves shared RPC helpers from @getpaseo/plugin", () => {
+  it("resolves shared RPC helpers from @getzentic/plugin", () => {
     const plugin = evaluatePluginClientBundle(
       "example",
       `(function(require) {
-        const { defineRpc, defineAttachmentSource } = require("@getpaseo/plugin");
+        const { defineRpc, defineAttachmentSource } = require("@getzentic/plugin");
         const search = defineRpc({ name: "issues.search", input: {}, output: {} });
         const module = { exports: {} };
         module.exports.default = function(plugin) {
@@ -915,18 +915,18 @@ it("binds imported getters to each originating installation across delayed callb
     hosts: {
       getSnapshot: () => [],
       subscribe: () => () => {},
-      getPaseoClient(serverId) {
+      getZenticClient(serverId) {
         calls.push(`${installation}/${serverId}`);
-        return runtime.paseo;
+        return runtime.zentic;
       },
     },
   });
   const source = bundle(`
-    const { getPaseoClient } = require("@getpaseo/plugin/client");
-    getPaseoClient("entry-host");
+    const { getZenticClient } = require("@getzentic/plugin/client");
+    getZenticClient("entry-host");
     plugin.addCommandCenterItem({
       id: "read", title: "Read", icon: "Server", context: "global",
-      onSelect: async () => { await Promise.resolve(); getPaseoClient("target-host"); },
+      onSelect: async () => { await Promise.resolve(); getZenticClient("target-host"); },
     });
   `);
   const first = runPluginClientBundle("same-id", source, hostRuntime("first"));

@@ -29,10 +29,10 @@ function failure(message: string) {
 
 describe("direct connection failure copy", () => {
   it.each([
-    "paseo-qa-nonexistent.invalid",
-    "ssl-paseo-qa.invalid",
-    "tls-paseo-qa.invalid",
-    "certificate-paseo-qa.invalid",
+    "zentic-qa-nonexistent.invalid",
+    "ssl-zentic-qa.invalid",
+    "tls-zentic-qa.invalid",
+    "certificate-zentic-qa.invalid",
   ])(
     "identifies Android DNS failures for %s without treating the hostname as TLS evidence",
     (host) => {

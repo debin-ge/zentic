@@ -3,7 +3,7 @@ import type {
   AgentOptionControl,
   AgentProvider,
   AgentSelectOption,
-} from "@getpaseo/protocol/agent-types";
+} from "@getzentic/protocol/agent-types";
 import { readToggleOption, type ComposerOptionControls } from "@/agent-controls/option-controls";
 import type { ProviderSelectorProvider } from "@/provider-selection/provider-selection";
 import { formatAgentModeLabel, formatThinkingOptionLabel } from "@/agent-controls/labels";

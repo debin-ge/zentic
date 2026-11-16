@@ -66,8 +66,8 @@ import { useGitActions } from "@/git/use-actions";
 import { WorkspaceBaseBranchPicker } from "@/git/workspace-base-branch-picker";
 import { GIT_ACTION_ICONS } from "@/git/action-icons";
 import { buildForgeSignInCommand, getForgePresentation, type Forge } from "@/git/forge";
-import { parseGitRemoteLocation } from "@getpaseo/protocol/git-remote";
-import type { ForgeAuthState } from "@getpaseo/protocol/messages";
+import { parseGitRemoteLocation } from "@getzentic/protocol/git-remote";
+import type { ForgeAuthState } from "@getzentic/protocol/messages";
 import { useCheckoutGitActionsStore } from "@/git/actions-store";
 import { useToast } from "@/contexts/toast-context";
 import { useSessionStore } from "@/stores/session-store";
@@ -639,8 +639,10 @@ function ChangesToolbarTrailing({ children }: { children: ReactNode }) {
   return <ToolbarControls style={styles.changesToolbarControls}>{children}</ToolbarControls>;
 }
 
-function isManagedWorktree(status: { isPaseoOwnedWorktree?: boolean } | null | undefined): boolean {
-  return status?.isPaseoOwnedWorktree === true;
+function isManagedWorktree(
+  status: { isZenticOwnedWorktree?: boolean } | null | undefined,
+): boolean {
+  return status?.isZenticOwnedWorktree === true;
 }
 
 function ChangesRepositoryToolbar({

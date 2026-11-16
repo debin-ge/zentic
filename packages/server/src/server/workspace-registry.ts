@@ -1,4 +1,4 @@
-import type { JsonValue } from "@getpaseo/protocol/agent-types";
+import type { JsonValue } from "@getzentic/protocol/agent-types";
 import { promises as fs } from "node:fs";
 
 import type { Logger } from "pino";
@@ -85,7 +85,7 @@ const PersistedWorkspaceRecordSchema = z.object({
     .nullable()
     .optional()
     .transform((value) => value ?? null),
-  isPaseoOwnedWorktree: z.boolean().default(false),
+  isZenticOwnedWorktree: z.boolean().default(false),
   mainRepoRoot: z.string().nullable().default(null),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -103,7 +103,7 @@ const PersistedWorkspaceRecordSchema = z.object({
     .optional()
     .transform((value) => value ?? null),
   labels: z.array(z.string()).optional(),
-  // Plugin-owned data. Paseo stores it and never reads a key.
+  // Plugin-owned data. Zentic stores it and never reads a key.
   metadata: z.record(z.string(), z.custom<JsonValue>()).default({}),
   untrustedSource: UntrustedWorkspaceSourceSchema.optional(),
   // Public discovery visibility. Contents retain their ordinary lifecycle.
@@ -693,7 +693,7 @@ export function createPersistedWorkspaceRecord(input: {
   branch?: string | null;
   worktreeRoot?: string | null;
   baseBranch?: string | null;
-  isPaseoOwnedWorktree?: boolean;
+  isZenticOwnedWorktree?: boolean;
   mainRepoRoot?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -713,7 +713,7 @@ export function createPersistedWorkspaceRecord(input: {
     branch: input.branch ?? null,
     worktreeRoot: input.worktreeRoot ?? null,
     baseBranch: input.baseBranch ?? null,
-    isPaseoOwnedWorktree: input.isPaseoOwnedWorktree ?? false,
+    isZenticOwnedWorktree: input.isZenticOwnedWorktree ?? false,
     mainRepoRoot: input.mainRepoRoot ?? null,
     archivedAt: input.archivedAt ?? null,
     autoArchivedChangeRequestUrl: input.autoArchivedChangeRequestUrl ?? null,

@@ -63,8 +63,8 @@ export async function withComposerControlsExample(
 
 const ONE_TOGGLE_PLUGIN_ID = "composer-toggle-and-watcher-e2e";
 const ONE_TOGGLE_NAME = "Sandbox flag";
-const ONE_TOGGLE_PLUGIN_SOURCE = `import { useComposer } from "@getpaseo/plugin/client";
-import { Toggle } from "@getpaseo/plugin/client/ui";
+const ONE_TOGGLE_PLUGIN_SOURCE = `import { useComposer } from "@getzentic/plugin/client";
+import { Toggle } from "@getzentic/plugin/client/ui";
 import { useState } from "react";
 
 function PromptWatcher() {
@@ -91,7 +91,7 @@ export default function contribute(client) {
 }`;
 
 const PICKER_NAME = "Review state";
-const PICKER_PLUGIN_SOURCE = `import { Select } from "@getpaseo/plugin/client/ui";
+const PICKER_PLUGIN_SOURCE = `import { Select } from "@getzentic/plugin/client/ui";
 import { useState } from "react";
 
 const OPTIONS = [
@@ -207,9 +207,9 @@ async function withToolbarPlugin(
   });
   const client = await connectNewWorkspaceDaemonClient({ ownProjects: false });
   const previous = await client.getDaemonConfig();
-  const directory = await mkdtemp(path.join(tmpdir(), "paseo-composer-measured-items-"));
+  const directory = await mkdtemp(path.join(tmpdir(), "zentic-composer-measured-items-"));
   await writeFile(
-    path.join(directory, "paseo-plugin.json"),
+    path.join(directory, "zentic-plugin.json"),
     JSON.stringify({ id: ONE_TOGGLE_PLUGIN_ID, requirements: pluginRequirements }),
   );
   await writeFile(path.join(directory, "index.client.tsx"), pluginSource);

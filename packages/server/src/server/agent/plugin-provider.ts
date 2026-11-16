@@ -3,7 +3,7 @@ import { isDeepStrictEqual } from "node:util";
 import { PluginSessionHistory } from "./plugin-session-history.js";
 import { resolve as resolvePath } from "node:path";
 import type { Logger } from "pino";
-import type { JsonValue, ProviderOptions } from "@getpaseo/protocol/agent-types";
+import type { JsonValue, ProviderOptions } from "@getzentic/protocol/agent-types";
 import { z } from "zod";
 import {
   PROVIDER_CAPABILITIES,
@@ -27,7 +27,7 @@ import {
   type ProviderSessionConfig,
   type ProviderContent,
   type ProviderTimelineItem,
-} from "@getpaseo/plugin/server/provider";
+} from "@getzentic/plugin/server/provider";
 import type {
   AgentCapabilityFlags,
   AgentClient,
@@ -1914,7 +1914,7 @@ function agentCapabilities(capabilities: readonly string[]): AgentCapabilityFlag
     supportsSessionListing: supports("session.list"),
     supportsDynamicModes: supports("session.configure"),
     supportsMcpServers: true,
-    supportsNativePaseoTools: false,
+    supportsNativeZenticTools: false,
     supportsReasoningStream: true,
     supportsToolInvocations: true,
     supportsRewindConversation: supports("session.revert.conversation"),

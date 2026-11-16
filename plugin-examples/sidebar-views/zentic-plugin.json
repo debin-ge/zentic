@@ -1,0 +1,4 @@
+{
+  "id": "sidebar-views",
+  "requirements": { "zentic": ">=0.16.0" }
+}

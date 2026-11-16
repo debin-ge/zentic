@@ -1,6 +1,6 @@
-import type { PluginTerminalSnapshot } from "@getpaseo/plugin";
-import type { DaemonClient } from "@getpaseo/client/internal/daemon-client";
-import type { TerminalsChanged } from "@getpaseo/protocol/messages";
+import type { PluginTerminalSnapshot } from "@getzentic/plugin";
+import type { DaemonClient } from "@getzentic/client/internal/daemon-client";
+import type { TerminalsChanged } from "@getzentic/protocol/messages";
 import { getHostRuntimeStore } from "@/runtime/host-runtime";
 import { entityRefs } from "./refs";
 import type { PluginTerminalsSource } from "./source";

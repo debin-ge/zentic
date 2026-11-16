@@ -26,7 +26,7 @@ const GeometryProbe = requireNativeViewManager<
   ViewProps & {
     onGeometryChange: (event: NativeSyntheticEvent<WindowLayout>) => void;
   }
->("PaseoWindowLayout");
+>("ZenticWindowLayout");
 
 export function WindowLayoutProvider({ children }: { children: ReactNode }) {
   const [geometry, setGeometry] = useState<WindowLayout | null>(null);

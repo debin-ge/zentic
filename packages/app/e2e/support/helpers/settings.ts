@@ -8,9 +8,9 @@ import {
   buildSettingsSectionRoute,
 } from "@/utils/host-routes";
 
-const DISABLE_DEFAULT_SEED_ONCE_KEY = "@paseo:e2e-disable-default-seed-once";
-const SEED_NONCE_KEY = "@paseo:e2e-seed-nonce";
-const REGISTRY_KEY = "@paseo:daemon-registry";
+const DISABLE_DEFAULT_SEED_ONCE_KEY = "@zentic:e2e-disable-default-seed-once";
+const SEED_NONCE_KEY = "@zentic:e2e-seed-nonce";
+const REGISTRY_KEY = "@zentic:daemon-registry";
 
 interface SavedSettingsHostInput {
   serverId: string;
@@ -265,7 +265,7 @@ export async function seedSavedSettingsHosts(
       }
 
       localStorage.setItem(keys.registry, JSON.stringify(storedRegistry));
-      localStorage.setItem("@paseo:create-agent-preferences", JSON.stringify(storedPreferences));
+      localStorage.setItem("@zentic:create-agent-preferences", JSON.stringify(storedPreferences));
       localStorage.setItem(keys.disableDefaultSeedOnce, nonce);
     },
     {
@@ -452,7 +452,7 @@ export async function expectHostConnectionsCard(page: Page, port: string): Promi
 export async function expectHostInjectMcpCard(page: Page): Promise<void> {
   const card = page.getByTestId("host-page-inject-mcp-card");
   await expect(card).toBeVisible();
-  await expect(card.getByRole("switch", { name: "Inject Paseo tools" })).toBeVisible();
+  await expect(card.getByRole("switch", { name: "Inject Zentic tools" })).toBeVisible();
 }
 
 function idleAgentReleaseSwitch(page: Page) {

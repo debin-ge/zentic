@@ -1,7 +1,7 @@
 #!/usr/bin/env npx tsx
 
 /**
- * Regression: `paseo daemon stop` must leave a reachable daemon alone when the
+ * Regression: `zentic daemon stop` must leave a reachable daemon alone when the
  * selected home points at a dead supervisor owner.
  */
 
@@ -19,9 +19,9 @@ $.verbose = false;
 
 const pollIntervalMs = 100;
 const testEnv = {
-  PASEO_LOCAL_SPEECH_AUTO_DOWNLOAD: process.env.PASEO_LOCAL_SPEECH_AUTO_DOWNLOAD ?? "0",
-  PASEO_DICTATION_ENABLED: process.env.PASEO_DICTATION_ENABLED ?? "0",
-  PASEO_VOICE_MODE_ENABLED: process.env.PASEO_VOICE_MODE_ENABLED ?? "0",
+  ZENTIC_LOCAL_SPEECH_AUTO_DOWNLOAD: process.env.ZENTIC_LOCAL_SPEECH_AUTO_DOWNLOAD ?? "0",
+  ZENTIC_DICTATION_ENABLED: process.env.ZENTIC_DICTATION_ENABLED ?? "0",
+  ZENTIC_VOICE_MODE_ENABLED: process.env.ZENTIC_VOICE_MODE_ENABLED ?? "0",
 };
 
 function sleep(ms: number): Promise<void> {
@@ -64,9 +64,9 @@ interface DaemonStatus {
   pid: number | null;
 }
 
-async function readDaemonStatus(paseoHome: string): Promise<DaemonStatus> {
+async function readDaemonStatus(zenticHome: string): Promise<DaemonStatus> {
   const result =
-    await $`PASEO_HOME=${paseoHome} PASEO_LOCAL_SPEECH_AUTO_DOWNLOAD=${testEnv.PASEO_LOCAL_SPEECH_AUTO_DOWNLOAD} PASEO_DICTATION_ENABLED=${testEnv.PASEO_DICTATION_ENABLED} PASEO_VOICE_MODE_ENABLED=${testEnv.PASEO_VOICE_MODE_ENABLED} npx paseo daemon status --home ${paseoHome} --json`.nothrow();
+    await $`ZENTIC_HOME=${zenticHome} ZENTIC_LOCAL_SPEECH_AUTO_DOWNLOAD=${testEnv.ZENTIC_LOCAL_SPEECH_AUTO_DOWNLOAD} ZENTIC_DICTATION_ENABLED=${testEnv.ZENTIC_DICTATION_ENABLED} ZENTIC_VOICE_MODE_ENABLED=${testEnv.ZENTIC_VOICE_MODE_ENABLED} npx zentic daemon status --home ${zenticHome} --json`.nothrow();
   if (result.exitCode !== 0) {
     return { localDaemon: null, connectedDaemon: null, pid: null };
   }
@@ -102,10 +102,10 @@ function findUnusedPid(): number {
 console.log("=== Daemon Stop (stale pid, reachable worker regression) ===\n");
 
 const port = await getAvailablePort();
-const paseoHome = await mkdtemp(join(tmpdir(), "paseo-stop-stale-reachable-"));
+const zenticHome = await mkdtemp(join(tmpdir(), "zentic-stop-stale-reachable-"));
 const cliRoot = join(import.meta.dirname, "..");
 const host = `127.0.0.1:${port}`;
-const pidPath = join(paseoHome, "paseo.pid");
+const pidPath = join(zenticHome, "zentic.pid");
 const stalePid = findUnusedPid();
 
 let workerProcess: ChildProcess | null = null;
@@ -136,9 +136,9 @@ try {
       env: {
         ...process.env,
         ...testEnv,
-        PASEO_HOME: paseoHome,
-        PASEO_LISTEN: host,
-        PASEO_RELAY_ENABLED: "false",
+        ZENTIC_HOME: zenticHome,
+        ZENTIC_LISTEN: host,
+        ZENTIC_RELAY_ENABLED: "false",
         CI: "true",
       },
       stdio: ["ignore", "pipe", "pipe"],
@@ -159,14 +159,14 @@ try {
     "unowned worker did not become reachable in time",
   );
 
-  const statusBeforeStop = await readDaemonStatus(paseoHome);
+  const statusBeforeStop = await readDaemonStatus(zenticHome);
   assert.strictEqual(statusBeforeStop.pid, null, "status should not claim a dead owner is running");
   assert(workerProcess.pid && isProcessRunning(workerProcess.pid), "worker should be running");
   console.log(`✓ fixture has stale pid ${stalePid} and live worker ${workerProcess.pid}\n`);
 
   console.log("Test 2: home-selected stop leaves the unowned reachable worker running");
   const stopResult =
-    await $`PASEO_HOME=${paseoHome} PASEO_LOCAL_SPEECH_AUTO_DOWNLOAD=${testEnv.PASEO_LOCAL_SPEECH_AUTO_DOWNLOAD} PASEO_DICTATION_ENABLED=${testEnv.PASEO_DICTATION_ENABLED} PASEO_VOICE_MODE_ENABLED=${testEnv.PASEO_VOICE_MODE_ENABLED} npx paseo daemon stop --home ${paseoHome} --json`.nothrow();
+    await $`ZENTIC_HOME=${zenticHome} ZENTIC_LOCAL_SPEECH_AUTO_DOWNLOAD=${testEnv.ZENTIC_LOCAL_SPEECH_AUTO_DOWNLOAD} ZENTIC_DICTATION_ENABLED=${testEnv.ZENTIC_DICTATION_ENABLED} ZENTIC_VOICE_MODE_ENABLED=${testEnv.ZENTIC_VOICE_MODE_ENABLED} npx zentic daemon stop --home ${zenticHome} --json`.nothrow();
   assert.strictEqual(stopResult.exitCode, 0, `stop should succeed: ${stopResult.stderr}`);
   const stopJson = JSON.parse(stopResult.stdout) as {
     action?: unknown;
@@ -193,8 +193,8 @@ try {
     });
   }
 
-  await $`PASEO_HOME=${paseoHome} PASEO_LOCAL_SPEECH_AUTO_DOWNLOAD=${testEnv.PASEO_LOCAL_SPEECH_AUTO_DOWNLOAD} PASEO_DICTATION_ENABLED=${testEnv.PASEO_DICTATION_ENABLED} PASEO_VOICE_MODE_ENABLED=${testEnv.PASEO_VOICE_MODE_ENABLED} npx paseo daemon stop --home ${paseoHome} --force`.nothrow();
-  await rm(paseoHome, { recursive: true, force: true });
+  await $`ZENTIC_HOME=${zenticHome} ZENTIC_LOCAL_SPEECH_AUTO_DOWNLOAD=${testEnv.ZENTIC_LOCAL_SPEECH_AUTO_DOWNLOAD} ZENTIC_DICTATION_ENABLED=${testEnv.ZENTIC_DICTATION_ENABLED} ZENTIC_VOICE_MODE_ENABLED=${testEnv.ZENTIC_VOICE_MODE_ENABLED} npx zentic daemon stop --home ${zenticHome} --force`.nothrow();
+  await rm(zenticHome, { recursive: true, force: true });
 }
 
 console.log("=== Stale reachable stop regression test passed ===");

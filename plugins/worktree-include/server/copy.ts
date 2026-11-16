@@ -1,4 +1,4 @@
-// Derived from cprecioso/paseo-worktreeinclude (MIT); see ./LICENSE in the plugin root.
+// Derived from cprecioso/zentic-worktreeinclude (MIT); see ./LICENSE in the plugin root.
 // Copyright (c) 2026 Carlos Precioso.
 import { execFile } from "node:child_process";
 import { constants, existsSync } from "node:fs";

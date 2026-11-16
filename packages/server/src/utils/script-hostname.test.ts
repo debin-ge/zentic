@@ -9,58 +9,58 @@ describe("buildScriptHostname", () => {
   it("builds default branch hostnames with script and project labels", () => {
     expect(
       buildScriptHostname({
-        projectSlug: "paseo",
+        projectSlug: "zentic",
         branchName: null,
         scriptName: "web",
       }),
-    ).toBe("web--paseo.localhost");
+    ).toBe("web--zentic.localhost");
   });
 
   it("omits the branch label for main and master", () => {
     expect(
       buildScriptHostname({
-        projectSlug: "paseo",
+        projectSlug: "zentic",
         branchName: "main",
         scriptName: "web",
       }),
-    ).toBe("web--paseo.localhost");
+    ).toBe("web--zentic.localhost");
     expect(
       buildScriptHostname({
-        projectSlug: "paseo",
+        projectSlug: "zentic",
         branchName: "master",
         scriptName: "web",
       }),
-    ).toBe("web--paseo.localhost");
+    ).toBe("web--zentic.localhost");
   });
 
   it("builds non-default branch hostnames with script, branch, and project labels", () => {
     expect(
       buildScriptHostname({
-        projectSlug: "paseo",
+        projectSlug: "zentic",
         branchName: "feature-auth",
         scriptName: "web",
       }),
-    ).toBe("web--feature-auth--paseo.localhost");
+    ).toBe("web--feature-auth--zentic.localhost");
   });
 
   it("slugifies script, default branch project, and non-default branch labels", () => {
     expect(
       buildScriptHostname({
-        projectSlug: "Paseo App",
+        projectSlug: "Zentic App",
         branchName: "Feature/Auth Flow",
         scriptName: "Web/API @ Dev",
       }),
-    ).toBe("web-api-dev--feature-auth-flow--paseo-app.localhost");
+    ).toBe("web-api-dev--feature-auth-flow--zentic-app.localhost");
   });
 
   it("accepts already slugified labels because slugify is idempotent", () => {
     expect(
       buildScriptHostname({
-        projectSlug: "paseo-app",
+        projectSlug: "zentic-app",
         branchName: "feature-auth-flow",
         scriptName: "web-api-dev",
       }),
-    ).toBe("web-api-dev--feature-auth-flow--paseo-app.localhost");
+    ).toBe("web-api-dev--feature-auth-flow--zentic-app.localhost");
   });
 
   it("uses untitled as the hostname-label fallback when labels collapse to empty", () => {
@@ -79,22 +79,22 @@ describe("buildPublicScriptHostname", () => {
     expect(
       buildPublicScriptHostname({
         publicBaseUrl: "https://services.example.com",
-        projectSlug: "paseo",
+        projectSlug: "zentic",
         branchName: "feature-auth",
         scriptName: "web",
       }),
-    ).toBe("web--feature-auth--paseo.services.example.com");
+    ).toBe("web--feature-auth--zentic.services.example.com");
   });
 
   it("omits default branch names from the public service label", () => {
     expect(
       buildPublicScriptHostname({
         publicBaseUrl: "https://services.example.com",
-        projectSlug: "paseo",
+        projectSlug: "zentic",
         branchName: "main",
         scriptName: "web",
       }),
-    ).toBe("web--paseo.services.example.com");
+    ).toBe("web--zentic.services.example.com");
   });
 
   it("caps the public service label to the DNS label length limit", () => {
@@ -117,10 +117,10 @@ describe("buildPublicScriptProxyUrl", () => {
     expect(
       buildPublicScriptProxyUrl({
         publicBaseUrl: "https://services.example.com:8443/base-is-ignored",
-        projectSlug: "paseo",
+        projectSlug: "zentic",
         branchName: "feature-auth",
         scriptName: "web",
       }),
-    ).toBe("https://web--feature-auth--paseo.services.example.com:8443");
+    ).toBe("https://web--feature-auth--zentic.services.example.com:8443");
   });
 });

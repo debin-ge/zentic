@@ -142,13 +142,14 @@ test("encrypted sockets do not double-count bytes already buffered by the transp
 });
 
 test("50 MiB logical text and routed binary cross encrypted relay frames in both directions", async () => {
-  const { ChunkedTransport } = await import("@getpaseo/protocol/chunked-transport");
-  const { openClientSecureChannel, openDaemonSecureChannel } = await import("@getpaseo/relay/e2ee");
+  const { ChunkedTransport } = await import("@getzentic/protocol/chunked-transport");
+  const { openClientSecureChannel, openDaemonSecureChannel } =
+    await import("@getzentic/relay/e2ee");
   const { generateKeyPair, exportPublicKey, maxSecuredPlaintextByteLength } =
-    await import("@getpaseo/relay");
+    await import("@getzentic/relay");
   const { encodeHostRouteFrame, decodeHostRouteFrame } =
-    await import("@getpaseo/protocol/binary-frames/index");
-  type Transport = import("@getpaseo/relay/e2ee").Transport;
+    await import("@getzentic/protocol/binary-frames/index");
+  type Transport = import("@getzentic/relay/e2ee").Transport;
   const limit = 32 * 1024 * 1024;
   const wireSizes: number[] = [];
   const endpoint = (): Transport => ({

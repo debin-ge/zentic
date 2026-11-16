@@ -14,12 +14,12 @@ import { tmpdir, userInfo } from "node:os";
 import { basename, delimiter, dirname, extname, join, resolve as resolvePath } from "node:path";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
-import { createExternalProcessEnv } from "../server/paseo-env.js";
+import { createExternalProcessEnv } from "../server/zentic-env.js";
 import {
   resolveExternalProcessPath,
-  resolvePaseoCliBinDir,
-  resolvePaseoCliExecutablePath,
-} from "./paseo-cli-path.js";
+  resolveZenticCliBinDir,
+  resolveZenticCliExecutablePath,
+} from "./zentic-cli-path.js";
 import { writePrivateFileAtomicSync } from "../server/private-files.js";
 import {
   findExecutable,
@@ -33,9 +33,12 @@ import {
   type CaptureTerminalLinesResult,
 } from "./terminal-capture.js";
 import type { TerminalReplayOptions, TerminalReplayMetadata } from "./terminal-replay.js";
-import { TerminalInputModeTracker } from "@getpaseo/protocol/terminal-input-mode";
+import { TerminalInputModeTracker } from "@getzentic/protocol/terminal-input-mode";
 import { TerminalActivityTracker } from "./activity/terminal-activity-tracker.js";
-import type { TerminalActivity, TerminalActivityState } from "@getpaseo/protocol/terminal-activity";
+import type {
+  TerminalActivity,
+  TerminalActivityState,
+} from "@getzentic/protocol/terminal-activity";
 
 const require = createRequire(import.meta.url);
 let nodePtySpawnHelperChecked = false;
@@ -155,9 +158,9 @@ export interface CreateTerminalOptions {
   args?: string[];
   // Environment the terminal starts from instead of this process's own. A detached terminal
   // worker outlives the daemon that launched it, so each create carries the controlling
-  // daemon's environment and its resolved Paseo CLI path.
+  // daemon's environment and its resolved Zentic CLI path.
   baseEnv?: Record<string, string>;
-  paseoCliPath?: string | null;
+  zenticCliPath?: string | null;
 }
 
 function toTerminalActivity(snapshot: {
@@ -188,8 +191,8 @@ interface BuildTerminalEnvironmentInput {
   env: Record<string, string>;
   baseEnv?: Record<string, string>;
   zshShellIntegrationDir?: string;
-  paseoCliBinDir?: string | null;
-  paseoHookCliPath?: string | null;
+  zenticCliBinDir?: string | null;
+  zenticHookCliPath?: string | null;
 }
 
 interface EnsureNodePtySpawnHelperExecutableOptions {
@@ -416,7 +419,7 @@ export async function resolveTerminalSpawnCommand(
   return { command: resolved, args };
 }
 
-export { resolvePaseoCliBinDir, resolvePaseoCliExecutablePath };
+export { resolveZenticCliBinDir, resolveZenticCliExecutablePath };
 
 export function resolveZshShellIntegrationDir(): string {
   return fileURLToPath(new URL("./shell-integration/zsh", import.meta.url));
@@ -429,7 +432,7 @@ function resolveZshShellIntegrationRuntimeDir(): string {
   } catch {
     // keep fallback
   }
-  return join(tmpdir(), `${username}-paseo-zsh-${process.pid}`);
+  return join(tmpdir(), `${username}-zentic-zsh-${process.pid}`);
 }
 
 function prepareZshShellIntegrationRuntimeDir(sourceDir = resolveZshShellIntegrationDir()): string {
@@ -442,8 +445,8 @@ function prepareZshShellIntegrationRuntimeDir(sourceDir = resolveZshShellIntegra
     readFileSync(join(readableSourceDir, ".zshenv")),
   );
   writePrivateFileAtomicSync(
-    join(runtimeDir, "paseo-integration.zsh"),
-    readFileSync(join(readableSourceDir, "paseo-integration.zsh")),
+    join(runtimeDir, "zentic-integration.zsh"),
+    readFileSync(join(readableSourceDir, "zentic-integration.zsh")),
   );
   return runtimeDir;
 }
@@ -459,13 +462,15 @@ export function buildTerminalEnvironment(
       TERM_PROGRAM: "kitty",
     },
   );
-  const envWithAgentHooks = prependPaseoCliToPath(
+  const envWithAgentHooks = prependZenticCliToPath(
     baseEnv,
-    input.paseoCliBinDir === undefined ? resolvePaseoCliBinDir() : input.paseoCliBinDir,
+    input.zenticCliBinDir === undefined ? resolveZenticCliBinDir() : input.zenticCliBinDir,
   );
-  const envWithHookCli = injectPaseoHookCli(
+  const envWithHookCli = injectZenticHookCli(
     envWithAgentHooks,
-    input.paseoHookCliPath === undefined ? resolvePaseoCliExecutablePath() : input.paseoHookCliPath,
+    input.zenticHookCliPath === undefined
+      ? resolveZenticCliExecutablePath()
+      : input.zenticHookCliPath,
   );
 
   if (basename(input.shell) !== "zsh") {
@@ -475,12 +480,12 @@ export function buildTerminalEnvironment(
   const originalZdotdir = envWithHookCli.ZDOTDIR ?? "";
   return {
     ...envWithHookCli,
-    PASEO_ZSH_ZDOTDIR: originalZdotdir,
+    ZENTIC_ZSH_ZDOTDIR: originalZdotdir,
     ZDOTDIR: prepareZshShellIntegrationRuntimeDir(input.zshShellIntegrationDir),
   };
 }
 
-function injectPaseoHookCli(
+function injectZenticHookCli(
   env: Record<string, string>,
   cliPath: string | null,
 ): Record<string, string> {
@@ -490,28 +495,28 @@ function injectPaseoHookCli(
 
   return {
     ...env,
-    PASEO_HOOK_CLI: resolvePath(resolveExternalProcessPath(cliPath)),
+    ZENTIC_HOOK_CLI: resolvePath(resolveExternalProcessPath(cliPath)),
   };
 }
 
 // The environment and CLI path a terminal starts from: the caller's when it sends them (the
 // daemon controlling a detached worker does), this process's otherwise.
 function resolveTerminalEnvironmentSource(
-  input: Pick<CreateTerminalOptions, "baseEnv" | "paseoCliPath">,
-): Pick<BuildTerminalEnvironmentInput, "baseEnv" | "paseoCliBinDir" | "paseoHookCliPath"> {
+  input: Pick<CreateTerminalOptions, "baseEnv" | "zenticCliPath">,
+): Pick<BuildTerminalEnvironmentInput, "baseEnv" | "zenticCliBinDir" | "zenticHookCliPath"> {
   const source: Pick<
     BuildTerminalEnvironmentInput,
-    "baseEnv" | "paseoCliBinDir" | "paseoHookCliPath"
+    "baseEnv" | "zenticCliBinDir" | "zenticHookCliPath"
   > = {};
   if (input.baseEnv) source.baseEnv = input.baseEnv;
-  if (input.paseoCliPath !== undefined) {
-    source.paseoCliBinDir = input.paseoCliPath ? dirname(input.paseoCliPath) : null;
-    source.paseoHookCliPath = input.paseoCliPath;
+  if (input.zenticCliPath !== undefined) {
+    source.zenticCliBinDir = input.zenticCliPath ? dirname(input.zenticCliPath) : null;
+    source.zenticHookCliPath = input.zenticCliPath;
   }
   return source;
 }
 
-function prependPaseoCliToPath(
+function prependZenticCliToPath(
   env: Record<string, string>,
   cliBinDir: string | null,
 ): Record<string, string> {
@@ -765,7 +770,7 @@ export async function createTerminal(
     command,
     args = [],
     baseEnv,
-    paseoCliPath,
+    zenticCliPath,
   } = options;
   const resolvedShell = shell ?? resolveDefaultTerminalShell({ env: baseEnv });
 
@@ -813,9 +818,9 @@ export async function createTerminal(
     env: {
       ...env,
       ...activityEnv,
-      PASEO_WORKSPACE_ID: workspaceId,
+      ZENTIC_WORKSPACE_ID: workspaceId,
     },
-    ...resolveTerminalEnvironmentSource({ baseEnv, paseoCliPath }),
+    ...resolveTerminalEnvironmentSource({ baseEnv, zenticCliPath }),
   });
 
   await assertTerminalCommandCanStart({ command, cwd, env: terminalEnv });

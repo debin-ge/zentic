@@ -1,4 +1,4 @@
-import { compareMatchClasses, type MatchClass } from "@getpaseo/protocol/search/text-match";
+import { compareMatchClasses, type MatchClass } from "@getzentic/protocol/search/text-match";
 import {
   compareBuiltInScores,
   compareByRecency,

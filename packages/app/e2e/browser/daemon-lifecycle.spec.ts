@@ -94,7 +94,7 @@ test("settings restart replaces the worker when a provider CLI answers --version
 }) => {
   test.skip(process.platform === "win32", "The slow provider stub is a POSIX script");
   const daemon = await startIsolatedHostDaemon(randomUUID(), {
-    paseoHome: await createHomeWithSlowProvider(1_800),
+    zenticHome: await createHomeWithSlowProvider(1_800),
   });
   try {
     const previousWorker = await readWorkerPid(daemon);
@@ -108,21 +108,21 @@ test("settings restart replaces the worker when a provider CLI answers --version
 });
 
 async function createHomeWithSlowProvider(versionDelayMs: number): Promise<string> {
-  const paseoHome = await mkdtemp(path.join(tmpdir(), "paseo-e2e-slow-provider-"));
-  const provider = path.join(paseoHome, "slow-provider");
+  const zenticHome = await mkdtemp(path.join(tmpdir(), "zentic-e2e-slow-provider-"));
+  const provider = path.join(zenticHome, "slow-provider");
   await writeFile(
     provider,
     `#!${process.execPath}\nsetTimeout(() => console.log("provider 1.0.0"), ${versionDelayMs});\n`,
     { mode: 0o700 },
   );
   await writeFile(
-    path.join(paseoHome, "config.json"),
+    path.join(zenticHome, "config.json"),
     `${JSON.stringify({
       version: 1,
       agents: { providers: { claude: { command: { mode: "replace", argv: [provider] } } } },
     })}\n`,
   );
-  return paseoHome;
+  return zenticHome;
 }
 
 // Cleanup has no renderer demand: drive the same isolated daemon owner directly.
@@ -139,11 +139,11 @@ cleanupTest(
       await daemon.close();
       resumeDaemonProcess(workerPid);
       await expect.poll(() => daemonProcessCanWrite(workerPid)).toBe(false);
-      expect(existsSync(daemon.paseoHome)).toBe(false);
+      expect(existsSync(daemon.zenticHome)).toBe(false);
     } finally {
       resumeDaemonProcess(workerPid);
       await daemon.close();
-      await rm(daemon.paseoHome, { recursive: true, force: true });
+      await rm(daemon.zenticHome, { recursive: true, force: true });
     }
   },
 );
@@ -165,7 +165,7 @@ cleanupTest(
         [supervisorPid, workerPid, ...terminalProcesses].map(daemonProcessCanWrite),
       );
       expect(writerStates).toEqual(Array(terminalProcesses.length + 2).fill(false));
-      expect(existsSync(daemon.paseoHome)).toBe(false);
+      expect(existsSync(daemon.zenticHome)).toBe(false);
     } finally {
       resumeDaemonProcess(supervisorPid);
       await daemon.close();

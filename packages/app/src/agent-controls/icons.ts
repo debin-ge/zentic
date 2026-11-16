@@ -14,7 +14,10 @@ import {
   Zap,
 } from "lucide-react-native";
 import { isLucideIconName, pluginIconComponent } from "@/plugins/icons";
-import { getModeVisuals, type AgentProviderDefinition } from "@getpaseo/protocol/provider-manifest";
+import {
+  getModeVisuals,
+  type AgentProviderDefinition,
+} from "@getzentic/protocol/provider-manifest";
 
 export interface AgentControlIconProps {
   size: number;

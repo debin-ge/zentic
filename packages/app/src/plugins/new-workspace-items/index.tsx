@@ -1,6 +1,6 @@
 import { Fragment, useMemo } from "react";
-import type { PluginHostProps } from "@getpaseo/plugin/client";
-import { PluginNewWorkspaceProvider } from "@getpaseo/plugin/client/host";
+import type { PluginHostProps } from "@getzentic/plugin/client";
+import { PluginNewWorkspaceProvider } from "@getzentic/plugin/client/host";
 import { withUnistyles } from "react-native-unistyles";
 import {
   ComposerControlLockProvider,

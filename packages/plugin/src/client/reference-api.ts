@@ -1,12 +1,12 @@
 import type {
-  PaseoApi,
-  PaseoAgent,
-  PaseoAgentHandle,
-  PaseoWorkspace,
-  PaseoWorkspaceHandle,
-  PaseoWorkspaceCreateOptions,
-} from "@getpaseo/client";
-import type { PaseoTerminal, PaseoTerminalHandle } from "@getpaseo/client";
+  ZenticApi,
+  ZenticAgent,
+  ZenticAgentHandle,
+  ZenticWorkspace,
+  ZenticWorkspaceHandle,
+  ZenticWorkspaceCreateOptions,
+} from "@getzentic/client";
+import type { ZenticTerminal, ZenticTerminalHandle } from "@getzentic/client";
 import type { PluginProjectSnapshot } from "../contracts.js";
 import type { AgentRef, ProjectRef, TerminalRef, WorkspaceRef } from "../refs.js";
 import type { PluginSidebarViewProps } from "./contracts.js";
@@ -15,52 +15,52 @@ export interface PluginProjectHandle {
   readonly ref: ProjectRef;
   open(): void;
   createWorkspace(
-    input?: Omit<PaseoWorkspaceCreateOptions, "source"> & {
-      source?: PaseoWorkspaceCreateOptions["source"];
+    input?: Omit<ZenticWorkspaceCreateOptions, "source"> & {
+      source?: ZenticWorkspaceCreateOptions["source"];
     },
-  ): Promise<PaseoWorkspaceHandle>;
+  ): Promise<ZenticWorkspaceHandle>;
 }
-export interface PluginTerminalHandle extends PaseoTerminalHandle {
+export interface PluginTerminalHandle extends ZenticTerminalHandle {
   focus(): void;
 }
-export interface PluginPaseoApi extends PaseoApi {
-  workspaces: Omit<PaseoApi["workspaces"], "ref"> & {
-    ref(workspace: string | PaseoWorkspace | WorkspaceRef): PaseoWorkspaceHandle;
+export interface PluginZenticApi extends ZenticApi {
+  workspaces: Omit<ZenticApi["workspaces"], "ref"> & {
+    ref(workspace: string | ZenticWorkspace | WorkspaceRef): ZenticWorkspaceHandle;
   };
-  agents: Omit<PaseoApi["agents"], "ref"> & {
-    ref(agent: string | PaseoAgent | AgentRef): PaseoAgentHandle;
+  agents: Omit<ZenticApi["agents"], "ref"> & {
+    ref(agent: string | ZenticAgent | AgentRef): ZenticAgentHandle;
   };
-  projects: PaseoApi["projects"] & { ref(project: ProjectRef): PluginProjectHandle };
-  terminals: Omit<PaseoApi["terminals"], "ref"> & {
+  projects: ZenticApi["projects"] & { ref(project: ProjectRef): PluginProjectHandle };
+  terminals: Omit<ZenticApi["terminals"], "ref"> & {
     ref(terminal: TerminalRef): PluginTerminalHandle;
-    ref(terminal: string | PaseoTerminal): PaseoTerminalHandle;
+    ref(terminal: string | ZenticTerminal): ZenticTerminalHandle;
   };
 }
 
 /** Host adapter; the installation retains its single API identity across every surface. */
 export function createPluginReferenceApi(input: {
-  paseo: PaseoApi;
-  resolveHost(hostId: string): PaseoApi;
+  zentic: ZenticApi;
+  resolveHost(hostId: string): ZenticApi;
   readProject(ref: ProjectRef): PluginProjectSnapshot | null;
   navigation: PluginSidebarViewProps["navigation"];
-}): PluginPaseoApi {
-  const { paseo } = input;
-  const workspaceRef = paseo.workspaces.ref;
-  const agentRef = paseo.agents.ref;
-  const terminalRef = paseo.terminals.ref;
-  function refWorkspace(workspace: string | PaseoWorkspace | WorkspaceRef) {
+}): PluginZenticApi {
+  const { zentic } = input;
+  const workspaceRef = zentic.workspaces.ref;
+  const agentRef = zentic.agents.ref;
+  const terminalRef = zentic.terminals.ref;
+  function refWorkspace(workspace: string | ZenticWorkspace | WorkspaceRef) {
     if (typeof workspace !== "string" && "hostId" in workspace)
       return input.resolveHost(workspace.hostId).workspaces.ref(workspace.id);
     return workspaceRef(workspace);
   }
-  function refAgent(agent: string | PaseoAgent | AgentRef) {
+  function refAgent(agent: string | ZenticAgent | AgentRef) {
     if (typeof agent !== "string" && "hostId" in agent)
       return input.resolveHost(agent.hostId).agents.ref(agent.id);
     return agentRef(agent);
   }
   function terminal(ref: TerminalRef): PluginTerminalHandle;
-  function terminal(ref: string | PaseoTerminal): PaseoTerminalHandle;
-  function terminal(ref: TerminalRef | string | PaseoTerminal): PaseoTerminalHandle {
+  function terminal(ref: string | ZenticTerminal): ZenticTerminalHandle;
+  function terminal(ref: TerminalRef | string | ZenticTerminal): ZenticTerminalHandle {
     if (typeof ref !== "string" && "hostId" in ref) {
       const handle = input.resolveHost(ref.hostId).terminals.ref(ref.id);
       return Object.assign(handle, { focus: () => input.navigation.openTerminal(ref) });
@@ -79,10 +79,10 @@ export function createPluginReferenceApi(input: {
       },
     };
   }
-  return Object.assign(paseo, {
-    workspaces: Object.assign(paseo.workspaces, { ref: refWorkspace }),
-    agents: Object.assign(paseo.agents, { ref: refAgent }),
-    projects: Object.assign(paseo.projects, { ref: project }),
-    terminals: Object.assign(paseo.terminals, { ref: terminal }),
+  return Object.assign(zentic, {
+    workspaces: Object.assign(zentic.workspaces, { ref: refWorkspace }),
+    agents: Object.assign(zentic.agents, { ref: refAgent }),
+    projects: Object.assign(zentic.projects, { ref: project }),
+    terminals: Object.assign(zentic.terminals, { ref: terminal }),
   });
 }

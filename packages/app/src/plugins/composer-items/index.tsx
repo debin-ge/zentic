@@ -1,6 +1,6 @@
 import { useMemo, useSyncExternalStore } from "react";
-import type { PluginHostProps } from "@getpaseo/plugin/client";
-import { PluginComposerProvider } from "@getpaseo/plugin/client/host";
+import type { PluginHostProps } from "@getzentic/plugin/client";
+import { PluginComposerProvider } from "@getzentic/plugin/client/host";
 import { withUnistyles } from "react-native-unistyles";
 import {
   ComposerControlSurfaceProvider,

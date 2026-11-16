@@ -1,11 +1,11 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { useCallback, useSyncExternalStore } from "react";
-import type { DaemonClient } from "@getpaseo/client/internal/daemon-client";
+import type { DaemonClient } from "@getzentic/client/internal/daemon-client";
 import type {
   PluginListItem,
   PluginUpdatePreview,
   PluginUpdateProposal,
-} from "@getpaseo/protocol/messages";
+} from "@getzentic/protocol/messages";
 import { daemonConfigQueryKey } from "@/data/daemon-config";
 import { pluginListQueryKey } from "@/plugins/plugin-list";
 import { pluginErrorText } from "./error-text";

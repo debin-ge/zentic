@@ -6,9 +6,9 @@ import { createRealpathAwarePathMatcher } from "../../../utils/path.js";
 import { runGitCommand } from "../../../utils/run-git-command.js";
 import {
   createWorktree,
-  isPaseoOwnedWorktreeCwd,
+  isZenticOwnedWorktreeCwd,
   mapWorkspaceCwdToWorktree,
-  rollbackCreatedPaseoWorktree,
+  rollbackCreatedZenticWorktree,
   type WorktreeSource,
 } from "../../../utils/worktree.js";
 import { WorktreeRequestError, toWorktreeRequestError } from "../../worktree-errors.js";
@@ -62,7 +62,7 @@ type RecoveryPlan =
 type UnavailableRecoveryState = Extract<WorkspaceRecoveryState, { kind: "unavailable" }>;
 
 export function createWorkspaceRecoveryService(deps: {
-  paseoHome: string;
+  zenticHome: string;
   worktreesRoot?: string;
   getWorkspace: (workspaceId: string) => Promise<PersistedWorkspaceRecord | null>;
   getProject: (projectId: string) => Promise<PersistedProjectRecord | null>;
@@ -170,8 +170,8 @@ export function createWorkspaceRecoveryService(deps: {
     if (!previousWorktreePath) {
       // COMPAT(worktreeRestoreMissingWorktreeRoot): records created before v0.1.110
       // lack durable backing placement; remove filesystem discovery after 2027-01-17.
-      const ownership = await isPaseoOwnedWorktreeCwd(workspace.cwd, {
-        paseoHome: deps.paseoHome,
+      const ownership = await isZenticOwnedWorktreeCwd(workspace.cwd, {
+        zenticHome: deps.zenticHome,
         worktreesRoot: deps.worktreesRoot,
       });
       previousWorktreePath = ownership.allowed
@@ -187,7 +187,7 @@ export function createWorkspaceRecoveryService(deps: {
         worktreeSlug: basename(previousWorktreePath),
         source,
 
-        paseoHome: deps.paseoHome,
+        zenticHome: deps.zenticHome,
         worktreesRoot: deps.worktreesRoot,
         ...(hasRecordedWorktreePath ? { worktreePath: previousWorktreePath } : {}),
       });
@@ -215,12 +215,12 @@ export function createWorkspaceRecoveryService(deps: {
         });
       }
     } catch (error) {
-      return rollbackCreatedPaseoWorktree(
+      return rollbackCreatedZenticWorktree(
         {
           cwd: sourceRepoRoot,
           worktreePath: recreatedWorktreePath,
           teardownCwds: [],
-          paseoHome: deps.paseoHome,
+          zenticHome: deps.zenticHome,
           worktreesBaseRoot: deps.worktreesRoot,
         },
         error,

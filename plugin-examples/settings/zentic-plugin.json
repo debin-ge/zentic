@@ -1,0 +1,6 @@
+{
+  "id": "settings-example",
+  "requirements": {
+    "zentic": ">=0.8.0"
+  }
+}

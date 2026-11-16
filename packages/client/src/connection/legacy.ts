@@ -1,11 +1,11 @@
-import { SessionInboundMessageSchema } from "@getpaseo/protocol/messages";
+import { SessionInboundMessageSchema } from "@getzentic/protocol/messages";
 import { LegacyWorkspaces } from "./legacy-workspaces.js";
-import { BrowserAutomationHostCapabilitySchema } from "@getpaseo/protocol/browser-automation/capabilities";
+import { BrowserAutomationHostCapabilitySchema } from "@getzentic/protocol/browser-automation/capabilities";
 import type {
   ServerInfoStatusPayload,
   SessionInboundMessage,
   SessionOutboundMessage,
-} from "@getpaseo/protocol/messages";
+} from "@getzentic/protocol/messages";
 
 export type ObservationRequest = { type: SessionInboundMessage["type"] } & Record<string, unknown>;
 interface Interest {

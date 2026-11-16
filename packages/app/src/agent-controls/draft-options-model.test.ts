@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { AgentOptionControl } from "@getpaseo/protocol/agent-types";
+import type { AgentOptionControl } from "@getzentic/protocol/agent-types";
 import { isControlActive } from "./option-controls";
 import {
   draftControlsRequest,

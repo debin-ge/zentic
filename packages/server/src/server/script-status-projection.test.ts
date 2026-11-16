@@ -7,19 +7,19 @@ import { ScriptRouteStore } from "./script-proxy.js";
 import {
   buildWorkspaceScriptPayloads,
   createScriptStatusEmitter,
-  readPaseoConfigForProjection,
+  readZenticConfigForProjection,
 } from "./script-status-projection.js";
-import { WorkspaceScriptPayloadSchema } from "@getpaseo/protocol/messages";
+import { WorkspaceScriptPayloadSchema } from "@getzentic/protocol/messages";
 import type { ScriptHealthState } from "./script-health-monitor.js";
 import { WorkspaceScriptRuntimeStore } from "./workspace-script-runtime-store.js";
-import { readPaseoConfig } from "../utils/worktree.js";
-import { readPaseoConfigForEdit, writePaseoConfigForEdit } from "../utils/paseo-config-file.js";
-import type { PaseoConfig } from "@getpaseo/protocol/paseo-config-schema";
+import { readZenticConfig } from "../utils/worktree.js";
+import { readZenticConfigForEdit, writeZenticConfigForEdit } from "../utils/zentic-config-file.js";
+import type { ZenticConfig } from "@getzentic/protocol/zentic-config-schema";
 import { createTestLogger } from "../test-utils/test-logger.js";
 
 function createWorkspaceRepo(options?: {
   branchName?: string;
-  paseoConfig?: Record<string, unknown>;
+  zenticConfig?: Record<string, unknown>;
 }): { tempDir: string; repoDir: string; cleanup: () => void } {
   const tempDir = realpathSync(mkdtempSync(path.join(tmpdir(), "script-projection-")));
   const repoDir = path.join(tempDir, "repo");
@@ -34,8 +34,8 @@ function createWorkspaceRepo(options?: {
   });
   execFileSync("git", ["config", "user.name", "Test"], { cwd: repoDir, stdio: "pipe" });
   writeFileSync(path.join(repoDir, "README.md"), "hello\n");
-  if (options?.paseoConfig) {
-    writeFileSync(path.join(repoDir, "paseo.json"), JSON.stringify(options.paseoConfig, null, 2));
+  if (options?.zenticConfig) {
+    writeFileSync(path.join(repoDir, "zentic.json"), JSON.stringify(options.zenticConfig, null, 2));
   }
   execFileSync("git", ["add", "."], { cwd: repoDir, stdio: "pipe" });
   execFileSync("git", ["-c", "commit.gpgsign=false", "commit", "-m", "initial"], {
@@ -55,7 +55,7 @@ function createWorkspaceRepo(options?: {
 async function buildPayloads(input: {
   workspaceId: string;
   workspaceDirectory: string;
-  paseoConfig?: PaseoConfig | null;
+  zenticConfig?: ZenticConfig | null;
   routeStore?: ScriptRouteStore;
   serviceProxy?: ScriptRouteStore;
   runtimeStore: WorkspaceScriptRuntimeStore;
@@ -64,20 +64,20 @@ async function buildPayloads(input: {
   gitMetadata?: { projectSlug: string; currentBranch: string | null };
   resolveHealth?: (hostname: string) => ScriptHealthState | null;
 }) {
-  const paseoConfig =
-    input.paseoConfig !== undefined
-      ? input.paseoConfig
+  const zenticConfig =
+    input.zenticConfig !== undefined
+      ? input.zenticConfig
       : await loadConfig(input.workspaceDirectory);
   const { routeStore, serviceProxy, ...rest } = input;
   return buildWorkspaceScriptPayloads({
     ...rest,
     serviceProxy: serviceProxy ?? routeStore ?? new ScriptRouteStore(),
-    paseoConfig,
+    zenticConfig,
   });
 }
 
-async function loadConfig(repoRoot: string): Promise<PaseoConfig | null> {
-  const result = await readPaseoConfig(repoRoot);
+async function loadConfig(repoRoot: string): Promise<ZenticConfig | null> {
+  const result = await readZenticConfig(repoRoot);
   return result.ok ? result.config : null;
 }
 
@@ -100,7 +100,7 @@ describe("script-status-projection", () => {
   it("projects plain scripts and services differently", async () => {
     const workspaceId = "workspace-plain-and-service";
     const workspace = createWorkspaceRepo({
-      paseoConfig: {
+      zenticConfig: {
         scripts: {
           typecheck: { command: "npm run typecheck" },
           web: { type: "service", command: "npm run web", port: 3000 },
@@ -162,7 +162,7 @@ describe("script-status-projection", () => {
     const workspaceId = "workspace-service-metadata";
     const workspace = createWorkspaceRepo({
       branchName: "local-branch-that-should-not-be-read",
-      paseoConfig: {
+      zenticConfig: {
         scripts: {
           web: { type: "service", command: "npm run web", port: 3000 },
         },
@@ -207,7 +207,7 @@ describe("script-status-projection", () => {
   it("projects local and public service URLs while keeping proxyUrl public-first", async () => {
     const workspaceId = "workspace-public-service";
     const workspace = createWorkspaceRepo({
-      paseoConfig: {
+      zenticConfig: {
         scripts: {
           web: { type: "service", command: "npm run web", port: 3000 },
         },
@@ -251,7 +251,7 @@ describe("script-status-projection", () => {
     const workspaceId = "workspace-running-service";
     const workspace = createWorkspaceRepo({
       branchName: "feature/card",
-      paseoConfig: {
+      zenticConfig: {
         scripts: {
           web: { type: "service", command: "npm run web" },
         },
@@ -308,7 +308,7 @@ describe("script-status-projection", () => {
   it("maps internal pending health to null on the wire", async () => {
     const workspaceId = "workspace-pending-health";
     const workspace = createWorkspaceRepo({
-      paseoConfig: {
+      zenticConfig: {
         scripts: {
           web: { type: "service", command: "npm run web" },
         },
@@ -453,16 +453,16 @@ describe("script-status-projection", () => {
     }
   });
 
-  it("readPaseoConfig fails with configPath and error when paseo.json is malformed", async () => {
+  it("readZenticConfig fails with configPath and error when zentic.json is malformed", async () => {
     const workspace = createWorkspaceRepo();
-    const configPath = path.join(workspace.repoDir, "paseo.json");
+    const configPath = path.join(workspace.repoDir, "zentic.json");
     writeFileSync(
       configPath,
       '{\n<<<<<<< HEAD\n  "scripts": {}\n=======\n  "scripts": {}\n>>>>>>> origin/main\n}\n',
     );
 
     try {
-      const result = await readPaseoConfig(workspace.repoDir);
+      const result = await readZenticConfig(workspace.repoDir);
       expect(result.ok).toBe(false);
       if (result.ok) throw new Error("unreachable");
       expect(result.configPath).toBe(configPath);
@@ -472,14 +472,14 @@ describe("script-status-projection", () => {
     }
   });
 
-  it("keeps every workspace's scripts when a listing's paseo.json checks do not finish in time", async () => {
+  it("keeps every workspace's scripts when a listing's zentic.json checks do not finish in time", async () => {
     // More workspaces than the daemon kept snapshots for before, each with a config it has read.
     const tempDir = realpathSync(mkdtempSync(path.join(tmpdir(), "script-projection-many-")));
     const workspaces = Array.from({ length: 300 }, (_, index) => {
       const directory = path.join(tempDir, `workspace-${index}`);
       mkdirSync(directory);
       writeFileSync(
-        path.join(directory, "paseo.json"),
+        path.join(directory, "zentic.json"),
         JSON.stringify({ scripts: { api: { type: "service", command: "npm run dev" } } }),
       );
       return directory;
@@ -487,12 +487,12 @@ describe("script-status-projection", () => {
     const logger = createTestLogger();
     try {
       await Promise.all(
-        workspaces.map((directory) => readPaseoConfigForProjection(directory, logger)),
+        workspaces.map((directory) => readZenticConfigForProjection(directory, logger)),
       );
 
       vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
       const listing = Promise.all(
-        workspaces.map((directory) => readPaseoConfigForProjection(directory, logger)),
+        workspaces.map((directory) => readZenticConfigForProjection(directory, logger)),
       );
       // The filesystem has not answered any check when the 5 s budget runs out.
       vi.advanceTimersByTime(5_000);
@@ -507,13 +507,13 @@ describe("script-status-projection", () => {
 
   it("keeps the saved scripts when the first check after an in-app save is late", async () => {
     const workspace = createWorkspaceRepo({
-      paseoConfig: { scripts: { api: { type: "service", command: "npm run dev" } } },
+      zenticConfig: { scripts: { api: { type: "service", command: "npm run dev" } } },
     });
     const logger = createTestLogger();
     try {
-      const current = await readPaseoConfigForEdit(workspace.repoDir);
-      if (!current.ok) throw new Error("expected a readable paseo.json");
-      const saved = await writePaseoConfigForEdit({
+      const current = await readZenticConfigForEdit(workspace.repoDir);
+      if (!current.ok) throw new Error("expected a readable zentic.json");
+      const saved = await writeZenticConfigForEdit({
         repoRoot: workspace.repoDir,
         config: { scripts: { web: { type: "service", command: "npm run web" } } },
         expectedRevision: current.revision,
@@ -521,7 +521,7 @@ describe("script-status-projection", () => {
       expect(saved.ok).toBe(true);
 
       vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
-      const listing = readPaseoConfigForProjection(workspace.repoDir, logger);
+      const listing = readZenticConfigForProjection(workspace.repoDir, logger);
       vi.advanceTimersByTime(5_000);
 
       expect(Object.keys((await listing)?.scripts ?? {})).toEqual(["web"]);
@@ -531,18 +531,18 @@ describe("script-status-projection", () => {
     }
   });
 
-  it("shows an external paseo.json edit on the next listing", async () => {
+  it("shows an external zentic.json edit on the next listing", async () => {
     const workspace = createWorkspaceRepo({
-      paseoConfig: { scripts: { api: { type: "service", command: "npm run dev" } } },
+      zenticConfig: { scripts: { api: { type: "service", command: "npm run dev" } } },
     });
     try {
-      await readPaseoConfigForProjection(workspace.repoDir, createTestLogger());
+      await readZenticConfigForProjection(workspace.repoDir, createTestLogger());
       writeFileSync(
-        path.join(workspace.repoDir, "paseo.json"),
+        path.join(workspace.repoDir, "zentic.json"),
         JSON.stringify({ scripts: { web: { type: "service", command: "npm run web" } } }),
       );
 
-      const config = await readPaseoConfigForProjection(workspace.repoDir, createTestLogger());
+      const config = await readZenticConfigForProjection(workspace.repoDir, createTestLogger());
 
       expect(Object.keys(config?.scripts ?? {})).toEqual(["web"]);
     } finally {
@@ -550,7 +550,7 @@ describe("script-status-projection", () => {
     }
   });
 
-  it("buildWorkspaceScriptPayloads given paseoConfig=null still surfaces orphaned runtime scripts", async () => {
+  it("buildWorkspaceScriptPayloads given zenticConfig=null still surfaces orphaned runtime scripts", async () => {
     const workspaceId = "workspace-null-config";
     const workspace = createWorkspaceRepo();
     const routeStore = new ScriptRouteStore();
@@ -569,7 +569,7 @@ describe("script-status-projection", () => {
         await buildPayloads({
           workspaceId,
           workspaceDirectory: workspace.repoDir,
-          paseoConfig: null,
+          zenticConfig: null,
           routeStore,
           runtimeStore,
           daemonPort: 6767,
@@ -595,7 +595,7 @@ describe("script-status-projection", () => {
   it("createScriptStatusEmitter overlays health onto the projected workspace script list", async () => {
     const workspaceId = "workspace-emitter";
     const workspace = createWorkspaceRepo({
-      paseoConfig: {
+      zenticConfig: {
         scripts: {
           api: { type: "service", command: "npm run api" },
           typecheck: { command: "npm run typecheck" },
@@ -637,7 +637,7 @@ describe("script-status-projection", () => {
     });
 
     try {
-      const originalConfig = await readPaseoConfigForProjection(
+      const originalConfig = await readZenticConfigForProjection(
         workspace.repoDir,
         createTestLogger(),
       );
@@ -650,7 +650,7 @@ describe("script-status-projection", () => {
         },
       ]);
 
-      expect(await readPaseoConfigForProjection(workspace.repoDir, createTestLogger())).toBe(
+      expect(await readZenticConfigForProjection(workspace.repoDir, createTestLogger())).toBe(
         originalConfig,
       );
       await emitUpdate(workspaceId, [
@@ -664,7 +664,7 @@ describe("script-status-projection", () => {
           ],
         },
       });
-      expect(await readPaseoConfigForProjection(workspace.repoDir, createTestLogger())).toBe(
+      expect(await readZenticConfigForProjection(workspace.repoDir, createTestLogger())).toBe(
         originalConfig,
       );
       expect(messages).toContainEqual({

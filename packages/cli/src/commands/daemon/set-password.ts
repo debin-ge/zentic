@@ -1,13 +1,13 @@
 import path from "node:path";
 import type { Command } from "commander";
 import { isCancel, password as passwordPrompt } from "@clack/prompts";
-import { hashDaemonPassword } from "@getpaseo/server/auth";
+import { hashDaemonPassword } from "@getzentic/server/auth";
 import {
   readPersistedConfig,
   savePersistedConfig,
   type PersistedConfig,
-} from "@getpaseo/server/configuration";
-import { resolvePaseoHome } from "@getpaseo/server/daemon-control";
+} from "@getzentic/server/configuration";
+import { resolveZenticHome } from "@getzentic/server/daemon-control";
 import type {
   CommandError,
   CommandOptions,
@@ -61,8 +61,8 @@ function terminalPasswordPrompt(): PromptPassword {
   if (!process.stdin.isTTY) {
     throw createCommandError(
       "PASSWORD_TTY_REQUIRED",
-      "paseo daemon set-password needs a terminal to read the password",
-      "Run it in an interactive terminal, or set PASEO_PASSWORD in the daemon's environment instead.",
+      "zentic daemon set-password needs a terminal to read the password",
+      "Run it in an interactive terminal, or set ZENTIC_PASSWORD in the daemon's environment instead.",
     );
   }
   return (message) => passwordPrompt({ message });
@@ -92,9 +92,9 @@ export async function setDaemonPasswordInConfig(
   newPassword: string,
   options: SetPasswordOptions = {},
 ): Promise<SetPasswordResult> {
-  const paseoHome = resolvePaseoHome({ PASEO_HOME: options.home });
-  const configPath = path.join(paseoHome, CONFIG_FILENAME);
-  const persisted = readPersistedConfig(paseoHome);
+  const zenticHome = resolveZenticHome({ ZENTIC_HOME: options.home });
+  const configPath = path.join(zenticHome, CONFIG_FILENAME);
+  const persisted = readPersistedConfig(zenticHome);
   const nextConfig: PersistedConfig = {
     ...persisted,
     daemon: {
@@ -106,13 +106,13 @@ export async function setDaemonPasswordInConfig(
     },
   };
 
-  savePersistedConfig(paseoHome, nextConfig);
+  savePersistedConfig(zenticHome, nextConfig);
 
   return {
     action: "password_set",
     configPath,
-    restartCommand: `paseo daemon restart --home ${JSON.stringify(paseoHome)}`,
-    message: `Password written to ${configPath}\nRestart the daemon for the change to take effect.\nRun: paseo daemon restart --home ${JSON.stringify(paseoHome)}`,
+    restartCommand: `zentic daemon restart --home ${JSON.stringify(zenticHome)}`,
+    message: `Password written to ${configPath}\nRestart the daemon for the change to take effect.\nRun: zentic daemon restart --home ${JSON.stringify(zenticHome)}`,
   };
 }
 

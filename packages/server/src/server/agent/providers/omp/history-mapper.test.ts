@@ -67,7 +67,7 @@ describe("OMP history mapper", () => {
       {
         role: "assistant",
         content: [
-          { type: "toolCall", id: "web-1", name: "web_search", arguments: { query: "Paseo" } },
+          { type: "toolCall", id: "web-1", name: "web_search", arguments: { query: "Zentic" } },
         ],
       },
       {
@@ -89,7 +89,7 @@ describe("OMP history mapper", () => {
     });
   });
 
-  test("replays a Paseo browser tool result whose details error is an object", async () => {
+  test("replays a Zentic browser tool result whose details error is an object", async () => {
     const events = await collectHistory([
       {
         role: "assistant",

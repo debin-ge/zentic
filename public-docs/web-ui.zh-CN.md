@@ -1,12 +1,12 @@
 ---
 title: 自托管 Web UI
-description: 从你自己的 daemon 提供 Paseo Web 应用，并通过你自己的局域网、VPN、反向代理或隧道访问它。
+description: 从你自己的 daemon 提供 Zentic Web 应用，并通过你自己的局域网、VPN、反向代理或隧道访问它。
 nav: Web UI
 ---
 
 # 自托管 Web UI {#self-hosting-the-web-ui}
 
-Paseo 的 daemon 可以自己提供浏览器 Web 应用，地址与它已用于 API 的地址相同。你不需要使用托管在 [app.paseo.sh](https://app.paseo.sh) 的应用：让浏览器指向你自己的 daemon，就能获得完整的 UI，连接到你自己的 Agent，运行在你掌控的基础设施上。
+Zentic 的 daemon 可以自己提供浏览器 Web 应用，地址与它已用于 API 的地址相同。你不需要使用托管在 [app.zentic.sh](https://app.zentic.sh) 的应用：让浏览器指向你自己的 daemon，就能获得完整的 UI，连接到你自己的 Agent，运行在你掌控的基础设施上。
 
 以下情况适合这样做：
 
@@ -21,14 +21,14 @@ Web 应用随 daemon 软件包一起发布，因此你提供的 UI 总是与 dae
 内置的 Web UI 默认关闭。保存设置，然后启动 daemon：
 
 ```bash
-paseo daemon config set features.webUi.enabled true
-paseo daemon start
+zentic daemon config set features.webUi.enabled true
+zentic daemon start
 ```
 
 或者用环境变量运行一个前台部署：
 
 ```bash
-PASEO_WEB_UI_ENABLED=true paseo daemon run
+ZENTIC_WEB_UI_ENABLED=true zentic daemon run
 ```
 
 或者把它持久化到 `config.json` 中，使其在重启后依然生效：
@@ -72,8 +72,8 @@ http://localhost:6767/
 daemon 默认监听 `127.0.0.1:6767`，只能从同一台机器访问。要从其他设备访问，请把它绑定到某个网络接口：
 
 ```bash
-paseo daemon config set daemon.listen 0.0.0.0:6767
-paseo daemon start
+zentic daemon config set daemon.listen 0.0.0.0:6767
+zentic daemon start
 ```
 
 > **任何能访问该监听地址的人都可以使用你的 Agent**。在绑定到 localhost 之外之前，请设置密码并检查你的主机白名单。中继配对方式让 daemon 保持绑定在 localhost 上，从而完全避免这个问题，见[安全](/docs/security)。
@@ -83,7 +83,7 @@ paseo daemon start
 1. **设置密码**，只让获得授权的客户端连接：
 
    ```bash
-   paseo daemon set-password
+   zentic daemon set-password
    ```
 
    持久化设置见[密码验证](/docs/configuration#password-authentication)。密码验证控制访问，但不加密流量；在任何不受信任的网络上，请在它前面加上 TLS（见下文）。
@@ -91,7 +91,7 @@ paseo daemon start
 2. **允许你的主机名**，让 daemon 的 DNS 重绑定防护接受发往你的域名的请求：
 
    ```bash
-   paseo daemon config set daemon.hostnames '[".example.com"]'
+   zentic daemon config set daemon.hostnames '[".example.com"]'
    ```
 
    主机白名单的工作方式见 [DNS 重绑定防护](/docs/security#dns-rebinding-protection)。
@@ -120,10 +120,10 @@ map $http_upgrade $connection_upgrade {
 
 server {
   listen 443 ssl;
-  server_name paseo.example.com;
+  server_name zentic.example.com;
 
-  ssl_certificate     /etc/letsencrypt/live/paseo.example.com/fullchain.pem;
-  ssl_certificate_key /etc/letsencrypt/live/paseo.example.com/privkey.pem;
+  ssl_certificate     /etc/letsencrypt/live/zentic.example.com/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/zentic.example.com/privkey.pem;
 
   client_max_body_size 100m;
 
@@ -153,7 +153,7 @@ server {
 Caddy 会为你处理 TLS、WebSocket 升级、请求头转发和流式传输：
 
 ```caddy
-paseo.example.com {
+zentic.example.com {
   reverse_proxy 127.0.0.1:6767
 }
 ```
@@ -176,17 +176,17 @@ daemon 默认信任来自回环地址代理的转发请求头，上面所有的�
 }
 ```
 
-`PASEO_TRUSTED_PROXIES` 接受相同的逗号分隔值：
+`ZENTIC_TRUSTED_PROXIES` 接受相同的逗号分隔值：
 
 ```bash
-PASEO_TRUSTED_PROXIES=loopback,172.16.0.0/12 PASEO_WEB_UI_ENABLED=true paseo daemon run
+ZENTIC_TRUSTED_PROXIES=loopback,172.16.0.0/12 ZENTIC_WEB_UI_ENABLED=true zentic daemon run
 ```
 
 只有当你最后一层受信任的代理会覆盖客户端提供的 `X-Forwarded-*` 请求头时，才使用 `trustedProxies: true`。否则客户端可以伪造转发请求头的值。
 
 如果你通过 HTTPS 提供 UI，但应用尝试通过 `ws://` 连接（浏览器会把它当作混合内容拦截），说明你的代理没有转发 `X-Forwarded-Proto`，或者 daemon 不信任代理的地址。修复相应的那一项。
 
-对于远程或中继方式（通过 Paseo 中继而不是反向代理驱动 daemon），中继有它自己的公开与内部 TLS 设置，见[安全](/docs/security)。
+对于远程或中继方式（通过 Zentic 中继而不是反向代理驱动 daemon），中继有它自己的公开与内部 TLS 设置，见[安全](/docs/security)。
 
 ## 隧道 {#tunnels}
 
@@ -217,11 +217,11 @@ PASEO_TRUSTED_PROXIES=loopback,172.16.0.0/12 PASEO_WEB_UI_ENABLED=true paseo dae
 - **尽可能让 daemon 保持在 localhost 上**，只让反向代理或隧道对外暴露。
 - **在自定义域名上提供服务时，检查你的主机白名单。**
 
-完整的威胁模型、中继加密和 DNS 重绑定细节，见[安全](/docs/security)和 [SECURITY.md](https://github.com/getpaseo/paseo/blob/main/SECURITY.md)。
+完整的威胁模型、中继加密和 DNS 重绑定细节，见[安全](/docs/security)和 [SECURITY.md](https://github.com/getzentic/zentic/blob/main/SECURITY.md)。
 
 ## 故障排查 {#troubleshooting}
 
-- **`/` 显示空白页或 404。** Web UI 没有启用。用 `--web-ui` 启动 daemon，并用 `paseo daemon status` 确认你访问的就是这个 daemon。
+- **`/` 显示空白页或 404。** Web UI 没有启用。用 `--web-ui` 启动 daemon，并用 `zentic daemon status` 确认你访问的就是这个 daemon。
 - **页面加载了但一直连不上。** 代理没有转发 WebSocket 升级，或者剥离了 `Host` 请求头。检查代理配置中的升级请求头。
 - **连上之后输出卡住。** 开启了响应缓冲，或者读取超时太短。关闭缓冲并提高超时时间。
 - **HTTPS 下出现“Mixed content”或连接被拦截。** 应用退回到了 `ws://`。要么代理没有发送 `X-Forwarded-Proto: https`，要么 daemon 不信任代理的地址。转发该请求头；如果代理不在回环地址上，再配置 `daemon.trustedProxies`。
@@ -232,5 +232,5 @@ PASEO_TRUSTED_PROXIES=loopback,172.16.0.0/12 PASEO_WEB_UI_ENABLED=true paseo dae
 
 - [安全](/docs/security)：连接方式、中继加密、密码验证、主机白名单。
 - [配置](/docs/configuration)：`config.json`、环境变量和 CLI 覆盖项。
-- [CLI](/docs/cli)：`paseo daemon` 命令。
+- [CLI](/docs/cli)：`zentic daemon` 命令。
 - [社区项目](/docs/community)：社区构建的自托管工具。

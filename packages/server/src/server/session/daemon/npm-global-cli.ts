@@ -1,9 +1,9 @@
 import { lstatSync } from "node:fs";
-import { getErrorMessage } from "@getpaseo/protocol/error-utils";
+import { getErrorMessage } from "@getzentic/protocol/error-utils";
 import { z } from "zod";
 import { execCommand } from "../../../utils/spawn.js";
 
-export const PASEO_CLI_PACKAGE = "@getpaseo/cli";
+export const ZENTIC_CLI_PACKAGE = "@getzentic/cli";
 
 const NPM_PROBE_TIMEOUT_MS = 10_000;
 const NPM_INSTALL_TIMEOUT_MS = 300_000;
@@ -42,15 +42,15 @@ export interface CommandResult {
   stderr: string;
 }
 
-export interface NpmGlobalPaseoInstall {
+export interface NpmGlobalZenticInstall {
   version: string;
   packagePath: string;
   globalRootPath: string | null;
   isLinked: boolean;
 }
 
-export interface NpmGlobalPaseoCli {
-  inspect(options?: NpmGlobalOptions): Promise<NpmGlobalPaseoInstall>;
+export interface NpmGlobalZenticCli {
+  inspect(options?: NpmGlobalOptions): Promise<NpmGlobalZenticInstall>;
   installLatest(options?: NpmGlobalOptions): Promise<CommandResult>;
 }
 
@@ -89,7 +89,7 @@ async function runExternalCommand(
   }
 }
 
-function parseNpmGlobalPaseoInstall(stdout: string): NpmGlobalPaseoInstall | null {
+function parseNpmGlobalZenticInstall(stdout: string): NpmGlobalZenticInstall | null {
   let parsedJson: unknown;
   try {
     parsedJson = JSON.parse(stdout);
@@ -102,7 +102,7 @@ function parseNpmGlobalPaseoInstall(stdout: string): NpmGlobalPaseoInstall | nul
     return null;
   }
 
-  const rawCliPackage = list.data.dependencies?.[PASEO_CLI_PACKAGE];
+  const rawCliPackage = list.data.dependencies?.[ZENTIC_CLI_PACKAGE];
   const cliPackage = NpmGlobalCliPackageSchema.safeParse(rawCliPackage);
   if (!cliPackage.success) {
     return null;
@@ -118,14 +118,14 @@ function parseNpmGlobalPaseoInstall(stdout: string): NpmGlobalPaseoInstall | nul
   };
 }
 
-export class DefaultNpmGlobalPaseoCli implements NpmGlobalPaseoCli {
+export class DefaultNpmGlobalZenticCli implements NpmGlobalZenticCli {
   constructor(private readonly runCommand: CommandRunner = runExternalCommand) {}
 
-  async inspect(options: NpmGlobalOptions = {}): Promise<NpmGlobalPaseoInstall> {
+  async inspect(options: NpmGlobalOptions = {}): Promise<NpmGlobalZenticInstall> {
     const prefixArgs = options.prefix ? ["--prefix", options.prefix] : [];
     const result = await this.runCommand(
       "npm",
-      ["-g", "ls", PASEO_CLI_PACKAGE, "--json", "--depth=0", "--long", ...prefixArgs],
+      ["-g", "ls", ZENTIC_CLI_PACKAGE, "--json", "--depth=0", "--long", ...prefixArgs],
       {
         timeout: NPM_PROBE_TIMEOUT_MS,
         maxBuffer: NPM_MAX_BUFFER_BYTES,
@@ -136,20 +136,24 @@ export class DefaultNpmGlobalPaseoCli implements NpmGlobalPaseoCli {
       throw new Error(result.stderr.trim() || "npm is not available on this host");
     }
 
-    const install = parseNpmGlobalPaseoInstall(result.stdout);
+    const install = parseNpmGlobalZenticInstall(result.stdout);
     if (!install) {
-      throw new Error(`${PASEO_CLI_PACKAGE} is not installed with npm -g on this host`);
+      throw new Error(`${ZENTIC_CLI_PACKAGE} is not installed with npm -g on this host`);
     }
     return install;
   }
 
   installLatest(options: NpmGlobalOptions = {}): Promise<CommandResult> {
     const prefixArgs = options.prefix ? ["--prefix", options.prefix] : [];
-    return this.runCommand("npm", ["install", "-g", `${PASEO_CLI_PACKAGE}@latest`, ...prefixArgs], {
-      timeout: NPM_INSTALL_TIMEOUT_MS,
-      maxBuffer: NPM_MAX_BUFFER_BYTES,
-    });
+    return this.runCommand(
+      "npm",
+      ["install", "-g", `${ZENTIC_CLI_PACKAGE}@latest`, ...prefixArgs],
+      {
+        timeout: NPM_INSTALL_TIMEOUT_MS,
+        maxBuffer: NPM_MAX_BUFFER_BYTES,
+      },
+    );
   }
 }
 
-export const npmGlobalPaseoCli = new DefaultNpmGlobalPaseoCli();
+export const npmGlobalZenticCli = new DefaultNpmGlobalZenticCli();

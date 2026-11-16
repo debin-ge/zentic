@@ -21,14 +21,14 @@ import { listTerminalWorkerRecords, terminalWorkerDirectory } from "./terminal-w
 // replaces that installation's files, so a worker launched from them would fail its next
 // terminal create (node-pty's spawn-helper, the zsh integration). A built daemon therefore
 // copies the worker bundle, its shell integration and node-pty into
-// $PASEO_HOME/terminal-worker/<paseoVersion>-<content hash>/ and launches the worker from there.
+// $ZENTIC_HOME/terminal-worker/<zenticVersion>-<content hash>/ and launches the worker from there.
 // The hash keeps two builds of one version (a local rebuild) from sharing a copy. A copy is
 // removed once no worker record names it: after a worker drains, after a kill cleanup, and at
 // daemon start. Dev runs (.ts source) launch from source and copy nothing.
 
 export const TERMINAL_WORKER_BUNDLE_NAME = "terminal-worker.mjs";
 // Written last into a finished copy; a directory without it is an interrupted copy.
-const RUNTIME_MARKER = "paseo-terminal-worker-runtime.json";
+const RUNTIME_MARKER = "zentic-terminal-worker-runtime.json";
 const TEMP_PREFIX = ".tmp-";
 
 export class TerminalWorkerRuntimeError extends Error {
@@ -65,8 +65,8 @@ function sourceExecArgv(): string[] {
  * built bundle in this home, prepared on demand.
  */
 export function resolveTerminalWorkerEntry(input: {
-  paseoHome: string;
-  paseoVersion: string;
+  zenticHome: string;
+  zenticVersion: string;
 }): TerminalWorkerEntry {
   if (import.meta.url.endsWith(".ts")) {
     return {
@@ -78,21 +78,21 @@ export function resolveTerminalWorkerEntry(input: {
   const bundleDirectory = fileURLToPath(new URL("../terminal-worker/", import.meta.url));
   if (!existsSync(path.join(bundleDirectory, TERMINAL_WORKER_BUNDLE_NAME))) {
     throw new TerminalWorkerRuntimeError(
-      `The terminal worker bundle is missing from ${bundleDirectory}; rebuild @getpaseo/server (npm run build).`,
+      `The terminal worker bundle is missing from ${bundleDirectory}; rebuild @getzentic/server (npm run build).`,
     );
   }
   const require = createRequire(import.meta.url);
   const nodePtyDirectory = path.dirname(require.resolve("node-pty/package.json"));
   return prepareTerminalWorkerRuntime({
-    paseoHome: input.paseoHome,
-    paseoVersion: input.paseoVersion,
+    zenticHome: input.zenticHome,
+    zenticVersion: input.zenticVersion,
     bundleDirectory,
     nodePtyDirectory,
   });
 }
 
 function runtimeName(input: {
-  paseoVersion: string;
+  zenticVersion: string;
   bundleDirectory: string;
   nodePtyDirectory: string;
 }): string {
@@ -100,7 +100,7 @@ function runtimeName(input: {
   hash.update(readFileSync(path.join(input.bundleDirectory, TERMINAL_WORKER_BUNDLE_NAME)));
   hash.update(readFileSync(path.join(input.nodePtyDirectory, "package.json")));
   hash.update(`${process.platform}-${process.arch}`);
-  const version = input.paseoVersion.replace(/[^A-Za-z0-9._-]/g, "_");
+  const version = input.zenticVersion.replace(/[^A-Za-z0-9._-]/g, "_");
   return `${version}-${hash.digest("hex").slice(0, 12)}`;
 }
 
@@ -147,12 +147,12 @@ function isCompleteRuntime(directory: string): boolean {
  * copy of the same content is already there. Returns the entry to launch from the copy.
  */
 export function prepareTerminalWorkerRuntime(input: {
-  paseoHome: string;
-  paseoVersion: string;
+  zenticHome: string;
+  zenticVersion: string;
   bundleDirectory: string;
   nodePtyDirectory: string;
 }): TerminalWorkerEntry {
-  const root = terminalWorkerDirectory(input.paseoHome);
+  const root = terminalWorkerDirectory(input.zenticHome);
   ensurePrivateDirectory(root);
   const name = runtimeName(input);
   const directory = path.join(root, name);
@@ -179,7 +179,7 @@ export function prepareTerminalWorkerRuntime(input: {
     copyNodePty(input.nodePtyDirectory, path.join(temporary, "node_modules", "node-pty"));
     writeFileSync(
       path.join(temporary, RUNTIME_MARKER),
-      `${JSON.stringify({ paseoVersion: input.paseoVersion, copiedAt: new Date().toISOString() })}\n`,
+      `${JSON.stringify({ zenticVersion: input.zenticVersion, copiedAt: new Date().toISOString() })}\n`,
     );
     renameSync(temporary, directory);
   } catch (error) {
@@ -204,11 +204,11 @@ export interface PruneTerminalWorkerRuntimesResult {
  * record could name a copy a live worker runs from.
  */
 export async function pruneTerminalWorkerRuntimes(
-  paseoHome: string,
+  zenticHome: string,
 ): Promise<PruneTerminalWorkerRuntimesResult> {
   const result: PruneTerminalWorkerRuntimesResult = { removed: [], failed: [] };
-  const root = terminalWorkerDirectory(paseoHome);
-  const files = await listTerminalWorkerRecords(paseoHome);
+  const root = terminalWorkerDirectory(zenticHome);
+  const files = await listTerminalWorkerRecords(zenticHome);
   const inUse = new Set<string>();
   for (const file of files) {
     if ("error" in file) return result;

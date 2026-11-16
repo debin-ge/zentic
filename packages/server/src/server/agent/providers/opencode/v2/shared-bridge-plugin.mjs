@@ -7,7 +7,7 @@ export function isRefused(error) {
   return code === "ECONNREFUSED" || code === "ConnectionRefused";
 }
 
-// OpenCode owns this plugin for the lifetime of a location. Paseo supplies only
+// OpenCode owns this plugin for the lifetime of a location. Zentic supplies only
 // live, per-session bindings over the authenticated OpenCode RPC channel.
 export async function registerSharedBridge(context) {
   const state = await import(new URL("./state.mjs", import.meta.url).href);
@@ -26,7 +26,7 @@ export async function registerSharedBridge(context) {
     const payload = await response.json().catch(() => null);
     if (!response.ok) {
       const detail = formatErrorDetail(payload?.issues ?? payload?.details);
-      const message = payload?.error ?? `Paseo tool bridge returned HTTP ${response.status}`;
+      const message = payload?.error ?? `Zentic tool bridge returned HTTP ${response.status}`;
       const error = new Error(detail ? `${message}: ${detail}` : message);
       error.status = response.status;
       if (detail) error.details = detail;
@@ -55,22 +55,22 @@ export async function registerSharedBridge(context) {
     const signature = JSON.stringify(definition);
     const known = definitions.get(definition.name);
     if (known && JSON.stringify(known) !== signature)
-      throw new Error(`Conflicting Paseo tool definition: ${definition.name}`);
+      throw new Error(`Conflicting Zentic tool definition: ${definition.name}`);
     const old = registrations.get(definition.name);
     if (old) {
       if (old.signature !== signature)
-        throw new Error(`Conflicting Paseo tool definition: ${definition.name}`);
+        throw new Error(`Conflicting Zentic tool definition: ${definition.name}`);
       return;
     }
     const registration = await context.tool.transform((editor) => {
       editor.add({
-        name: `paseo_${definition.name}`,
+        name: `zentic_${definition.name}`,
         description: definition.description,
         input: definition.inputSchema,
         options: { codemode: false },
         async execute(input, call) {
           const scope = await find(call.sessionID);
-          if (!scope) throw new Error("OpenCode session is not bound to a Paseo agent");
+          if (!scope) throw new Error("OpenCode session is not bound to a Zentic agent");
           const result = await request(
             scope,
             `/sessions/${encodeURIComponent(scope.sessionID)}/tools/${encodeURIComponent(definition.name)}`,
@@ -80,7 +80,7 @@ export async function registerSharedBridge(context) {
           );
           return {
             content: result.content.map(toOpenCodeContent),
-            metadata: { paseoTool: definition.name },
+            metadata: { zenticTool: definition.name },
           };
         },
       });
@@ -102,7 +102,7 @@ export async function registerSharedBridge(context) {
   const object = { type: "object", additionalProperties: true };
   const rpc = await context.rpc.register(
     {
-      id: "paseo.bridge",
+      id: "zentic.bridge",
       methods: {
         bind: { input: object, output: object },
         unbind: { input: object, output: object },
@@ -117,7 +117,7 @@ export async function registerSharedBridge(context) {
           typeof input.baseUrl !== "string" ||
           typeof input.token !== "string"
         )
-          throw new Error("Invalid Paseo bridge binding");
+          throw new Error("Invalid Zentic bridge binding");
         const next = updating
           .catch(() => undefined)
           .then(async () => {
@@ -140,7 +140,7 @@ export async function registerSharedBridge(context) {
                 if (error?.status !== 401 && !isRefused(error)) throw error;
               }
               if (active)
-                return { error: "OpenCode session is already bound to another Paseo bridge" };
+                return { error: "OpenCode session is already bound to another Zentic bridge" };
               bindings.delete(input.sessionID);
               await clearUnusedDefinitions();
             }
@@ -180,9 +180,9 @@ export async function registerSharedBridge(context) {
     const scope =
       binding &&
       (await request(binding, `/sessions/${encodeURIComponent(binding.sessionID)}/context?tools`));
-    const allowed = new Set((scope?.tools ?? []).map((name) => `paseo_${name}`));
+    const allowed = new Set((scope?.tools ?? []).map((name) => `zentic_${name}`));
     for (const name of Object.keys(input.tools)) {
-      if (name.startsWith("paseo_") && name !== STRUCTURED_OUTPUT_TOOL && !allowed.has(name))
+      if (name.startsWith("zentic_") && name !== STRUCTURED_OUTPUT_TOOL && !allowed.has(name))
         delete input.tools[name];
     }
   });

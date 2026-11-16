@@ -1,5 +1,5 @@
-import { runAcpProvider } from "@getpaseo/plugin/server/acp";
-import type { ProviderRegistration } from "@getpaseo/plugin/server/provider";
+import { runAcpProvider } from "@getzentic/plugin/server/acp";
+import type { ProviderRegistration } from "@getzentic/plugin/server/provider";
 import { fileToolTransformer } from "./file-tools.js";
 
 export function createFxProvider(): ProviderRegistration {

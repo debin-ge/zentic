@@ -1,6 +1,6 @@
 import { setImmediate } from "node:timers/promises";
 import { ClaudeRuntimeSafety } from "./runtime-safety.js";
-import type { ProviderOptions } from "@getpaseo/protocol/agent-types";
+import type { ProviderOptions } from "@getzentic/protocol/agent-types";
 import { applyProviderOptionsPatch } from "../../option-controls.js";
 import { assertChangesAreLive, validateProviderOptions } from "../../provider-options.js";
 import type { ChildProcess } from "node:child_process";
@@ -178,7 +178,7 @@ export function normalizeClaudeAskUserQuestionRequestInput(
   }
 
   // Claude Code's AskUserQuestion schema says "Other" is host-provided, not a
-  // model-supplied option. Paseo's shared question UI uses allowOther for that
+  // model-supplied option. Zentic's shared question UI uses allowOther for that
   // freeform answer path.
   return {
     ...input,
@@ -264,7 +264,7 @@ export function normalizeClaudeAskUserQuestionUpdatedInput(
 ): AgentMetadata {
   const fallback = isMetadata(fallbackInput) ? fallbackInput : {};
   const base = isMetadata(updatedInput) ? updatedInput : {};
-  // Paseo's shared question UI serializes answers by question header, but Claude's
+  // Zentic's shared question UI serializes answers by question header, but Claude's
   // AskUserQuestion tool expects answer keys to match the full question text. Merge
   // the original request payload back in so provider callbacks that only return
   // `{ answers }` still satisfy Claude's full tool input schema.
@@ -448,7 +448,7 @@ interface SlashCommandInvocation {
 }
 
 // Claude Code reserves `__`-prefixed commands for its own server-launched sessions
-// (for example `/__remote-workflow`); a user cannot run them from a Paseo agent.
+// (for example `/__remote-workflow`); a user cannot run them from a Zentic agent.
 function isClaudeInternalSlashCommand(commandName: string): boolean {
   return commandName.startsWith("__");
 }
@@ -3847,7 +3847,7 @@ class ClaudeAgentSession implements AgentSession {
       ...(disableAllHooks ? { disableAllHooks: true } : {}),
     };
     // The SDK replaces extraArgs.settings with Options.settings, so a user's
-    // `--settings` would be dropped whenever Paseo sets flag settings. Fold it in.
+    // `--settings` would be dropped whenever Zentic sets flag settings. Fold it in.
     const { settings: extraArgsSettings, ...extraArgs } = providerOptions.extraArgs ?? {};
     if (typeof extraArgsSettings !== "string") {
       return { settings: mergeClaudeSettings(providerOptions.settings, updates) };
@@ -5458,7 +5458,7 @@ class ClaudeAgentSession implements AgentSession {
    * Effort is reachable only through hooks.
    *
    * It appears nowhere on the message stream — verified by scanning every message type at depth
-   * — and the level Paseo requests is not necessarily the level that runs, because a model that
+   * — and the level Zentic requests is not necessarily the level that runs, because a model that
    * does not support it is silently downgraded. A hook firing inside a subagent reports the
    * active post-downgrade level alongside the subagent's `agent_id`.
    *
@@ -5762,7 +5762,7 @@ class ClaudeAgentSession implements AgentSession {
     }
 
     const items: AgentTimelineItem[] = [];
-    // User SDK entries can arrive as multiple text blocks, but Paseo treats them as one message.
+    // User SDK entries can arrive as multiple text blocks, but Zentic treats them as one message.
     const userTextParts: string[] = [];
     for (const block of content) {
       if (!isClaudeContentChunk(block) || this.mapSubagentHandbackBlock(block, items)) {
@@ -6642,7 +6642,7 @@ function isProviderImageMessage(item: AgentTimelineItem): boolean {
 
 /**
  * A message steered into a running turn. Claude Code gives it no user entry: it records a
- * queued_command attachment in prompt mode, under the uuid Paseo minted for the message, which is
+ * queued_command attachment in prompt mode, under the uuid Zentic minted for the message, which is
  * also what a rewind to it resolves. The other modes carry task notifications, not user messages.
  */
 function readSteeredPromptHistoryItem(entry: ClaudeHistoryEntry): AgentTimelineItem | null {

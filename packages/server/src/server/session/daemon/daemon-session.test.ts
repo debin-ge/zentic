@@ -51,11 +51,11 @@ function makeSubsystem(overrides: {
     emit: (msg) => emitted.push(msg),
     emitLifecycleIntent: (intent) => restartIntents.push(intent),
   };
-  const paseoHome = makeHome();
+  const zenticHome = makeHome();
   const subsystem = new DaemonSession({
     host,
     clientId: "client-1",
-    paseoHome,
+    zenticHome,
     serverId: overrides.serverId,
     daemonVersion: overrides.daemonVersion,
     daemonRuntimeConfig: overrides.daemonRuntimeConfig,
@@ -74,7 +74,7 @@ function makeSubsystem(overrides: {
       })),
     logger: pino({ level: "silent" }),
   });
-  return { subsystem, emitted, paseoHome, restartIntents };
+  return { subsystem, emitted, zenticHome, restartIntents };
 }
 
 describe("DaemonSession", () => {
@@ -255,8 +255,8 @@ describe("DaemonSession", () => {
         listen: "127.0.0.1:6767",
         getRelayConfig: () => ({
           enabled: false,
-          endpoint: "relay.paseo.sh:443",
-          publicEndpoint: "relay.paseo.sh:443",
+          endpoint: "relay.zentic.sh:443",
+          publicEndpoint: "relay.zentic.sh:443",
           useTls: true,
           publicUseTls: true,
         }),
@@ -343,7 +343,7 @@ describe("DaemonSession", () => {
   });
 
   test("diagnostics includes a log tail and redacts connection secrets", async () => {
-    const { subsystem, emitted, paseoHome } = makeSubsystem({
+    const { subsystem, emitted, zenticHome } = makeSubsystem({
       serverId: "srv-1",
       daemonVersion: "1.2.3",
       daemonRuntimeConfig: {
@@ -358,8 +358,8 @@ describe("DaemonSession", () => {
       },
     });
     writeFileSync(
-      join(paseoHome, "daemon.log"),
-      "first line\nrelay.secret.test:443 token=super-secret paseo://pairing-secret\n",
+      join(zenticHome, "daemon.log"),
+      "first line\nrelay.secret.test:443 token=super-secret zentic://pairing-secret\n",
     );
 
     await subsystem.handleDiagnosticsRequest({ type: "diagnostics.request", requestId: "d-1" });
@@ -384,8 +384,8 @@ describe("DaemonSession", () => {
     const originalComSpec = process.env.ComSpec;
     const originalCOMSPEC = process.env.COMSPEC;
     try {
-      process.env.PATH = "/opt/paseo-test/bin:/usr/bin";
-      process.env.SHELL = "/bin/paseo-test-shell";
+      process.env.PATH = "/opt/zentic-test/bin:/usr/bin";
+      process.env.SHELL = "/bin/zentic-test-shell";
       delete process.env.ComSpec;
       delete process.env.COMSPEC;
 
@@ -399,8 +399,8 @@ describe("DaemonSession", () => {
       if (message.type !== "diagnostics.response") {
         throw new Error("expected diagnostics response");
       }
-      expect(message.payload.diagnostic).toContain("PATH: /opt/paseo-test/bin:/usr/bin");
-      expect(message.payload.diagnostic).toContain("Shell: SHELL=/bin/paseo-test-shell");
+      expect(message.payload.diagnostic).toContain("PATH: /opt/zentic-test/bin:/usr/bin");
+      expect(message.payload.diagnostic).toContain("Shell: SHELL=/bin/zentic-test-shell");
     } finally {
       restoreEnv("PATH", originalPath);
       restoreEnv("SHELL", originalShell);

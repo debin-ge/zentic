@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import type { JsonValue } from "@getpaseo/protocol/agent-types";
+import type { JsonValue } from "@getzentic/protocol/agent-types";
 import { applyMetadataPatch } from "@/composer/draft/metadata";
 import { branchNameFromRef, type PickerItem } from "../new-workspace-picker-item";
 import {
@@ -15,7 +15,7 @@ type Isolation = "local" | "worktree";
 interface SetupState {
   pickerSelection: PickerSelectionState;
   manualIsolation: Isolation | null;
-  /** The name for a new worktree branch; null lets Paseo pick one. */
+  /** The name for a new worktree branch; null lets Zentic pick one. */
   branch: string | null;
   /** The created workspace's metadata. */
   metadata: Readonly<Record<string, JsonValue>>;

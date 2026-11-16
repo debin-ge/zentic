@@ -35,7 +35,7 @@ interface CleanupTask {
 }
 
 const cleanupTasks: CleanupTask[] = [];
-const APP_SETTINGS_KEY = "@paseo:app-settings";
+const APP_SETTINGS_KEY = "@zentic:app-settings";
 
 function changesTree(page: Page) {
   return page.getByTestId("changes-file-tree").filter({ visible: true });
@@ -88,7 +88,7 @@ async function failNextDiscardRequest(page: Page): Promise<void> {
   });
 }
 
-const CHANGES_PREFERENCES_KEY = "@paseo:changes-preferences";
+const CHANGES_PREFERENCES_KEY = "@zentic:changes-preferences";
 
 const BEFORE = `import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
@@ -348,7 +348,7 @@ async function addOneLineToFirstFile(workspace: DirtyWorkspace): Promise<void> {
   await writeFile(file, (await readFile(file, "utf8")) + "export const refreshed = true;\n");
 }
 async function holdDiffCompletion(page: Page) {
-  const { decodeDiffFrame, DiffOpcode } = await import("@getpaseo/protocol/binary-frames/index");
+  const { decodeDiffFrame, DiffOpcode } = await import("@getzentic/protocol/binary-frames/index");
   let holding = true;
   let connections = 0;
   let completed = 0;
@@ -575,7 +575,7 @@ test("Changes shows the base as text on a host without the base-branch capabilit
   expect(baseRequests).toBe(0);
 });
 
-test("Changes shows no base on a checkout that is not a Paseo worktree", async ({ page }) => {
+test("Changes shows no base on a checkout that is not a Zentic worktree", async ({ page }) => {
   const workspace = await createWorkspaceWithCommittedDiff();
   await openWorkspaceChangesSurface(page, workspace);
   const header = page.getByTestId("changes-repository-header").filter({ visible: true });
@@ -1795,7 +1795,7 @@ async function holdBrowserFontLoads(page: Page): Promise<void> {
       },
     });
     Object.assign(window, {
-      __releasePaseoDiffFontLoads() {
+      __releaseZenticDiffFontLoads() {
         released = true;
         for (const release of pending.splice(0)) release();
       },
@@ -1806,8 +1806,8 @@ async function holdBrowserFontLoads(page: Page): Promise<void> {
 async function releaseBrowserFontLoads(page: Page): Promise<void> {
   await page.evaluate(() => {
     (
-      window as typeof window & { __releasePaseoDiffFontLoads: () => void }
-    ).__releasePaseoDiffFontLoads();
+      window as typeof window & { __releaseZenticDiffFontLoads: () => void }
+    ).__releaseZenticDiffFontLoads();
   });
 }
 

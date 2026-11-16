@@ -4,8 +4,8 @@ import {
   formatResolvedCommand,
   profileTakesPrompt,
   substitutePrompt,
-} from "@getpaseo/protocol/terminal-profiles";
-import type { TerminalProfile } from "@getpaseo/protocol/messages";
+} from "@getzentic/protocol/terminal-profiles";
+import type { TerminalProfile } from "@getzentic/protocol/messages";
 import { resolveLaunchProfile, type LaunchTarget } from "./target";
 
 export interface TerminalComposerState {

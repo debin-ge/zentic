@@ -6,23 +6,23 @@ import { parseOpenProjectPathFromArgv } from "./open-project-routing";
 
 describe("open-project-routing", () => {
   it("returns a bare absolute path argument", () => {
-    const projectPath = mkdtempSync(path.join(tmpdir(), "paseo-open-project-"));
+    const projectPath = mkdtempSync(path.join(tmpdir(), "zentic-open-project-"));
 
     expect(
       parseOpenProjectPathFromArgv({
-        argv: ["/Applications/Paseo.app/Contents/MacOS/Paseo", projectPath],
+        argv: ["/Applications/Zentic.app/Contents/MacOS/Zentic", projectPath],
         isDefaultApp: false,
       }),
     ).toBe(projectPath);
   });
 
   it("finds a bare absolute path even when Chromium noise args appear first", () => {
-    const projectPath = mkdtempSync(path.join(tmpdir(), "paseo-open-project-"));
+    const projectPath = mkdtempSync(path.join(tmpdir(), "zentic-open-project-"));
 
     expect(
       parseOpenProjectPathFromArgv({
         argv: [
-          "/Applications/Paseo.app/Contents/MacOS/Paseo",
+          "/Applications/Zentic.app/Contents/MacOS/Zentic",
           "--allow-file-access-from-files",
           "--no-sandbox",
           projectPath,
@@ -33,31 +33,31 @@ describe("open-project-routing", () => {
   });
 
   it("does not treat flags as project paths", () => {
-    const projectPath = mkdtempSync(path.join(tmpdir(), "paseo-open-project-"));
+    const projectPath = mkdtempSync(path.join(tmpdir(), "zentic-open-project-"));
     const flagLikeDirectory = path.join(projectPath, "--version");
     mkdirSync(flagLikeDirectory);
 
     expect(
       parseOpenProjectPathFromArgv({
-        argv: ["/Applications/Paseo.app/Contents/MacOS/Paseo", "--version", flagLikeDirectory],
+        argv: ["/Applications/Zentic.app/Contents/MacOS/Zentic", "--version", flagLikeDirectory],
         isDefaultApp: false,
       }),
     ).toBe(flagLikeDirectory);
 
     expect(
       parseOpenProjectPathFromArgv({
-        argv: ["/Applications/Paseo.app/Contents/MacOS/Paseo", "--version"],
+        argv: ["/Applications/Zentic.app/Contents/MacOS/Zentic", "--version"],
         isDefaultApp: false,
       }),
     ).toBeNull();
   });
 
   it("returns the path from an explicit --open-project flag for backward compatibility", () => {
-    const projectPath = mkdtempSync(path.join(tmpdir(), "paseo-open-project-"));
+    const projectPath = mkdtempSync(path.join(tmpdir(), "zentic-open-project-"));
 
     expect(
       parseOpenProjectPathFromArgv({
-        argv: ["/Applications/Paseo.app/Contents/MacOS/Paseo", "--open-project", projectPath],
+        argv: ["/Applications/Zentic.app/Contents/MacOS/Zentic", "--open-project", projectPath],
         isDefaultApp: false,
       }),
     ).toBe(projectPath);

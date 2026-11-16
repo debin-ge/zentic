@@ -9,10 +9,10 @@ describe("cli-install-path", () => {
       resolveCliInstallSourcePath({
         platform: "darwin",
         isPackaged: true,
-        executablePath: "/Applications/Paseo.app/Contents/MacOS/Paseo",
-        shimPath: "/Applications/Paseo.app/Contents/Resources/bin/paseo",
+        executablePath: "/Applications/Zentic.app/Contents/MacOS/Zentic",
+        shimPath: "/Applications/Zentic.app/Contents/Resources/bin/zentic",
       }),
-    ).toBe("/Applications/Paseo.app/Contents/Resources/bin/paseo");
+    ).toBe("/Applications/Zentic.app/Contents/Resources/bin/zentic");
   });
 
   it("prefers the original AppImage path on linux", () => {
@@ -20,11 +20,11 @@ describe("cli-install-path", () => {
       resolveCliInstallSourcePath({
         platform: "linux",
         isPackaged: true,
-        executablePath: "/tmp/.mount_paseo123/paseo",
-        shimPath: "/tmp/.mount_paseo123/resources/bin/paseo",
-        appImagePath: "/home/user/Applications/Paseo.AppImage",
+        executablePath: "/tmp/.mount_zentic123/zentic",
+        shimPath: "/tmp/.mount_zentic123/resources/bin/zentic",
+        appImagePath: "/home/user/Applications/Zentic.AppImage",
       }),
-    ).toBe("/home/user/Applications/Paseo.AppImage");
+    ).toBe("/home/user/Applications/Zentic.AppImage");
   });
 
   it("uses the bundled shim for packaged linux installs outside an AppImage", () => {
@@ -32,10 +32,10 @@ describe("cli-install-path", () => {
       resolveCliInstallSourcePath({
         platform: "linux",
         isPackaged: true,
-        executablePath: "/opt/Paseo/Paseo",
-        shimPath: "/opt/Paseo/resources/bin/paseo",
+        executablePath: "/opt/Zentic/Zentic",
+        shimPath: "/opt/Zentic/resources/bin/zentic",
       }),
-    ).toBe("/opt/Paseo/resources/bin/paseo");
+    ).toBe("/opt/Zentic/resources/bin/zentic");
   });
 
   it("falls back to the shim on windows and in development", () => {
@@ -43,25 +43,25 @@ describe("cli-install-path", () => {
       resolveCliInstallSourcePath({
         platform: "win32",
         isPackaged: true,
-        executablePath: "C:\\Users\\user\\AppData\\Local\\Programs\\Paseo\\Paseo.exe",
-        shimPath: "C:\\Users\\user\\AppData\\Local\\Programs\\Paseo\\resources\\bin\\paseo.cmd",
+        executablePath: "C:\\Users\\user\\AppData\\Local\\Programs\\Zentic\\Zentic.exe",
+        shimPath: "C:\\Users\\user\\AppData\\Local\\Programs\\Zentic\\resources\\bin\\zentic.cmd",
       }),
-    ).toBe("C:\\Users\\user\\AppData\\Local\\Programs\\Paseo\\resources\\bin\\paseo.cmd");
+    ).toBe("C:\\Users\\user\\AppData\\Local\\Programs\\Zentic\\resources\\bin\\zentic.cmd");
 
     expect(
       resolveCliInstallSourcePath({
         platform: "linux",
         isPackaged: false,
-        executablePath: "/opt/Paseo/paseo",
-        shimPath: "/opt/Paseo/resources/bin/paseo",
+        executablePath: "/opt/Zentic/zentic",
+        shimPath: "/opt/Zentic/resources/bin/zentic",
       }),
-    ).toBe("/opt/Paseo/resources/bin/paseo");
+    ).toBe("/opt/Zentic/resources/bin/zentic");
   });
 });
 
 describe("CLI executable selection", () => {
   const resolveWorkspaceCli = () =>
-    createRequire(import.meta.url).resolve("@getpaseo/cli/bin/paseo");
+    createRequire(import.meta.url).resolve("@getzentic/cli/bin/zentic");
 
   it("uses the workspace CLI for an unpackaged Electron launcher", () => {
     expect(
@@ -79,17 +79,17 @@ describe("CLI executable selection", () => {
       resolveCliShimPath({
         platform: "linux",
         isPackaged: true,
-        executablePath: "/opt/Paseo/paseo",
+        executablePath: "/opt/Zentic/zentic",
         resolveWorkspaceCli,
       }),
-    ).toBe(path.join("/opt/Paseo", "resources", "bin", "paseo"));
+    ).toBe(path.join("/opt/Zentic", "resources", "bin", "zentic"));
     expect(
       resolveCliShimPath({
         platform: "darwin",
         isPackaged: true,
-        executablePath: "/Applications/Paseo.app/Contents/MacOS/Paseo",
+        executablePath: "/Applications/Zentic.app/Contents/MacOS/Zentic",
         resolveWorkspaceCli,
       }),
-    ).toBe(path.join("/Applications/Paseo.app", "Contents", "Resources", "bin", "paseo"));
+    ).toBe(path.join("/Applications/Zentic.app", "Contents", "Resources", "bin", "zentic"));
   });
 });

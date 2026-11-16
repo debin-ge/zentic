@@ -1,9 +1,9 @@
-import { defineSubscription } from "@getpaseo/plugin";
-import type { PluginSubscriptionClosed } from "@getpaseo/plugin/client";
-import { subscribePluginRpc } from "@getpaseo/plugin/client/host";
-import type { DaemonClient } from "@getpaseo/client/internal/daemon-client";
-import type { SubscriptionObserver } from "@getpaseo/client";
-import type { SessionOutboundMessage } from "@getpaseo/protocol/messages";
+import { defineSubscription } from "@getzentic/plugin";
+import type { PluginSubscriptionClosed } from "@getzentic/plugin/client";
+import { subscribePluginRpc } from "@getzentic/plugin/client/host";
+import type { DaemonClient } from "@getzentic/client/internal/daemon-client";
+import type { SubscriptionObserver } from "@getzentic/client";
+import type { SessionOutboundMessage } from "@getzentic/protocol/messages";
 import { expect, it } from "vitest";
 import { z } from "zod";
 import { createPluginSubscribe } from "./subscriptions";

@@ -1,4 +1,4 @@
-import { MAX_RELAY_WEBSOCKET_MESSAGE_BYTES } from "@getpaseo/protocol/websocket-message-limit";
+import { MAX_RELAY_WEBSOCKET_MESSAGE_BYTES } from "@getzentic/protocol/websocket-message-limit";
 import { resolve, dirname, basename } from "path";
 import {
   open as openFile,
@@ -13,9 +13,9 @@ import {
 import { tmpdir } from "node:os";
 import { setImmediate } from "node:timers/promises";
 import { TTLCache } from "@isaacs/ttlcache";
-import type { CheckoutCommit, CheckoutCommitFile } from "@getpaseo/protocol/messages";
-import { parseGitHubRemoteIdentity, parseGitRemoteLocation } from "@getpaseo/protocol/git-remote";
-import { maxSecuredPlaintextByteLength } from "@getpaseo/relay";
+import type { CheckoutCommit, CheckoutCommitFile } from "@getzentic/protocol/messages";
+import { parseGitHubRemoteIdentity, parseGitRemoteLocation } from "@getzentic/protocol/git-remote";
+import { maxSecuredPlaintextByteLength } from "@getzentic/relay";
 import type { Logger } from "pino";
 import type { ParsedDiffFile } from "../server/utils/diff-highlighter.js";
 import {
@@ -42,16 +42,16 @@ import { parseGitRevParsePath, resolveGitRevParsePath } from "./git-rev-parse-pa
 import { runGitCommand, type RunGitCommand } from "./run-git-command.js";
 import { readGitFileContents, readGitFileContentAtRef } from "./git-file-contents.js";
 import { unquoteGitPath } from "./git-quoted-path.js";
-import { isPaseoOwnedWorktreeCwd, resolvePaseoWorktreesBaseRoot } from "./worktree.js";
+import { isZenticOwnedWorktreeCwd, resolveZenticWorktreesBaseRoot } from "./worktree.js";
 import {
   branchNameFromRef,
-  findPaseoWorktreeRootForCwd,
-  hasPaseoWorktreeMetadata,
-  getPaseoWorktreeChangeRequestHintForBranch,
-  type PaseoWorktreeMetadata,
-  readPaseoWorktreeMetadata,
-  rebindPaseoWorktreeChangeRequestHint,
-  setPaseoWorktreeBaseRef,
+  findZenticWorktreeRootForCwd,
+  hasZenticWorktreeMetadata,
+  getZenticWorktreeChangeRequestHintForBranch,
+  type ZenticWorktreeMetadata,
+  readZenticWorktreeMetadata,
+  rebindZenticWorktreeChangeRequestHint,
+  setZenticWorktreeBaseRef,
 } from "./worktree-metadata.js";
 const READ_ONLY_GIT_ENV = {
   GIT_OPTIONAL_LOCKS: "0",
@@ -887,7 +887,7 @@ export interface CheckoutStatus {
   isGit: false;
 }
 
-export interface CheckoutStatusGitNonPaseo {
+export interface CheckoutStatusGitNonZentic {
   isGit: true;
   repoRoot: string;
   mainRepoRoot: string | null;
@@ -905,10 +905,10 @@ export interface CheckoutStatusGitNonPaseo {
   behindOfOrigin: number | null;
   hasRemote: boolean;
   remoteUrl: string | null;
-  isPaseoOwnedWorktree: false;
+  isZenticOwnedWorktree: false;
 }
 
-export interface CheckoutStatusGitPaseo {
+export interface CheckoutStatusGitZentic {
   isGit: true;
   repoRoot: string;
   mainRepoRoot: string;
@@ -923,10 +923,10 @@ export interface CheckoutStatusGitPaseo {
   behindOfOrigin: number | null;
   hasRemote: boolean;
   remoteUrl: string | null;
-  isPaseoOwnedWorktree: true;
+  isZenticOwnedWorktree: true;
 }
 
-export type CheckoutStatusGit = CheckoutStatusGitNonPaseo | CheckoutStatusGitPaseo;
+export type CheckoutStatusGit = CheckoutStatusGitNonZentic | CheckoutStatusGitZentic;
 
 export type CheckoutStatusResult = CheckoutStatus | CheckoutStatusGit;
 
@@ -953,7 +953,7 @@ export interface MergeFromBaseOptions {
 }
 
 export interface CheckoutContext {
-  paseoHome?: string;
+  zenticHome?: string;
   worktreesRoot?: string;
   logger?: Pick<Logger, "trace" | "warn">;
   facts?: CheckoutSnapshotFacts | null;
@@ -971,7 +971,7 @@ export type CheckoutSnapshotFacts =
       remoteUrl: string | null;
       absoluteGitDir: string | null;
       gitCommonDir: string | null;
-      paseoWorktree: PaseoWorktreeForCwd;
+      zenticWorktree: ZenticWorktreeForCwd;
       storedBaseRef: string | null;
       resolvedBaseRef: string | null;
       mainRepoRoot: string | null;
@@ -1142,25 +1142,25 @@ async function getMainRepoRootFromCommonDir(
     },
   );
   const worktrees = parseWorktreeList(worktreeOut);
-  const paseoPaths = new Set(
+  const zenticPaths = new Set(
     (
       await Promise.all(
-        worktrees.map(async (wt) => ((await hasPaseoWorktreeMetadata(wt.path)) ? wt.path : null)),
+        worktrees.map(async (wt) => ((await hasZenticWorktreeMetadata(wt.path)) ? wt.path : null)),
       )
     ).filter((p) => p !== null),
   );
-  const nonBareNonPaseo = worktrees.filter(
+  const nonBareNonZentic = worktrees.filter(
     (wt) =>
       !wt.isBare &&
-      !paseoPaths.has(wt.path) &&
-      !isPaseoWorktreePath(wt.path, {
-        paseoHome: context?.paseoHome,
+      !zenticPaths.has(wt.path) &&
+      !isZenticWorktreePath(wt.path, {
+        zenticHome: context?.zenticHome,
         worktreesRoot: context?.worktreesRoot,
       }),
   );
-  const childrenOfBareRepo = nonBareNonPaseo.filter((wt) => isDescendantPath(wt.path, normalized));
+  const childrenOfBareRepo = nonBareNonZentic.filter((wt) => isDescendantPath(wt.path, normalized));
   const mainChild = childrenOfBareRepo.find((wt) => basename(wt.path) === "main");
-  return mainChild?.path ?? childrenOfBareRepo[0]?.path ?? nonBareNonPaseo[0]?.path ?? normalized;
+  return mainChild?.path ?? childrenOfBareRepo[0]?.path ?? nonBareNonZentic[0]?.path ?? normalized;
 }
 
 export interface GitWorktreeEntry {
@@ -1169,15 +1169,15 @@ export interface GitWorktreeEntry {
   isBare?: boolean;
 }
 
-/** Check whether a path is under Paseo's worktree root. */
-export function isPaseoWorktreePath(
+/** Check whether a path is under Zentic's worktree root. */
+export function isZenticWorktreePath(
   p: string,
-  options?: { paseoHome?: string; worktreesRoot?: string },
+  options?: { zenticHome?: string; worktreesRoot?: string },
 ): boolean {
-  if (options?.worktreesRoot || options?.paseoHome) {
-    return isDescendantPath(p, resolvePaseoWorktreesBaseRoot(options));
+  if (options?.worktreesRoot || options?.zenticHome) {
+    return isDescendantPath(p, resolveZenticWorktreesBaseRoot(options));
   }
-  return /[/\\]\.paseo[/\\]worktrees[/\\]/.test(p);
+  return /[/\\]\.zentic[/\\]worktrees[/\\]/.test(p);
 }
 
 /** True when `child` is strictly inside `parent` (handles both `/` and `\`). */
@@ -1261,53 +1261,53 @@ export async function renameCurrentBranch(
 
   const currentBranch = await getCurrentBranch(cwd);
   if (currentBranch) {
-    await rebindPaseoWorktreeChangeRequestHint(worktreeRoot, previousBranch, currentBranch);
+    await rebindZenticWorktreeChangeRequestHint(worktreeRoot, previousBranch, currentBranch);
   }
   return { previousBranch, currentBranch };
 }
 
-type PaseoWorktreeForCwd =
-  | { isPaseoOwnedWorktree: false }
-  | { isPaseoOwnedWorktree: true; worktreeRoot: string };
+type ZenticWorktreeForCwd =
+  | { isZenticOwnedWorktree: false }
+  | { isZenticOwnedWorktree: true; worktreeRoot: string };
 
-interface PaseoWorktreeLookupOptions {
+interface ZenticWorktreeLookupOptions {
   context?: CheckoutContext;
   knownWorktreeRoot?: string | null;
   knownGitCommonDir?: string | null;
 }
 
-async function getPaseoWorktreeForCwd(
+async function getZenticWorktreeForCwd(
   cwd: string,
-  options: PaseoWorktreeLookupOptions = {},
-): Promise<PaseoWorktreeForCwd> {
+  options: ZenticWorktreeLookupOptions = {},
+): Promise<ZenticWorktreeForCwd> {
   // Fast-path reject: non-worktree paths do not need expensive ownership checks.
-  if (!/[\\/]worktrees[\\/]/.test(cwd) && (await findPaseoWorktreeRootForCwd(cwd)) === null) {
-    return { isPaseoOwnedWorktree: false };
+  if (!/[\\/]worktrees[\\/]/.test(cwd) && (await findZenticWorktreeRootForCwd(cwd)) === null) {
+    return { isZenticOwnedWorktree: false };
   }
 
-  const ownership = await isPaseoOwnedWorktreeCwd(cwd, {
-    paseoHome: options.context?.paseoHome,
+  const ownership = await isZenticOwnedWorktreeCwd(cwd, {
+    zenticHome: options.context?.zenticHome,
     worktreesRoot: options.context?.worktreesRoot,
     knownGitCommonDir: options.knownGitCommonDir,
   });
   if (!ownership.allowed) {
-    return { isPaseoOwnedWorktree: false };
+    return { isZenticOwnedWorktree: false };
   }
 
   return {
-    isPaseoOwnedWorktree: true,
+    isZenticOwnedWorktree: true,
     worktreeRoot: options.knownWorktreeRoot ?? (await getWorktreeRoot(cwd, options.context)) ?? cwd,
   };
 }
 
 // Worktrees created before baseRef existed only stored the stripped name; it resolves
 // local-first, which is the base they were actually cut from.
-function storedBaseRefFromMetadata(metadata: PaseoWorktreeMetadata | null): string | null {
+function storedBaseRefFromMetadata(metadata: ZenticWorktreeMetadata | null): string | null {
   return metadata?.baseRef ?? metadata?.baseRefName ?? null;
 }
 
-async function readPaseoWorktreeBaseRef(worktreeRoot: string): Promise<string | null> {
-  return storedBaseRefFromMetadata(await readPaseoWorktreeMetadata(worktreeRoot));
+async function readZenticWorktreeBaseRef(worktreeRoot: string): Promise<string | null> {
+  return storedBaseRefFromMetadata(await readZenticWorktreeMetadata(worktreeRoot));
 }
 
 async function getStoredBaseRefForCwd(
@@ -1317,8 +1317,8 @@ async function getStoredBaseRefForCwd(
   if (context?.facts?.isGit) {
     return context.facts.storedBaseRef;
   }
-  const ownership = await getPaseoWorktreeForCwd(cwd, { context });
-  return ownership.isPaseoOwnedWorktree ? readPaseoWorktreeBaseRef(ownership.worktreeRoot) : null;
+  const ownership = await getZenticWorktreeForCwd(cwd, { context });
+  return ownership.isZenticOwnedWorktree ? readZenticWorktreeBaseRef(ownership.worktreeRoot) : null;
 }
 
 export async function setCheckoutBaseBranch(input: {
@@ -1327,8 +1327,8 @@ export async function setCheckoutBaseBranch(input: {
   context?: CheckoutContext;
 }): Promise<string> {
   await requireGitRepo(input.cwd);
-  const ownership = await getPaseoWorktreeForCwd(input.cwd, { context: input.context });
-  if (!ownership.isPaseoOwnedWorktree) throw new Error("Workspace is not a Paseo worktree");
+  const ownership = await getZenticWorktreeForCwd(input.cwd, { context: input.context });
+  if (!ownership.isZenticOwnedWorktree) throw new Error("Workspace is not a Zentic worktree");
   const requested = input.baseRef.trim();
   const qualified = requested.startsWith("refs/");
   const candidates = qualified
@@ -1343,7 +1343,7 @@ export async function setCheckoutBaseBranch(input: {
     if (valid.exitCode !== 0 || !(await doesGitRefExist(input.cwd, candidate))) continue;
     const worktreeRoot = await getWorktreeRoot(input.cwd);
     if (!worktreeRoot) throw new NotGitRepoError(input.cwd);
-    await setPaseoWorktreeBaseRef({ worktreeRoot, baseRef: candidate });
+    await setZenticWorktreeBaseRef({ worktreeRoot, baseRef: candidate });
     return candidate;
   }
   throw new Error(`Base branch not found: ${requested}`);
@@ -1921,7 +1921,7 @@ interface CheckoutInspectionContext {
   remoteUrl: string | null;
   absoluteGitDir: string | null;
   gitCommonDir: string | null;
-  paseoWorktree: PaseoWorktreeForCwd;
+  zenticWorktree: ZenticWorktreeForCwd;
 }
 
 async function inspectCheckoutContext(
@@ -1939,7 +1939,7 @@ async function inspectCheckoutContext(
     resolveAbsoluteGitDir(cwd, context),
     resolveGitCommonDir(cwd, context),
   ]);
-  const paseoWorktree = await getPaseoWorktreeForCwd(cwd, {
+  const zenticWorktree = await getZenticWorktreeForCwd(cwd, {
     context,
     knownWorktreeRoot: root,
     knownGitCommonDir: gitCommonDir,
@@ -1951,7 +1951,7 @@ async function inspectCheckoutContext(
     remoteUrl,
     absoluteGitDir,
     gitCommonDir,
-    paseoWorktree,
+    zenticWorktree,
   };
 }
 
@@ -2043,10 +2043,10 @@ function buildPullRequestLookupTargetFromPushConfig(
 }
 
 function buildPullRequestLookupTargetFromMetadata(
-  metadata: PaseoWorktreeMetadata | null,
+  metadata: ZenticWorktreeMetadata | null,
   currentBranch: string,
 ): PullRequestStatusLookupTarget | null {
-  const target = getPaseoWorktreeChangeRequestHintForBranch(metadata, currentBranch);
+  const target = getZenticWorktreeChangeRequestHintForBranch(metadata, currentBranch);
   if (!target) {
     return null;
   }
@@ -2127,7 +2127,7 @@ async function resolvePullRequestLookupTargetFromPushConfig(
 async function resolveFactsPullRequestLookupTarget(input: {
   cwd: string;
   inspected: CheckoutInspectionContext;
-  metadata: PaseoWorktreeMetadata | null;
+  metadata: ZenticWorktreeMetadata | null;
   branchRemoteName: string | null;
   branchMergeRef: string | null;
   branchRemoteUrl: string | null;
@@ -2180,10 +2180,10 @@ export async function getCheckoutSnapshotFacts(
     return { isGit: false };
   }
 
-  const paseoWorktreeMetadata = inspected.paseoWorktree.isPaseoOwnedWorktree
-    ? await readPaseoWorktreeMetadata(inspected.paseoWorktree.worktreeRoot)
+  const zenticWorktreeMetadata = inspected.zenticWorktree.isZenticOwnedWorktree
+    ? await readZenticWorktreeMetadata(inspected.zenticWorktree.worktreeRoot)
     : null;
-  const storedBaseRef = storedBaseRefFromMetadata(paseoWorktreeMetadata);
+  const storedBaseRef = storedBaseRefFromMetadata(zenticWorktreeMetadata);
   const resolvedBaseRef = storedBaseRef ?? (await resolveBaseRef(cwd, context));
   const mainRepoRoot = await getMainRepoRootFromCommonDir(
     cwd,
@@ -2226,7 +2226,7 @@ export async function getCheckoutSnapshotFacts(
   let pullRequestLookupTarget = await resolveFactsPullRequestLookupTarget({
     cwd,
     inspected,
-    metadata: paseoWorktreeMetadata,
+    metadata: zenticWorktreeMetadata,
     branchRemoteName,
     branchMergeRef,
     branchRemoteUrl,
@@ -2247,7 +2247,7 @@ export async function getCheckoutSnapshotFacts(
     remoteUrl: inspected.remoteUrl,
     absoluteGitDir: inspected.absoluteGitDir,
     gitCommonDir: inspected.gitCommonDir,
-    paseoWorktree: inspected.paseoWorktree,
+    zenticWorktree: inspected.zenticWorktree,
     storedBaseRef,
     resolvedBaseRef,
     mainRepoRoot,
@@ -2262,7 +2262,7 @@ export async function getCheckoutSnapshotFacts(
 export const PER_FILE_DIFF_MAX_BYTES = 1024 * 1024; // 1MB
 export const TOTAL_DIFF_MAX_BYTES = 2 * 1024 * 1024; // 2MB
 const CHECKOUT_DIFF_FRAME_HEADROOM_BYTES = 1024 * 1024;
-// Temporary until diffs load lazily per file. The Paseo relay's 32 MiB frame limit is
+// Temporary until diffs load lazily per file. The Zentic relay's 32 MiB frame limit is
 // binding: string frames are encrypted and base64-encoded. Reserve 1 MiB plaintext for
 // the surrounding WebSocket JSON envelope after inverting that exact wire expansion.
 export const CHECKOUT_DIFF_MAX_STRUCTURED_BYTES =
@@ -2413,7 +2413,7 @@ export async function getCheckoutStatus(
   const worktreeRoot = facts.worktreeRoot;
   const currentBranch = facts.currentBranch;
   const remoteUrl = facts.remoteUrl;
-  const paseoWorktree = facts.paseoWorktree;
+  const zenticWorktree = facts.zenticWorktree;
   const isDirty = await isWorkingTreeDirty(cwd, context);
   const hasRemote = remoteUrl !== null;
   const baseRef = facts.resolvedBaseRef;
@@ -2436,7 +2436,7 @@ export async function getCheckoutStatus(
   const aheadOfOrigin = upstreamStatus?.aheadBehind.ahead ?? null;
   const behindOfOrigin = upstreamStatus?.aheadBehind.behind ?? null;
 
-  if (paseoWorktree.isPaseoOwnedWorktree && baseRef) {
+  if (zenticWorktree.isZenticOwnedWorktree && baseRef) {
     return {
       isGit: true,
       repoRoot: worktreeRoot,
@@ -2452,7 +2452,7 @@ export async function getCheckoutStatus(
       behindOfOrigin,
       hasRemote,
       remoteUrl,
-      isPaseoOwnedWorktree: true,
+      isZenticOwnedWorktree: true,
     };
   }
 
@@ -2472,7 +2472,7 @@ export async function getCheckoutStatus(
     behindOfOrigin,
     hasRemote,
     remoteUrl,
-    isPaseoOwnedWorktree: false,
+    isZenticOwnedWorktree: false,
   };
 }
 
@@ -3666,7 +3666,7 @@ export async function prepareAllChangesIndex(cwd: string, baseRef: string) {
 // write-tree rewrites its index. A private snapshot prevents an index read from
 // invalidating the observation that requested it.
 export async function snapshotComparisonIndex(cwd: string) {
-  const directory = await mkdtemp(resolve(tmpdir(), "paseo-comparison-index-"));
+  const directory = await mkdtemp(resolve(tmpdir(), "zentic-comparison-index-"));
   const indexFile = resolve(directory, "index");
   try {
     const index = await runGitCommand(["rev-parse", "--git-path", "index"], {
@@ -4525,7 +4525,7 @@ function getUnavailablePullRequestStatus(
   }
   if (
     facts?.isGit === true &&
-    facts.paseoWorktree.isPaseoOwnedWorktree &&
+    facts.zenticWorktree.isZenticOwnedWorktree &&
     facts.pullRequestLookupTarget === null
   ) {
     return buildPullRequestStatusResult(null, "authenticated");

@@ -1,9 +1,9 @@
-import type { DiffState, DiffEntry } from "@getpaseo/client";
+import type { DiffState, DiffEntry } from "@getzentic/client";
 import type {
   DiffError,
   ParsedDiffFile,
   SubscribeCheckoutDiffRequest,
-} from "@getpaseo/protocol/messages";
+} from "@getzentic/protocol/messages";
 export type DiffFileHeader = Omit<ParsedDiffFile, "hunks">;
 export interface CheckoutDiffSnapshot {
   requestId: string;

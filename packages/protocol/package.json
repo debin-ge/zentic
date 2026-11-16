@@ -1,7 +1,7 @@
 {
-  "name": "@getpaseo/protocol",
+  "name": "@getzentic/protocol",
   "version": "0.16.0-beta.2",
-  "description": "Paseo shared protocol schemas and wire types",
+  "description": "Zentic shared protocol schemas and wire types",
   "license": "Apache-2.0",
   "files": [
     "dist",

@@ -1,13 +1,13 @@
-import type { CreatePaseoWorktreeInput } from "../paseo-worktree-service.js";
+import type { CreateZenticWorktreeInput } from "../zentic-worktree-service.js";
 import { randomUUID } from "node:crypto";
 import type pino from "pino";
 
 import type { ForgeService } from "../../services/forge-service.js";
-import { isPaseoOwnedWorktreeCwd } from "../../utils/worktree.js";
+import { isZenticOwnedWorktreeCwd } from "../../utils/worktree.js";
 import { archiveByScope, type ActiveWorkspaceRef } from "../workspace-archive-service.js";
 import type {
-  CreatePaseoWorktreeWorkflowFn,
-  CreatePaseoWorktreeWorkflowResult,
+  CreateZenticWorktreeWorkflowFn,
+  CreateZenticWorktreeWorkflowResult,
 } from "../worktree-session.js";
 import type { WorkspaceGitService } from "../workspace-git-service.js";
 import type {
@@ -19,13 +19,13 @@ import type { AgentManager, AgentSubscriber, SubscribeOptions } from "./agent-ma
 import type { AgentStorage } from "./agent-storage.js";
 
 interface CreateAgentLifecycleDispatchDependencies {
-  paseoHome: string;
+  zenticHome: string;
   worktreesRoot?: string;
   agentManager: AgentManager;
   agentStorage: AgentStorage;
   github: ForgeService;
   workspaceGitService: WorkspaceGitService;
-  createPaseoWorktreeWorkflow: CreatePaseoWorktreeWorkflowFn;
+  createZenticWorktreeWorkflow: CreateZenticWorktreeWorkflowFn;
   archiveAgentForClose: (agentId: string) => Promise<unknown>;
   findWorkspaceIdForCwd: (cwd: string) => Promise<string | null>;
   listActiveWorkspaces: () => Promise<ActiveWorkspaceRef[]>;
@@ -51,7 +51,7 @@ const inactiveRegistration: LifecycleRegistration = { cancel: async () => undefi
 
 type AutoArchiveTarget =
   | { kind: "agent-only" }
-  | { kind: "created-worktree"; result: CreatePaseoWorktreeWorkflowResult };
+  | { kind: "created-worktree"; result: CreateZenticWorktreeWorkflowResult };
 
 export class CreateAgentLifecycleDispatch {
   private readonly autoArchiveAgentIds = new Set<string>();
@@ -64,10 +64,10 @@ export class CreateAgentLifecycleDispatch {
     firstAgentContext: FirstAgentContext;
     background?: boolean;
     callerWorkspaceId?: string;
-  }): Promise<CreatePaseoWorktreeWorkflowResult | null> {
+  }): Promise<CreateZenticWorktreeWorkflowResult | null> {
     const target = input.target;
     if (!target) return null;
-    const placement: CreatePaseoWorktreeInput = { cwd: input.cwd };
+    const placement: CreateZenticWorktreeInput = { cwd: input.cwd };
     switch (target.mode) {
       case "branch-off":
         placement.action = "branch-off";
@@ -83,13 +83,13 @@ export class CreateAgentLifecycleDispatch {
         break;
     }
     const base = target.mode === "branch-off" ? target.base : undefined;
-    return this.dependencies.createPaseoWorktreeWorkflow(
+    return this.dependencies.createZenticWorktreeWorkflow(
       {
         ...placement,
         background: input.background,
         callerWorkspaceId: input.callerWorkspaceId,
         firstAgentContext: input.firstAgentContext,
-        paseoHome: this.dependencies.paseoHome,
+        zenticHome: this.dependencies.zenticHome,
         worktreesRoot: this.dependencies.worktreesRoot,
       },
       base ? { resolveDefaultBranch: async () => base } : undefined,
@@ -99,7 +99,7 @@ export class CreateAgentLifecycleDispatch {
   registerAutoArchiveIfRequested(input: {
     autoArchive: boolean | undefined;
     agentId: string;
-    createdWorktree: CreatePaseoWorktreeWorkflowResult | null;
+    createdWorktree: CreateZenticWorktreeWorkflowResult | null;
   }): LifecycleRegistration {
     if (input.autoArchive !== true) {
       return inactiveRegistration;
@@ -112,7 +112,7 @@ export class CreateAgentLifecycleDispatch {
   }
 
   async cleanupCreatedWorktreeAfterFailedAgentCreate(input: {
-    createdWorktree: CreatePaseoWorktreeWorkflowResult | null;
+    createdWorktree: CreateZenticWorktreeWorkflowResult | null;
     createdAgentId: string | null;
   }): Promise<void> {
     const { createdWorktree, createdAgentId } = input;
@@ -168,22 +168,22 @@ export class CreateAgentLifecycleDispatch {
 
   private async archiveAutoCreatedWorktree(options: {
     agentId: string | null;
-    createdWorktree: CreatePaseoWorktreeWorkflowResult;
+    createdWorktree: CreateZenticWorktreeWorkflowResult;
   }): Promise<void> {
     const { createdWorktree } = options;
     const worktreePath = createdWorktree.worktree.worktreePath;
-    const ownership = await isPaseoOwnedWorktreeCwd(worktreePath, {
-      paseoHome: this.dependencies.paseoHome,
+    const ownership = await isZenticOwnedWorktreeCwd(worktreePath, {
+      zenticHome: this.dependencies.zenticHome,
       worktreesRoot: this.dependencies.worktreesRoot,
     });
     if (!ownership.allowed) {
-      throw new Error("Auto-created worktree is not a Paseo-owned worktree");
+      throw new Error("Auto-created worktree is not a Zentic-owned worktree");
     }
 
     await archiveByScope(
       {
-        paseoHome: this.dependencies.paseoHome,
-        paseoWorktreesBaseRoot: this.dependencies.worktreesRoot,
+        zenticHome: this.dependencies.zenticHome,
+        zenticWorktreesBaseRoot: this.dependencies.worktreesRoot,
         github: this.dependencies.github,
         workspaceGitService: this.dependencies.workspaceGitService,
         agentManager: this.dependencies.agentManager,
@@ -247,7 +247,7 @@ export function registerAgentAutoArchive(input: {
 }
 
 function toAutoArchiveTarget(
-  createdWorktree: CreatePaseoWorktreeWorkflowResult | null,
+  createdWorktree: CreateZenticWorktreeWorkflowResult | null,
 ): AutoArchiveTarget {
   return createdWorktree
     ? { kind: "created-worktree", result: createdWorktree }

@@ -1,7 +1,7 @@
-import type { PaseoTerminal } from "@getpaseo/client";
+import type { ZenticTerminal } from "@getzentic/client";
 import type { OutputSchema } from "../../output/index.js";
 
-export type TerminalRow = PaseoTerminal;
+export type TerminalRow = ZenticTerminal;
 
 export interface TerminalKillRow {
   terminalId: string;

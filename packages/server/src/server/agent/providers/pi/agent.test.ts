@@ -85,7 +85,7 @@ function rewindCapabilities(capabilities: PiRpcAgentSession["capabilities"]) {
 function createConfig(overrides: Partial<AgentSessionConfig> = {}): AgentSessionConfig {
   return {
     provider: "pi",
-    cwd: "/tmp/paseo-pi-rpc-test",
+    cwd: "/tmp/zentic-pi-rpc-test",
     ...overrides,
   };
 }
@@ -123,7 +123,7 @@ function readUtf8File(pathname: string): string {
   }
 }
 
-type PaseoExtensionListener = (event: unknown, context?: unknown) => unknown;
+type ZenticExtensionListener = (event: unknown, context?: unknown) => unknown;
 
 interface PiSessionEntry {
   type: "message";
@@ -146,19 +146,19 @@ function piAssistantEntry(id: string, parentId: string): PiSessionEntry {
 }
 
 function parseEntryCapture(notification: string): unknown {
-  const prefix = "PASEO_ENTRY_CAPTURE ";
+  const prefix = "ZENTIC_ENTRY_CAPTURE ";
   expect(notification.startsWith(prefix)).toBe(true);
   return JSON.parse(notification.slice(prefix.length));
 }
 
-async function loadPaseoExtensionListeners(
+async function loadZenticExtensionListeners(
   extensionPath: string,
   registerMcpServer: (name: string, config: unknown) => void = () => undefined,
-): Promise<Map<string, PaseoExtensionListener>> {
-  const listeners = new Map<string, PaseoExtensionListener>();
+): Promise<Map<string, ZenticExtensionListener>> {
+  const listeners = new Map<string, ZenticExtensionListener>();
   const extension = (await import(pathToFileURL(extensionPath).href)) as {
     default: (piApi: {
-      on: (event: string, listener: PaseoExtensionListener) => void;
+      on: (event: string, listener: ZenticExtensionListener) => void;
       events: { on: () => void };
       registerCommand: () => void;
       registerMcpServer: (name: string, config: unknown) => void;
@@ -175,17 +175,17 @@ async function loadPaseoExtensionListeners(
 
 async function readRegisteredMcpServers(extensionPath: string): Promise<Record<string, unknown>> {
   const servers: Record<string, unknown> = {};
-  await loadPaseoExtensionListeners(extensionPath, (name, config) => {
+  await loadZenticExtensionListeners(extensionPath, (name, config) => {
     servers[name] = config;
   });
   return servers;
 }
 
-async function applyPaseoExtensionSystemPrompt(
+async function applyZenticExtensionSystemPrompt(
   extensionPath: string,
   systemPrompt: string,
 ): Promise<string | undefined> {
-  const listeners = await loadPaseoExtensionListeners(extensionPath);
+  const listeners = await loadZenticExtensionListeners(extensionPath);
   const result = await listeners.get("before_agent_start")?.({ systemPrompt });
   return (result as { systemPrompt?: string } | undefined)?.systemPrompt;
 }
@@ -1808,7 +1808,7 @@ describe("PiRpcAgentSession", () => {
     const session = await client.createSession(createConfig());
     const extensionPath = pi.recordedLaunches[0]?.extensionPaths[0];
     expect(extensionPath).toBeDefined();
-    const listeners = await loadPaseoExtensionListeners(extensionPath!);
+    const listeners = await loadZenticExtensionListeners(extensionPath!);
     const submittedMessage = { role: "user", content: "new prompt" };
     const entries: Array<{
       type: string;
@@ -1842,7 +1842,7 @@ describe("PiRpcAgentSession", () => {
     );
 
     expect(notifications).toEqual([
-      'PASEO_SUBMITTED_USER_ENTRY {"entry":{"id":"entry-new","parentId":"entry-old-assistant","text":"new prompt"}}',
+      'ZENTIC_SUBMITTED_USER_ENTRY {"entry":{"id":"entry-new","parentId":"entry-old-assistant","text":"new prompt"}}',
     ]);
 
     await session.close();
@@ -1852,7 +1852,9 @@ describe("PiRpcAgentSession", () => {
     const pi = new FakePi();
     const session = await createClient(pi).createSession(createConfig());
     onTestFinished(() => session.close());
-    const listeners = await loadPaseoExtensionListeners(pi.recordedLaunches[0]!.extensionPaths[0]!);
+    const listeners = await loadZenticExtensionListeners(
+      pi.recordedLaunches[0]!.extensionPaths[0]!,
+    );
     // "abandoned" was rewound; "two" was sent from the same parent afterwards.
     const entries = [
       piUserEntry({ id: "one", parentId: null, text: "first" }),
@@ -1897,7 +1899,7 @@ describe("PiRpcAgentSession", () => {
 
     const actualLaunch = pi.recordedLaunches[0]!;
     expect(actualLaunch).toMatchObject({
-      cwd: "/tmp/paseo-pi-rpc-test",
+      cwd: "/tmp/zentic-pi-rpc-test",
     });
     expect(actualLaunch.extensionPaths).toHaveLength(1);
     expect(actualLaunch.argv).toEqual([
@@ -1909,7 +1911,7 @@ describe("PiRpcAgentSession", () => {
     ]);
 
     await expect(
-      applyPaseoExtensionSystemPrompt(actualLaunch.extensionPaths[0]!, "Pi project prompt"),
+      applyZenticExtensionSystemPrompt(actualLaunch.extensionPaths[0]!, "Pi project prompt"),
     ).resolves.toBe("Pi project prompt\n\nAgent prompt\n\nDaemon prompt");
 
     await session.close();
@@ -1955,7 +1957,7 @@ describe("PiRpcAgentSession", () => {
       actualLaunch.extensionPaths[0],
     ]);
     await expect(
-      applyPaseoExtensionSystemPrompt(actualLaunch.extensionPaths[0]!, "Pi project prompt"),
+      applyZenticExtensionSystemPrompt(actualLaunch.extensionPaths[0]!, "Pi project prompt"),
     ).resolves.toBe("Pi project prompt\n\nAgent prompt\n\nDaemon prompt");
   });
 
@@ -2016,7 +2018,7 @@ describe("PiRpcAgentSession", () => {
 
     expect(fakeSession.setModelRequests).toEqual([{ provider: "kimi-coding", modelId: "kimi-k3" }]);
     expect(session.describePersistence()?.metadata).toEqual({
-      cwd: "/tmp/paseo-pi-rpc-test",
+      cwd: "/tmp/zentic-pi-rpc-test",
       model: "kimi-coding/kimi-k3",
       thinkingOptionId: "high",
     });
@@ -2124,7 +2126,7 @@ describe("PiRpcAgentSession", () => {
       imagePath = prompt.message.match(/\[Image available at: (.+)\]/)?.[1];
       expect(imagePath).toBeTypeOf("string");
       expect(imagePath).toMatch(
-        /paseo-attachments(?:-[^\\/]+)?[\\/](?:[^\\/]+[\\/])?[0-9a-f]{64}\.png$/,
+        /zentic-attachments(?:-[^\\/]+)?[\\/](?:[^\\/]+[\\/])?[0-9a-f]{64}\.png$/,
       );
       expect(existsSync(imagePath!)).toBe(true);
     } finally {
@@ -2725,7 +2727,7 @@ describe("PiRpcAgentSession steering", () => {
 
 describe("PiRpcAgentClient", () => {
   test("lists JSONL persisted sessions from configured provider params", async () => {
-    const root = mkdtempSync(path.join(tmpdir(), "paseo-pi-sessions-"));
+    const root = mkdtempSync(path.join(tmpdir(), "zentic-pi-sessions-"));
     const cwd = path.join(root, "workspace");
     const otherCwd = path.join(root, "other");
     const sessionsDir = path.join(root, "sessions");
@@ -2787,7 +2789,7 @@ describe("PiRpcAgentClient", () => {
   });
 
   test("lists JSONL persisted sessions from Pi's configured agent directory", async () => {
-    const root = mkdtempSync(path.join(tmpdir(), "paseo-pi-default-sessions-"));
+    const root = mkdtempSync(path.join(tmpdir(), "zentic-pi-default-sessions-"));
     const cwd = path.join(root, "workspace");
     const agentDir = path.join(root, ".pi", "agent");
     const sessionsDir = path.join(agentDir, "sessions");
@@ -2836,7 +2838,7 @@ describe("PiRpcAgentClient", () => {
   });
 
   test("imports JSONL sessions with the recorded model and thinking level", async () => {
-    const root = mkdtempSync(path.join(tmpdir(), "paseo-pi-import-config-"));
+    const root = mkdtempSync(path.join(tmpdir(), "zentic-pi-import-config-"));
     const cwd = path.join(root, "workspace");
     const sessionsDir = path.join(root, "sessions");
     mkdirSync(cwd, { recursive: true });
@@ -3089,7 +3091,7 @@ describe("PiRpcAgentClient", () => {
     expect(pi.recordedLaunches).toHaveLength(0);
   });
 
-  test("maps extension, prompt, and skill commands to Paseo slash commands", async () => {
+  test("maps extension, prompt, and skill commands to Zentic slash commands", async () => {
     const { pi, session } = await createSession();
     pi.latestSession().commands = [
       { name: "review", description: "Review changes", source: "extension" },
@@ -3415,7 +3417,7 @@ describe("PiRpcAgentClient", () => {
   });
 
   test("injects MCP servers without replacing the Pi global MCP config", async () => {
-    const agentDir = mkdtempSync(path.join(tmpdir(), "paseo-pi-agent-"));
+    const agentDir = mkdtempSync(path.join(tmpdir(), "zentic-pi-agent-"));
     onTestFinished(() => rmSync(agentDir, { recursive: true, force: true }));
     writeFileSync(
       path.join(agentDir, "mcp.json"),
@@ -3443,7 +3445,7 @@ describe("PiRpcAgentClient", () => {
     const session = await client.createSession(
       createConfig({
         mcpServers: {
-          paseo: {
+          zentic: {
             type: "http",
             url: "http://127.0.0.1:6767/mcp/agents?callerAgentId=agent-1",
           },
@@ -3460,7 +3462,7 @@ describe("PiRpcAgentClient", () => {
 
     expect(pi.recordedLaunches).toHaveLength(2);
     expect(pi.recordedLaunches[0]).toMatchObject({
-      cwd: "/tmp/paseo-pi-rpc-test",
+      cwd: "/tmp/zentic-pi-rpc-test",
       argv: ["pi", "--mode", "rpc"],
     });
     const actualLaunch = pi.recordedLaunches[1]!;
@@ -3488,7 +3490,7 @@ describe("PiRpcAgentClient", () => {
           url: "https://example.com/mcp/brave",
           directTools: ["brave_llm_context"],
         },
-        paseo: {
+        zentic: {
           url: "http://127.0.0.1:6767/mcp/agents?callerAgentId=agent-1",
           auth: false,
           oauth: false,
@@ -3506,7 +3508,7 @@ describe("PiRpcAgentClient", () => {
   });
 
   test("reports the path of a malformed Pi global MCP config", async () => {
-    const agentDir = mkdtempSync(path.join(tmpdir(), "paseo-pi-agent-"));
+    const agentDir = mkdtempSync(path.join(tmpdir(), "zentic-pi-agent-"));
     onTestFinished(() => rmSync(agentDir, { recursive: true, force: true }));
     const configPath = path.join(agentDir, "mcp.json");
     writeFileSync(configPath, "{ invalid");
@@ -3518,7 +3520,7 @@ describe("PiRpcAgentClient", () => {
       client.createSession(
         createConfig({
           mcpServers: {
-            paseo: { type: "http", url: "http://127.0.0.1:6767/mcp/agents" },
+            zentic: { type: "http", url: "http://127.0.0.1:6767/mcp/agents" },
           },
         }),
         { env: { PI_CODING_AGENT_DIR: agentDir } },
@@ -3538,7 +3540,7 @@ describe("PiRpcAgentClient", () => {
     const session = await createClient(pi).createSession(
       createConfig({
         mcpServers: {
-          paseo: {
+          zentic: {
             type: "http",
             url: "http://127.0.0.1:6767/mcp/agents?callerAgentId=agent-1",
             headers: { Authorization: "Bearer token" },
@@ -3553,7 +3555,7 @@ describe("PiRpcAgentClient", () => {
     expect(actualLaunch.argv).not.toContain("--mcp-config");
     const extensionPath = actualLaunch.extensionPaths[0]!;
     expect(await readRegisteredMcpServers(extensionPath)).toEqual({
-      paseo: {
+      zentic: {
         url: "http://127.0.0.1:6767/mcp/agents?callerAgentId=agent-1",
         headers: { Authorization: "Bearer token" },
       },
@@ -3574,7 +3576,7 @@ describe("PiRpcAgentClient", () => {
     pi.queueCommands([{ name: "mcp", source: "extension", sourceInfo: { path: "builtin:mcp" } }]);
     const session = await client.resumeSession(persistence, {
       mcpServers: {
-        paseo: { type: "http", url: "http://127.0.0.1:7777/mcp/agents?callerAgentId=agent-2" },
+        zentic: { type: "http", url: "http://127.0.0.1:7777/mcp/agents?callerAgentId=agent-2" },
       },
     });
     onTestFinished(() => session.close());
@@ -3584,12 +3586,12 @@ describe("PiRpcAgentClient", () => {
     expect(actualLaunch.session).toBe(persistence.nativeHandle);
     expect(actualLaunch.argv).not.toContain("--mcp-config");
     expect(await readRegisteredMcpServers(actualLaunch.extensionPaths[0]!)).toEqual({
-      paseo: { url: "http://127.0.0.1:7777/mcp/agents?callerAgentId=agent-2" },
+      zentic: { url: "http://127.0.0.1:7777/mcp/agents?callerAgentId=agent-2" },
     });
   });
 
   test("uses pi-mcp-adapter when it replaces Pi's built-in MCP", async () => {
-    const agentDir = mkdtempSync(path.join(tmpdir(), "paseo-pi-agent-"));
+    const agentDir = mkdtempSync(path.join(tmpdir(), "zentic-pi-agent-"));
     onTestFinished(() => rmSync(agentDir, { recursive: true, force: true }));
     const pi = new FakePi();
     pi.queueCommands([
@@ -3598,7 +3600,7 @@ describe("PiRpcAgentClient", () => {
     ]);
     const session = await createClient(pi).createSession(
       createConfig({
-        mcpServers: { paseo: { type: "http", url: "http://127.0.0.1:6767/mcp/agents" } },
+        mcpServers: { zentic: { type: "http", url: "http://127.0.0.1:6767/mcp/agents" } },
       }),
       { env: { PI_CODING_AGENT_DIR: agentDir } },
     );
@@ -3630,7 +3632,7 @@ describe("PiRpcAgentClient", () => {
     const session = await client.createSession(
       createConfig({
         mcpServers: {
-          paseo: {
+          zentic: {
             type: "http",
             url: "http://127.0.0.1:6767/mcp/agents?callerAgentId=agent-1",
           },
@@ -3659,8 +3661,8 @@ describe("PiRpcAgentClient history resume", () => {
     source: "extension",
     sourceInfo: { path: "builtin:mcp" },
   } as const;
-  const PASEO_MCP_SERVERS = {
-    paseo: { type: "http", url: "http://127.0.0.1:6767/mcp/agents" },
+  const ZENTIC_MCP_SERVERS = {
+    zentic: { type: "http", url: "http://127.0.0.1:6767/mcp/agents" },
   } as const;
 
   interface ArchivedPiSession {
@@ -3677,7 +3679,7 @@ describe("PiRpcAgentClient history resume", () => {
   }
 
   function createDeletedFolder(): string {
-    const folder = mkdtempSync(path.join(tmpdir(), "paseo-pi-deleted-cwd-"));
+    const folder = mkdtempSync(path.join(tmpdir(), "zentic-pi-deleted-cwd-"));
     rmSync(folder, { recursive: true, force: true });
     return folder;
   }
@@ -3690,13 +3692,13 @@ describe("PiRpcAgentClient history resume", () => {
   }
 
   function createExistingFolder(): string {
-    const folder = mkdtempSync(path.join(tmpdir(), "paseo-pi-existing-cwd-"));
+    const folder = mkdtempSync(path.join(tmpdir(), "zentic-pi-existing-cwd-"));
     onTestFinished(() => rmSync(folder, { recursive: true, force: true }));
     return folder;
   }
 
   function writeArchivedSession(cwd: string, metadata: { model?: string } = {}): ArchivedPiSession {
-    const dir = mkdtempSync(path.join(tmpdir(), "paseo-pi-archived-session-"));
+    const dir = mkdtempSync(path.join(tmpdir(), "zentic-pi-archived-session-"));
     onTestFinished(() => rmSync(dir, { recursive: true, force: true }));
     const sessionFile = path.join(dir, "2026-01-01_pi-session-1.jsonl");
     const header = {
@@ -3759,7 +3761,7 @@ describe("PiRpcAgentClient history resume", () => {
     command: [string, ...string[]];
     readLaunches: () => Array<{ cwd: string; session: string | null }>;
   } {
-    const dir = mkdtempSync(path.join(tmpdir(), "paseo-pi-process-"));
+    const dir = mkdtempSync(path.join(tmpdir(), "zentic-pi-process-"));
     onTestFinished(() => rmSync(dir, { recursive: true, force: true }));
     const scriptPath = path.join(dir, "fake-pi.cjs");
     const launchesPath = path.join(dir, "launches.jsonl");
@@ -3911,7 +3913,7 @@ readline.createInterface({ input: process.stdin }).on("line", (line) => {
     pi.queueCommands([BUILTIN_MCP_COMMAND]);
 
     const session = await resumeArchived(createClient(pi), archived, "history", {
-      mcpServers: PASEO_MCP_SERVERS,
+      mcpServers: ZENTIC_MCP_SERVERS,
     });
     onTestFinished(() => session.close());
 
@@ -3952,7 +3954,7 @@ readline.createInterface({ input: process.stdin }).on("line", (line) => {
     });
 
     const session = await resumeArchived(client, archived, "history", {
-      mcpServers: PASEO_MCP_SERVERS,
+      mcpServers: ZENTIC_MCP_SERVERS,
     });
     onTestFinished(() => session.close());
 

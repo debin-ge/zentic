@@ -1,30 +1,30 @@
 import type { AttachedAgentTool, PluginAgentToolsRuntime } from "../plugins/agent-tools.js";
 import { ProviderOptionsValidationError } from "./provider-options.js";
-import type { AgentToolResult } from "@getpaseo/plugin/server";
+import type { AgentToolResult } from "@getzentic/plugin/server";
 import type { RuntimeCleanupCandidate } from "./idle-runtime-cleanup/index.js";
 import { AgentNotFoundError, ensureAgentLoaded } from "./agent-loading.js";
 import { projectTimelineRows } from "./timeline-projection.js";
 import type { PluginLifecycle } from "../plugins/lifecycle/index.js";
 import { describeHookAgent, publishAgentStream } from "../plugins/lifecycle/index.js";
 import { applyRecordPatch } from "../record-patch.js";
-import type { PluginSessionOpenRequest } from "@getpaseo/plugin/server";
+import type { PluginSessionOpenRequest } from "@getzentic/plugin/server";
 import { randomUUID } from "node:crypto";
 import { basename, resolve } from "node:path";
 import { stat } from "node:fs/promises";
 import {
   AGENT_LIFECYCLE_STATUSES,
   type AgentLifecycleStatus,
-} from "@getpaseo/protocol/agent-lifecycle";
+} from "@getzentic/protocol/agent-lifecycle";
 import {
   getParentAgentIdFromLabels,
   hasOpenAgentTab,
   isDelegatedAgent,
   isOpenAgentTabLabel,
   PARENT_AGENT_ID_LABEL,
-} from "@getpaseo/protocol/agent-labels";
+} from "@getzentic/protocol/agent-labels";
 import type { Logger } from "pino";
-import type { ToolPolicy } from "@getpaseo/protocol/agent-types";
-import type { ProviderPaseoToolsPolicy } from "@getpaseo/protocol/provider-config";
+import type { ToolPolicy } from "@getzentic/protocol/agent-types";
+import type { ProviderZenticToolsPolicy } from "@getzentic/protocol/provider-config";
 import { z } from "zod";
 import type { TerminalManager } from "../../terminal/terminal-manager.js";
 
@@ -62,7 +62,7 @@ import {
   type ListImportableSessionsOptions,
 } from "./agent-sdk-types.js";
 import { buildArchivedAgentRecord, type ArchivedStoredAgentRecord } from "./agent-archive.js";
-import type { JsonValue, ProviderOptions } from "@getpaseo/protocol/agent-types";
+import type { JsonValue, ProviderOptions } from "@getzentic/protocol/agent-types";
 import { toStoredAgentRecord } from "./agent-projections.js";
 import {
   applyProviderOptionsPatch,
@@ -99,13 +99,13 @@ import { invokeRewindCapability, type RewindMode } from "./rewind/rewind.js";
 import { parseAgentMessage, projectAgentMessages } from "./agent-messages/index.js";
 import { isStaleProviderSessionError } from "./stale-provider-session-error.js";
 import {
-  PASEO_MCP_SERVER_NAME,
-  stripInternalPaseoMcpServer,
-  withRuntimePaseoMcpServer,
+  ZENTIC_MCP_SERVER_NAME,
+  stripInternalZenticMcpServer,
+  withRuntimeZenticMcpServer,
 } from "./runtime-mcp-config.js";
 import { resolveCreateAgentTitles } from "./create-agent-title.js";
-import type { PaseoToolCatalogFactory } from "./tools/types.js";
-import { isPaseoToolPolicyEnabled } from "./paseo-tool-policy.js";
+import type { ZenticToolCatalogFactory } from "./tools/types.js";
+import { isZenticToolPolicyEnabled } from "./zentic-tool-policy.js";
 import {
   ProviderSubagentStore,
   type ProviderSubagentDescriptor,
@@ -211,7 +211,7 @@ async function resolveResumePurpose(
 interface PreparedSessionConfig {
   storedConfig: AgentSessionConfig;
   launchConfig: AgentSessionConfig;
-  paseoToolPolicy: ProviderPaseoToolsPolicy | undefined;
+  zenticToolPolicy: ProviderZenticToolsPolicy | undefined;
 }
 
 interface NormalizeConfigOptions {
@@ -255,7 +255,7 @@ function buildStoredAgentConfig(record: StoredAgentRecord): AgentSessionConfig {
     config.systemPrompt = record.config.systemPrompt;
   }
   if (record.config.mcpServers != null) config.mcpServers = record.config.mcpServers;
-  return stripInternalPaseoMcpServer(config);
+  return stripInternalZenticMcpServer(config);
 }
 
 export { AGENT_LIFECYCLE_STATUSES, type AgentLifecycleStatus };
@@ -379,9 +379,9 @@ export interface AgentManagerOptions {
   mcpBaseUrl?: string;
   mcpAuthToken?: string;
   pluginAgentTools?: PluginAgentToolsRuntime;
-  paseoToolsEnabled?: boolean;
-  paseoToolCatalogFactory?: PaseoToolCatalogFactory;
-  resolvePaseoToolPolicy?: (provider: AgentProvider) => ProviderPaseoToolsPolicy | undefined;
+  zenticToolsEnabled?: boolean;
+  zenticToolCatalogFactory?: ZenticToolCatalogFactory;
+  resolveZenticToolPolicy?: (provider: AgentProvider) => ProviderZenticToolsPolicy | undefined;
   appendSystemPrompt?: string;
   agentStreamCoalesceWindowMs?: number;
   rescueTimeouts?: AgentManagerRescueTimeouts;
@@ -513,7 +513,7 @@ interface ManagedAgentBase {
    * User-defined labels for categorizing agents (e.g., { surface: "workspace" }).
    */
   labels: Record<string, string>;
-  /** Plugin-owned data. Paseo persists and forwards it and never reads a key. */
+  /** Plugin-owned data. Zentic persists and forwards it and never reads a key. */
   metadata: AgentMetadata;
 }
 
@@ -686,8 +686,8 @@ function agentEntityData(source?: { labels?: Record<string, string>; metadata?: 
   return { labels: source?.labels ?? {}, metadata: source?.metadata ?? {} };
 }
 
-// PASEO_WORKSPACE_ID lets an agent rename or archive its own workspace; several workspaces can
-// share one cwd, so the agent can't work it out from PASEO_AGENT_CWD.
+// ZENTIC_WORKSPACE_ID lets an agent rename or archive its own workspace; several workspaces can
+// share one cwd, so the agent can't work it out from ZENTIC_AGENT_CWD.
 function agentIdentityEnv({
   agentId,
   cwd,
@@ -699,9 +699,9 @@ function agentIdentityEnv({
 }): Record<string, string> {
   const workspaceId = opening?.workspaceId;
   return {
-    PASEO_AGENT_ID: agentId,
-    PASEO_AGENT_CWD: cwd,
-    ...(workspaceId ? { PASEO_WORKSPACE_ID: workspaceId } : {}),
+    ZENTIC_AGENT_ID: agentId,
+    ZENTIC_AGENT_CWD: cwd,
+    ...(workspaceId ? { ZENTIC_WORKSPACE_ID: workspaceId } : {}),
   };
 }
 
@@ -869,12 +869,12 @@ export class AgentManager {
   private readonly sessionOpenGenerations = new Map<string, number>();
   private readonly attachedPluginTools = new Map<string, AttachedAgentTool[]>();
   private readonly pluginAgentTools: PluginAgentToolsRuntime | undefined;
-  private paseoToolsEnabled = true;
-  private paseoToolCatalogFactory: PaseoToolCatalogFactory | null = null;
-  private readonly paseoToolPolicies = new Map<string, ProviderPaseoToolsPolicy | undefined>();
-  private readonly resolvePaseoToolPolicy: (
+  private zenticToolsEnabled = true;
+  private zenticToolCatalogFactory: ZenticToolCatalogFactory | null = null;
+  private readonly zenticToolPolicies = new Map<string, ProviderZenticToolsPolicy | undefined>();
+  private readonly resolveZenticToolPolicy: (
     provider: AgentProvider,
-  ) => ProviderPaseoToolsPolicy | undefined;
+  ) => ProviderZenticToolsPolicy | undefined;
   private appendSystemPrompt: string;
   private onAgentAttention?: AgentAttentionCallback;
   private onAgentArchived?: AgentArchivedCallback;
@@ -895,8 +895,8 @@ export class AgentManager {
     this.onWorkspaceStateMayHaveChanged = options?.onWorkspaceStateMayHaveChanged;
     this.mcpBaseUrl = options?.mcpBaseUrl ?? null;
     this.mcpAuthToken = options?.mcpAuthToken ?? null;
-    this.configurePaseoTools(options);
-    this.resolvePaseoToolPolicy = options.resolvePaseoToolPolicy ?? (() => undefined);
+    this.configureZenticTools(options);
+    this.resolveZenticToolPolicy = options.resolveZenticToolPolicy ?? (() => undefined);
     this.appendSystemPrompt = options.appendSystemPrompt ?? "";
     this.logger = options.logger.child({ module: "agent", component: "agent-manager" });
     this.rescueTimeouts = {
@@ -920,9 +920,9 @@ export class AgentManager {
     });
   }
 
-  private configurePaseoTools(options: AgentManagerOptions): void {
-    this.paseoToolsEnabled = options.paseoToolsEnabled ?? true;
-    this.paseoToolCatalogFactory = options.paseoToolCatalogFactory ?? null;
+  private configureZenticTools(options: AgentManagerOptions): void {
+    this.zenticToolsEnabled = options.zenticToolsEnabled ?? true;
+    this.zenticToolCatalogFactory = options.zenticToolCatalogFactory ?? null;
   }
 
   registerClient(provider: AgentProvider, client: AgentClient): void {
@@ -983,12 +983,12 @@ export class AgentManager {
     this.acceptingAgentRegistrations = false;
   }
 
-  setPaseoToolsEnabled(enabled: boolean): void {
-    this.paseoToolsEnabled = enabled;
+  setZenticToolsEnabled(enabled: boolean): void {
+    this.zenticToolsEnabled = enabled;
   }
 
-  setPaseoToolCatalogFactory(factory: PaseoToolCatalogFactory | null): void {
-    this.paseoToolCatalogFactory = factory;
+  setZenticToolCatalogFactory(factory: ZenticToolCatalogFactory | null): void {
+    this.zenticToolCatalogFactory = factory;
   }
 
   invalidatePluginSessions(): void {
@@ -1047,8 +1047,8 @@ export class AgentManager {
     this.pluginAgentTools?.detachTools(agentId);
   }
 
-  getPaseoToolPolicy(agentId: string): ProviderPaseoToolsPolicy | undefined {
-    return this.paseoToolPolicies.get(agentId);
+  getZenticToolPolicy(agentId: string): ProviderZenticToolsPolicy | undefined {
+    return this.zenticToolPolicies.get(agentId);
   }
 
   /**
@@ -1549,7 +1549,7 @@ export class AgentManager {
       options = { ...options, env: request.env, metadata: request.metadata ?? options.metadata };
     }
     await this.deleteAgentState(resolvedAgentId);
-    const { storedConfig, launchConfig, paseoToolPolicy } = await this.prepareSessionConfig(
+    const { storedConfig, launchConfig, zenticToolPolicy } = await this.prepareSessionConfig(
       config,
       resolvedAgentId,
       { env: options?.env },
@@ -1558,12 +1558,12 @@ export class AgentManager {
     const client = await this.requireAvailableClient({
       provider: storedConfig.provider,
     });
-    this.paseoToolPolicies.set(resolvedAgentId, paseoToolPolicy);
+    this.zenticToolPolicies.set(resolvedAgentId, zenticToolPolicy);
     const launchContext = await this.buildLaunchContext(
       resolvedAgentId,
       client,
       storedConfig.cwd,
-      paseoToolPolicy,
+      zenticToolPolicy,
       options?.env,
       {
         reason: "create",
@@ -1681,7 +1681,7 @@ export class AgentManager {
 
     const launchEnv = record?.launchEnv;
     const workspaceId = resolveResumeWorkspaceId({ options, record });
-    const { storedConfig, launchConfig, paseoToolPolicy } = await this.prepareSessionConfig(
+    const { storedConfig, launchConfig, zenticToolPolicy } = await this.prepareSessionConfig(
       mergedConfig,
       resolvedAgentId,
       { purpose, env: launchEnv },
@@ -1693,12 +1693,12 @@ export class AgentManager {
         `Provider '${handle.provider}' is not available. Please ensure the CLI is installed.`,
       );
     }
-    this.paseoToolPolicies.set(resolvedAgentId, paseoToolPolicy);
+    this.zenticToolPolicies.set(resolvedAgentId, zenticToolPolicy);
     const launchContext = await this.buildLaunchContext(
       resolvedAgentId,
       client,
       storedConfig.cwd,
-      paseoToolPolicy,
+      zenticToolPolicy,
       launchEnv,
       {
         reason: "resume",
@@ -1758,7 +1758,7 @@ export class AgentManager {
       throw new Error(`Provider '${input.provider}' does not support importing sessions`);
     }
 
-    const { storedConfig, launchConfig, paseoToolPolicy } = await this.prepareSessionConfig(
+    const { storedConfig, launchConfig, zenticToolPolicy } = await this.prepareSessionConfig(
       {
         provider: input.provider,
         cwd: input.cwd,
@@ -1766,12 +1766,12 @@ export class AgentManager {
       resolvedAgentId,
       { resolveDefaultModel: false },
     );
-    this.paseoToolPolicies.set(resolvedAgentId, paseoToolPolicy);
+    this.zenticToolPolicies.set(resolvedAgentId, zenticToolPolicy);
     const launchContext = await this.buildLaunchContext(
       resolvedAgentId,
       client,
       storedConfig.cwd,
-      paseoToolPolicy,
+      zenticToolPolicy,
       undefined,
       {
         reason: "import",
@@ -1794,7 +1794,7 @@ export class AgentManager {
     try {
       const runtimeInfo = await imported.session.getRuntimeInfo();
       const importedConfig = await this.normalizeConfig(
-        stripInternalPaseoMcpServer({
+        stripInternalZenticMcpServer({
           ...imported.config,
           model: runtimeInfo.model ?? imported.config.model,
         }),
@@ -1832,7 +1832,7 @@ export class AgentManager {
   // config swaps). When `rehydrateFromDisk` is set, the timeline is wiped so a
   // new epoch is minted and provider history is re-streamed — this is what the
   // user-facing "Reload agent" action wants when the on-disk session was
-  // mutated outside Paseo.
+  // mutated outside Zentic.
   reloadAgentSession(
     agentId: string,
     overrides?: Partial<AgentSessionConfig>,
@@ -1869,18 +1869,18 @@ export class AgentManager {
       ...overrides,
       provider,
     } as AgentSessionConfig;
-    const { storedConfig, launchConfig, paseoToolPolicy } = await this.prepareSessionConfig(
+    const { storedConfig, launchConfig, zenticToolPolicy } = await this.prepareSessionConfig(
       refreshConfig,
       agentId,
       { env: existing.launchEnv },
     );
-    const hadPreviousPaseoToolPolicy = this.paseoToolPolicies.has(agentId);
-    const previousPaseoToolPolicy = this.paseoToolPolicies.get(agentId);
+    const hadPreviousZenticToolPolicy = this.zenticToolPolicies.has(agentId);
+    const previousZenticToolPolicy = this.zenticToolPolicies.get(agentId);
     const launchContext = await this.buildLaunchContext(
       agentId,
       client,
       storedConfig.cwd,
-      paseoToolPolicy,
+      zenticToolPolicy,
       existing.launchEnv,
       {
         reason: "refresh",
@@ -1894,7 +1894,7 @@ export class AgentManager {
     );
     const providerLaunchConfig = this.resolveProviderLaunchConfig(launchConfig, launchContext);
     if (
-      Object.keys(stripInternalPaseoMcpServer(providerLaunchConfig).mcpServers ?? {}).length > 0 &&
+      Object.keys(stripInternalZenticMcpServer(providerLaunchConfig).mcpServers ?? {}).length > 0 &&
       existing.session.capabilities.supportsMcpServers !== true
     ) {
       throw this.unsupportedMcpError(providerLaunchConfig, launchContext);
@@ -1913,7 +1913,7 @@ export class AgentManager {
       await this.persistSnapshot(closedExisting);
       this.assertAcceptingAgentRegistrations();
 
-      this.paseoToolPolicies.set(agentId, paseoToolPolicy);
+      this.zenticToolPolicies.set(agentId, zenticToolPolicy);
       const launchedOptions = this.launchOptionsFor({ client, own: storedConfig.providerOptions });
       session = handle
         ? await client.resumeSession(handle, providerLaunchConfig, launchContext)
@@ -1962,10 +1962,10 @@ export class AgentManager {
     } finally {
       if (!handedToRegistration) {
         this.detachPluginTools(agentId);
-        if (hadPreviousPaseoToolPolicy) {
-          this.paseoToolPolicies.set(agentId, previousPaseoToolPolicy);
+        if (hadPreviousZenticToolPolicy) {
+          this.zenticToolPolicies.set(agentId, previousZenticToolPolicy);
         } else {
-          this.paseoToolPolicies.delete(agentId);
+          this.zenticToolPolicies.delete(agentId);
         }
         if (session) {
           await this.closeUnregisteredSession(session);
@@ -4436,7 +4436,7 @@ export class AgentManager {
     launchContext: AgentLaunchContext,
   ): Promise<void> {
     if (
-      Object.keys(stripInternalPaseoMcpServer(launchConfig).mcpServers ?? {}).length === 0 ||
+      Object.keys(stripInternalZenticMcpServer(launchConfig).mcpServers ?? {}).length === 0 ||
       session.capabilities.supportsMcpServers === true
     ) {
       return;
@@ -4614,7 +4614,7 @@ export class AgentManager {
 
   private discardRetainedAgentState(agentId: string): void {
     this.timelineStore.delete(agentId);
-    this.paseoToolPolicies.delete(agentId);
+    this.zenticToolPolicies.delete(agentId);
     this.detachPluginTools(agentId);
     for (const event of this.providerSubagents.deleteParent(agentId)) {
       this.dispatch({ type: "provider_subagent", event });
@@ -6125,26 +6125,26 @@ export class AgentManager {
     agentId: string,
     options: NormalizeConfigOptions = {},
   ): Promise<PreparedSessionConfig> {
-    const storedConfig = await this.normalizeConfig(stripInternalPaseoMcpServer(config), {
+    const storedConfig = await this.normalizeConfig(stripInternalZenticMcpServer(config), {
       env: options.env,
       purpose: options.purpose,
       resolveDefaultModel: options.resolveDefaultModel,
     });
-    const paseoToolPolicy = this.paseoToolsEnabled
-      ? this.resolvePaseoToolPolicy(storedConfig.provider)
+    const zenticToolPolicy = this.zenticToolsEnabled
+      ? this.resolveZenticToolPolicy(storedConfig.provider)
       : { enabled: false };
     const launchConfig = this.applyDaemonAppendSystemPrompt(
-      withRuntimePaseoMcpServer({
+      withRuntimeZenticMcpServer({
         config: storedConfig,
         agentId,
         mcpBaseUrl:
-          this.paseoToolsEnabled && isPaseoToolPolicyEnabled(paseoToolPolicy)
+          this.zenticToolsEnabled && isZenticToolPolicyEnabled(zenticToolPolicy)
             ? this.mcpBaseUrl
             : null,
         mcpAuthToken: this.mcpAuthToken,
       }),
     );
-    return { storedConfig, launchConfig, paseoToolPolicy };
+    return { storedConfig, launchConfig, zenticToolPolicy };
   }
 
   private applyDaemonAppendSystemPrompt(config: AgentSessionConfig): AgentSessionConfig {
@@ -6164,7 +6164,7 @@ export class AgentManager {
     agentId: string,
     client: AgentClient,
     cwd: string,
-    paseoToolPolicy: ProviderPaseoToolsPolicy | undefined,
+    zenticToolPolicy: ProviderZenticToolsPolicy | undefined,
     env?: Record<string, string>,
     opening?: {
       reason: PluginSessionOpenRequest["reason"];
@@ -6214,19 +6214,19 @@ export class AgentManager {
       },
     };
     const useNativeTools =
-      this.paseoToolsEnabled &&
-      isPaseoToolPolicyEnabled(paseoToolPolicy) &&
-      client.capabilities.supportsNativePaseoTools;
+      this.zenticToolsEnabled &&
+      isZenticToolPolicyEnabled(zenticToolPolicy) &&
+      client.capabilities.supportsNativeZenticTools;
     if (
-      this.paseoToolCatalogFactory &&
+      this.zenticToolCatalogFactory &&
       (useNativeTools || this.getPluginTools(agentId).length > 0)
     ) {
       try {
-        const catalog = await this.paseoToolCatalogFactory({
+        const catalog = await this.zenticToolCatalogFactory({
           callerAgentId: agentId,
-          paseoToolPolicy,
+          zenticToolPolicy,
         });
-        if (useNativeTools) context.paseoTools = catalog;
+        if (useNativeTools) context.zenticTools = catalog;
       } catch (error) {
         this.detachPluginTools(agentId);
         throw error;
@@ -6241,14 +6241,14 @@ export class AgentManager {
     launchContext: AgentLaunchContext,
   ): AgentSessionConfig {
     const savedServerNames = new Set(
-      Object.keys(stripInternalPaseoMcpServer(launchConfig).mcpServers ?? {}),
+      Object.keys(stripInternalZenticMcpServer(launchConfig).mcpServers ?? {}),
     );
     for (const name of Object.keys(launchContext.mcpServers ?? {})) {
       const owner = launchContext.mcpServerOwners?.[name];
-      if (name === PASEO_MCP_SERVER_NAME || savedServerNames.has(name)) {
+      if (name === ZENTIC_MCP_SERVER_NAME || savedServerNames.has(name)) {
         const existingOwner = savedServerNames.has(name)
           ? "agent saved configuration"
-          : "Paseo internal MCP server";
+          : "Zentic internal MCP server";
         throw new Error(`MCP server '${name}' from plugin ${owner} collides with ${existingOwner}`);
       }
     }
@@ -6259,7 +6259,7 @@ export class AgentManager {
             mcpServers: { ...launchConfig.mcpServers, ...launchContext.mcpServers },
           }
         : launchConfig;
-    return launchContext.paseoTools ? stripInternalPaseoMcpServer(merged) : merged;
+    return launchContext.zenticTools ? stripInternalZenticMcpServer(merged) : merged;
   }
 
   private async requireAvailableClient(options: { provider: AgentProvider }): Promise<AgentClient> {

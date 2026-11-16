@@ -1,6 +1,9 @@
 import { expect, type BrowserContext, type Page } from "@playwright/test";
-import type { CreateAgentRequestMessage, SessionInboundMessage } from "@getpaseo/protocol/messages";
-import type { DaemonClient as InternalDaemonClient } from "@getpaseo/client/internal/daemon-client";
+import type {
+  CreateAgentRequestMessage,
+  SessionInboundMessage,
+} from "@getzentic/protocol/messages";
+import type { DaemonClient as InternalDaemonClient } from "@getzentic/client/internal/daemon-client";
 import { decodeWorkspaceIdFromPathSegment } from "@/utils/host-routes";
 import { connectDaemonClient, loadProtocolSchemas } from "./daemon-client-loader";
 import { daemonWsRoutePattern } from "./daemon-port";
@@ -10,18 +13,18 @@ import { withProjectOwnership } from "./project-ownership";
 
 type NewWorkspaceDaemonClient = Pick<
   InternalDaemonClient,
-  | "archivePaseoWorktree"
+  | "archiveZenticWorktree"
   | "archiveWorkspace"
   | "checkoutRefresh"
   | "close"
   | "connect"
-  | "createPaseoWorktree"
+  | "createZenticWorktree"
   | "createWorkspace"
   | "createTerminal"
   | "killTerminal"
   | "fetchAgents"
   | "fetchWorkspaces"
-  | "getPaseoWorktreeList"
+  | "getZenticWorktreeList"
   | "getDaemonConfig"
   | "installDirectoryPlugin"
   | "installPluginSource"
@@ -145,7 +148,7 @@ export async function archiveWorkspaceFromDaemon(
   workspaceDirectory: string,
   options?: { scope?: "workspace" | "worktree" },
 ): Promise<void> {
-  const payload = await client.archivePaseoWorktree({
+  const payload = await client.archiveZenticWorktree({
     worktreePath: workspaceDirectory,
     ...(options?.scope !== undefined ? { scope: options.scope } : {}),
   });
@@ -174,7 +177,7 @@ export async function createWorktreeViaDaemon(
   client: NewWorkspaceDaemonClient,
   input: { cwd: string; slug: string },
 ): Promise<OpenedProject> {
-  const payload = await client.createPaseoWorktree({
+  const payload = await client.createZenticWorktree({
     cwd: input.cwd,
     worktreeSlug: input.slug,
   });

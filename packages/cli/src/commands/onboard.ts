@@ -6,8 +6,8 @@ import {
   readPersistedConfig as loadPersistedConfig,
   savePersistedConfig,
   type PersistedConfig,
-} from "@getpaseo/server/configuration";
-import { readDaemonInstance, waitForDaemonReady } from "@getpaseo/server/daemon-control";
+} from "@getzentic/server/configuration";
+import { readDaemonInstance, waitForDaemonReady } from "@getzentic/server/daemon-control";
 import { withGlobalOptions } from "../utils/command-options.js";
 import type { CommandOptions } from "../output/index.js";
 import { launchLocalDaemon, parseTimeoutMs } from "./daemon/local-daemon.js";
@@ -111,22 +111,22 @@ async function resolveVoiceSelection(mode: OnboardOptions["voice"]): Promise<boo
   return answer;
 }
 
-function printNextSteps(pairingUrl: string | null, paseoHome: string, richUi: boolean): void {
-  const daemonLogPath = path.join(paseoHome, "daemon.log");
+function printNextSteps(pairingUrl: string | null, zenticHome: string, richUi: boolean): void {
+  const daemonLogPath = path.join(zenticHome, "daemon.log");
   const nextStepsLines = [
     pairingUrl
-      ? "1. Open Paseo and scan the QR code above, or paste the pairing link."
-      : "1. Open Paseo and connect to your daemon.",
-    "2. Web app: https://app.paseo.sh",
-    "3. Desktop app: https://github.com/getpaseo/paseo/releases/latest",
-    "4. Docs: https://paseo.sh/docs",
-    `5. Example: paseo run --home ${JSON.stringify(paseoHome)} --output-schema schema.json "extract fields"`,
+      ? "1. Open Zentic and scan the QR code above, or paste the pairing link."
+      : "1. Open Zentic and connect to your daemon.",
+    "2. Web app: https://app.zentic.sh",
+    "3. Desktop app: https://github.com/getzentic/zentic/releases/latest",
+    "4. Docs: https://zentic.sh/docs",
+    `5. Example: zentic run --home ${JSON.stringify(zenticHome)} --output-schema schema.json "extract fields"`,
   ];
   const quickReferenceLines = [
-    "1. paseo --help",
-    `2. paseo ls --home ${JSON.stringify(paseoHome)}`,
-    `3. paseo run --home ${JSON.stringify(paseoHome)} "your prompt"`,
-    `4. paseo status --home ${JSON.stringify(paseoHome)}`,
+    "1. zentic --help",
+    `2. zentic ls --home ${JSON.stringify(zenticHome)}`,
+    `3. zentic run --home ${JSON.stringify(zenticHome)} "your prompt"`,
+    `4. zentic status --home ${JSON.stringify(zenticHome)}`,
     `5. Daemon logs: ${daemonLogPath}`,
   ];
 
@@ -175,10 +175,10 @@ export function onboardCommand(): Command {
 }
 
 async function resolveAndPersistVoice(
-  paseoHome: string,
+  zenticHome: string,
   options: OnboardOptions,
 ): Promise<boolean> {
-  let persisted = loadPersistedConfig(paseoHome) as OnboardPersistedConfig;
+  let persisted = loadPersistedConfig(zenticHome) as OnboardPersistedConfig;
   const persistedVoiceSelection = resolvePersistedVoiceSelection(persisted);
   const shouldPrompt = options.voice === "ask" || options.voice === undefined;
   let voiceEnabled: boolean;
@@ -200,12 +200,12 @@ async function resolveAndPersistVoice(
   }
 
   persisted = applyVoiceSelection(persisted, voiceEnabled);
-  savePersistedConfig(paseoHome, persisted);
+  savePersistedConfig(zenticHome, persisted);
   return voiceEnabled;
 }
 
-function persistSetupChoices(paseoHome: string, options: OnboardOptions): void {
-  const persisted = loadPersistedConfig(paseoHome, { defaultsIfMissing: true });
+function persistSetupChoices(zenticHome: string, options: OnboardOptions): void {
+  const persisted = loadPersistedConfig(zenticHome, { defaultsIfMissing: true });
   if (options.listen || options.port) {
     persisted.daemon = {
       ...persisted.daemon,
@@ -227,13 +227,13 @@ function persistSetupChoices(paseoHome: string, options: OnboardOptions): void {
       ...persisted.daemon,
       hostnames: options.hostnames === "true" ? true : options.hostnames.split(","),
     };
-  savePersistedConfig(paseoHome, persisted);
+  savePersistedConfig(zenticHome, persisted);
 }
 
 export async function runOnboard(options: OnboardOptions): Promise<void> {
   const richUi = process.stdin.isTTY && process.stdout.isTTY;
   if (richUi) {
-    intro("Welcome to Paseo");
+    intro("Welcome to Zentic");
   }
 
   if (options.listen && options.port) {
@@ -244,14 +244,14 @@ export async function runOnboard(options: OnboardOptions): Promise<void> {
   const timeoutMs = parseTimeoutMs(options.timeout);
 
   if (options.daemonTarget.kind !== "instance") throw new Error("Onboarding requires a local home");
-  const paseoHome = options.daemonTarget.home;
-  const alreadyRunning = await readDaemonInstance(paseoHome);
-  persistSetupChoices(paseoHome, options);
+  const zenticHome = options.daemonTarget.home;
+  const alreadyRunning = await readDaemonInstance(zenticHome);
+  persistSetupChoices(zenticHome, options);
   if (richUi) {
-    renderNote(paseoHome, "Paseo home");
+    renderNote(zenticHome, "Zentic home");
   }
 
-  const voiceEnabled = await resolveAndPersistVoice(paseoHome, options);
+  const voiceEnabled = await resolveAndPersistVoice(zenticHome, options);
   log.message(
     voiceEnabled
       ? "Voice features enabled. Local speech models will be downloaded automatically if missing."
@@ -267,20 +267,20 @@ export async function runOnboard(options: OnboardOptions): Promise<void> {
       await client.close();
     }
   } else {
-    await launchLocalDaemon({ home: paseoHome, timeoutMs });
+    await launchLocalDaemon({ home: zenticHome, timeoutMs });
   }
-  const ready = await waitForDaemonReady(paseoHome, { timeoutMs });
+  const ready = await waitForDaemonReady(zenticHome, { timeoutMs });
   log.message(`Daemon ready on ${ready.listen}`);
 
   if (options.relay === false) {
     log.message("Relay pairing skipped because --no-relay was provided.");
-    printNextSteps(null, paseoHome, richUi);
-    if (richUi) outro("Paseo daemon is running.");
+    printNextSteps(null, zenticHome, richUi);
+    if (richUi) outro("Zentic daemon is running.");
     return;
   }
 
   let pairing = await resolveLocalPairingOffer({
-    paseoHome,
+    zenticHome,
     enableRelay: options.relay === true,
   });
 
@@ -288,19 +288,19 @@ export async function runOnboard(options: OnboardOptions): Promise<void> {
     const shouldEnable = richUi ? await confirmRelayPairing() : false;
     if (!shouldEnable) {
       printDirectConnectionGuidance();
-      printNextSteps(null, paseoHome, richUi);
-      if (richUi) outro("Paseo daemon is running.");
+      printNextSteps(null, zenticHome, richUi);
+      if (richUi) outro("Zentic daemon is running.");
       return;
     }
-    pairing = await resolveLocalPairingOffer({ paseoHome, enableRelay: true });
+    pairing = await resolveLocalPairingOffer({ zenticHome, enableRelay: true });
     log.success("Relay enabled");
   }
 
   if (!pairing.url) {
     log.warn("Relay pairing URL is unavailable for this daemon configuration.");
-    printNextSteps(null, paseoHome, richUi);
+    printNextSteps(null, zenticHome, richUi);
     if (richUi) {
-      outro("Paseo daemon is running.");
+      outro("Zentic daemon is running.");
     }
     return;
   }
@@ -312,8 +312,8 @@ export async function runOnboard(options: OnboardOptions): Promise<void> {
       columns: process.stdout.columns,
     }),
   );
-  printNextSteps(pairing.url, paseoHome, richUi);
+  printNextSteps(pairing.url, zenticHome, richUi);
   if (richUi) {
-    outro("Paseo is ready!");
+    outro("Zentic is ready!");
   }
 }

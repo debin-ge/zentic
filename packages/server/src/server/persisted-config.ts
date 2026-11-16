@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { PluginRegistriesSchema } from "@getpaseo/protocol/plugin-registry";
+import { PluginRegistriesSchema } from "@getzentic/protocol/plugin-registry";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { z } from "zod";
@@ -16,10 +16,10 @@ import {
   writePrivateFileAtomic,
   writePrivateFileAtomicSync,
 } from "./private-files.js";
-import { AgentProfileSchema, AgentSkillSelectionSchema } from "@getpaseo/protocol/agent-profile";
-import { PluginIdSchema, PluginSourceSchema } from "@getpaseo/protocol/plugin-config";
-import { TerminalProfileSchema } from "@getpaseo/protocol/terminal-profile";
-import { PaseoServicePortAllocationSchema } from "@getpaseo/protocol/paseo-config-schema";
+import { AgentProfileSchema, AgentSkillSelectionSchema } from "@getzentic/protocol/agent-profile";
+import { PluginIdSchema, PluginSourceSchema } from "@getzentic/protocol/plugin-config";
+import { TerminalProfileSchema } from "@getzentic/protocol/terminal-profile";
+import { ZenticServicePortAllocationSchema } from "@getzentic/protocol/zentic-config-schema";
 
 export const LogLevelSchema = z.enum(["trace", "debug", "info", "warn", "error", "fatal"]);
 export const LogFormatSchema = z.enum(["pretty", "json"]);
@@ -70,7 +70,7 @@ const ProvidersSchema = z
 const WorktreesConfigSchema = z
   .object({
     root: z.string().min(1).optional(),
-    servicePorts: PaseoServicePortAllocationSchema.optional(),
+    servicePorts: ZenticServicePortAllocationSchema.optional(),
   })
   .strict();
 
@@ -384,14 +384,14 @@ const DEFAULT_PERSISTED_CONFIG = PersistedConfigSchema.parse({
   daemon: {
     listen: "127.0.0.1:6767",
     cors: {
-      allowedOrigins: ["https://app.paseo.sh"],
+      allowedOrigins: ["https://app.zentic.sh"],
     },
     relay: {
       enabled: false,
     },
   },
   app: {
-    baseUrl: "https://app.paseo.sh",
+    baseUrl: "https://app.zentic.sh",
   },
 }) as PersistedConfig;
 
@@ -401,8 +401,8 @@ interface LoggerLike {
   warn?(...args: unknown[]): void;
 }
 
-function getConfigPath(paseoHome: string): string {
-  return path.join(paseoHome, CONFIG_FILENAME);
+function getConfigPath(zenticHome: string): string {
+  return path.join(zenticHome, CONFIG_FILENAME);
 }
 
 function getLogger(logger: LoggerLike | undefined): LoggerLike | undefined {
@@ -499,9 +499,9 @@ function warnDiscardedSpeechKeys(
   }
 }
 
-export function loadPersistedConfig(paseoHome: string, logger?: LoggerLike): PersistedConfig {
+export function loadPersistedConfig(zenticHome: string, logger?: LoggerLike): PersistedConfig {
   const log = getLogger(logger);
-  const configPath = getConfigPath(paseoHome);
+  const configPath = getConfigPath(zenticHome);
 
   if (!existsSync(configPath)) {
     try {
@@ -534,11 +534,11 @@ export function loadPersistedConfig(paseoHome: string, logger?: LoggerLike): Per
 
 /** Runtime config IO. Startup and offline CLI consumers retain their synchronous entry points. */
 export async function loadPersistedConfigAsync(
-  paseoHome: string,
+  zenticHome: string,
   logger?: LoggerLike,
 ): Promise<PersistedConfig> {
   const log = getLogger(logger);
-  const configPath = getConfigPath(paseoHome);
+  const configPath = getConfigPath(zenticHome);
   let raw: string;
   await ensurePrivateFileAsync(configPath);
   try {
@@ -568,10 +568,10 @@ export async function loadPersistedConfigAsync(
 
 /** Observe the file without initializing a home, identity, or default configuration. */
 export function readPersistedConfig(
-  paseoHome: string,
+  zenticHome: string,
   options: { defaultsIfMissing?: boolean } = {},
 ): PersistedConfig {
-  const configPath = getConfigPath(paseoHome);
+  const configPath = getConfigPath(zenticHome);
   let raw: string;
   try {
     raw = readFileSync(configPath, "utf8");
@@ -647,7 +647,7 @@ export function getPersistedConfigValue(config: PersistedConfig, field: string):
 }
 
 export function editPersistedConfig(
-  paseoHome: string,
+  zenticHome: string,
   field: string,
   edit: { value: unknown } | { unset: true },
 ): PersistedConfig {
@@ -655,7 +655,7 @@ export function editPersistedConfig(
   if (field === "daemon.auth" || field.startsWith("daemon.auth.")) {
     throw new Error("Use daemon set-password to change the daemon password.");
   }
-  const config = readPersistedConfig(paseoHome, { defaultsIfMissing: true });
+  const config = readPersistedConfig(zenticHome, { defaultsIfMissing: true });
   let object = config as Record<string, unknown>;
   for (const part of parts.slice(0, -1)) {
     object[part] ??= {};
@@ -673,17 +673,17 @@ export function editPersistedConfig(
   }
   if ("unset" in edit) delete object[key];
   else object[key] = edit.value;
-  savePersistedConfig(paseoHome, config);
+  savePersistedConfig(zenticHome, config);
   return config;
 }
 
 export function savePersistedConfig(
-  paseoHome: string,
+  zenticHome: string,
   config: PersistedConfig,
   logger?: LoggerLike,
 ): void {
   const log = getLogger(logger);
-  const configPath = getConfigPath(paseoHome);
+  const configPath = getConfigPath(zenticHome);
 
   const data = serializePersistedConfig(config);
 
@@ -711,11 +711,11 @@ function serializePersistedConfig(config: PersistedConfig): string {
 }
 
 export async function savePersistedConfigAsync(
-  paseoHome: string,
+  zenticHome: string,
   config: PersistedConfig,
   logger?: LoggerLike,
 ): Promise<void> {
-  const configPath = getConfigPath(paseoHome);
+  const configPath = getConfigPath(zenticHome);
   const data = serializePersistedConfig(config);
   try {
     await writePrivateFileAtomic(configPath, data);

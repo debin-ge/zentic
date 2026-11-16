@@ -1,7 +1,7 @@
-import type { PluginSubscriptionContract } from "@getpaseo/plugin";
-import type { PluginSubscriptionContext } from "@getpaseo/plugin/server";
-import type { PaseoApi } from "@getpaseo/client";
-import { assertPluginWireValue } from "@getpaseo/protocol/binary-frames/index";
+import type { PluginSubscriptionContract } from "@getzentic/plugin";
+import type { PluginSubscriptionContext } from "@getzentic/plugin/server";
+import type { ZenticApi } from "@getzentic/client";
+import { assertPluginWireValue } from "@getzentic/protocol/binary-frames/index";
 import type { PluginProcessMessage, PluginProcessRequest } from "./plugin-process-protocol.js";
 
 export type PluginSubscriptionHandler = (
@@ -49,7 +49,7 @@ export class PluginSubscriptionHandlers {
     return [...this.registered.keys()].sort();
   }
 
-  start(message: SubscribeRequest, paseo: PaseoApi): void {
+  start(message: SubscribeRequest, zentic: ZenticApi): void {
     const { requestId, subscriptionId } = message;
     const registered = this.registered.get(message.method);
     if (!registered) {
@@ -88,7 +88,7 @@ export class PluginSubscriptionHandlers {
     this.active.set(subscriptionId, { controller });
     let result: unknown;
     try {
-      result = registered.handler(parsed.data, { paseo, push, signal });
+      result = registered.handler(parsed.data, { zentic, push, signal });
     } catch (error) {
       this.active.delete(subscriptionId);
       controller.abort();

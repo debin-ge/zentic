@@ -1,0 +1,32 @@
+{
+  "worktree": {
+    "setup": [
+      "npm ci",
+      "node ./scripts/seed-ios-native-cache.mjs",
+      "node ./scripts/seed-worktree-dev-state.mjs",
+      "npm run build:server",
+      "npm run build --workspace=@getzentic/expo-two-way-audio"
+    ]
+  },
+  "scripts": {
+    "daemon": {
+      "type": "service",
+      "command": "ZENTIC_DEV_MANAGED_HOME=1 ZENTIC_DEV_ROOT=\"${ZENTIC_WORKTREE_PATH:-$PWD}\" ZENTIC_HOME=\"${ZENTIC_WORKTREE_PATH:-$PWD}/.dev/zentic-home\" ZENTIC_SKIP_DEV_SERVER_BUILD=1 ZENTIC_LISTEN=0.0.0.0:${ZENTIC_PORT:-6768} ./scripts/dev-daemon.sh"
+    },
+    "app": {
+      "type": "service",
+      "command": "ZENTIC_DEV_MANAGED_HOME=1 ZENTIC_DEV_ROOT=\"${ZENTIC_WORKTREE_PATH:-$PWD}\" ZENTIC_HOME=\"${ZENTIC_WORKTREE_PATH:-$PWD}/.dev/zentic-home\" ZENTIC_LISTEN=0.0.0.0:${ZENTIC_SERVICE_DAEMON_PORT:-6768} ZENTIC_DEV_DAEMON_ENDPOINT=localhost:${ZENTIC_SERVICE_DAEMON_PORT:-6768} EXPO_PORT=${ZENTIC_PORT:-} ./scripts/dev-app.sh"
+    },
+    "desktop": {
+      "type": "service",
+      "command": "ZENTIC_DEV_MANAGED_HOME=1 ZENTIC_DEV_ROOT=\"${ZENTIC_WORKTREE_PATH:-$PWD}\" ZENTIC_HOME=\"${ZENTIC_WORKTREE_PATH:-$PWD}/.dev/zentic-home\" ZENTIC_LISTEN=0.0.0.0:${ZENTIC_SERVICE_DAEMON_PORT:-6768} ZENTIC_DEV_DAEMON_ENDPOINT=localhost:${ZENTIC_SERVICE_DAEMON_PORT:-6768} EXPO_PORT=${ZENTIC_PORT:-} exec ./packages/desktop/scripts/dev.sh"
+    },
+    "ios-simulator": {
+      "type": "service",
+      "command": "ZENTIC_DEV_MANAGED_HOME=1 ZENTIC_DEV_ROOT=\"$PWD\" ZENTIC_HOME=\"$PWD/.dev/zentic-home\" ZENTIC_LISTEN=0.0.0.0:${ZENTIC_SERVICE_DAEMON_PORT} ZENTIC_DEV_DAEMON_ENDPOINT=localhost:${ZENTIC_SERVICE_DAEMON_PORT} ./scripts/zentic-ios-simulator-service.sh"
+    },
+    "typecheck": {
+      "command": "npm run typecheck"
+    }
+  }
+}

@@ -19,12 +19,12 @@ import type {
 } from "./worker-protocol.js";
 import { bufferToWorkerBytes, workerBytesToBuffer } from "./worker-bytes.js";
 
-process.title = "Paseo Voice";
+process.title = "Zentic Voice";
 
 type LocalSttEngine = SherpaOfflineRecognizerEngine;
 
 const logger = pino({
-  level: process.env.PASEO_LOG_LEVEL ?? "info",
+  level: process.env.ZENTIC_LOG_LEVEL ?? "info",
 }).child({ module: "speech", component: "local-worker" });
 
 const sttEngines = new Map<string, LocalSttEngine>();

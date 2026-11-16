@@ -1,7 +1,7 @@
-import { createPaseoClient, type PaseoClient } from "@getpaseo/client";
+import { createZenticClient, type ZenticClient } from "@getzentic/client";
 
-export function createClient(url: string): PaseoClient {
-  return createPaseoClient({
+export function createClient(url: string): ZenticClient {
+  return createZenticClient({
     url,
   });
 }

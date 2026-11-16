@@ -1,10 +1,10 @@
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { DaemonClient } from "@getpaseo/client/internal/daemon-client";
+import { DaemonClient } from "@getzentic/client/internal/daemon-client";
 import { afterEach, expect, test } from "vitest";
 import { resolveDaemonVersion } from "../daemon-version.js";
-import { createTestPaseoDaemon } from "../test-utils/paseo-daemon.js";
+import { createTestZenticDaemon } from "../test-utils/zentic-daemon.js";
 
 const PUSH_BYTES = 256 * 1024;
 const TOTAL_BYTES = 100 * 1024 * 1024;
@@ -13,8 +13,8 @@ const MIN_MEGABYTES_PER_SECOND = 200;
 
 // One buffer, pushed until the total is out: what a capture loop looks like.
 const SERVER_ENTRY = `
-import { defineSubscription } from "@getpaseo/plugin";
-import type { PluginServerContext } from "@getpaseo/plugin/server";
+import { defineSubscription } from "@getzentic/plugin";
+import type { PluginServerContext } from "@getzentic/plugin/server";
 import { z } from "zod";
 
 const stream = defineSubscription({
@@ -40,17 +40,17 @@ afterEach(async () => {
 });
 
 test(`a plugin streams ${TOTAL_BYTES / 1024 / 1024} MiB in ${PUSH_BYTES / 1024} KiB pushes at ${MIN_MEGABYTES_PER_SECOND} MB/s without copying per frame`, async () => {
-  const pluginDirectory = await mkdtemp(path.join(tmpdir(), "paseo-plugin-stream-"));
+  const pluginDirectory = await mkdtemp(path.join(tmpdir(), "zentic-plugin-stream-"));
   roots.push(pluginDirectory);
   await writeFile(
-    path.join(pluginDirectory, "paseo-plugin.json"),
+    path.join(pluginDirectory, "zentic-plugin.json"),
     JSON.stringify({
       id: "stream",
-      requirements: { paseo: `>=${resolveDaemonVersion(import.meta.url)}` },
+      requirements: { zentic: `>=${resolveDaemonVersion(import.meta.url)}` },
     }),
   );
   await writeFile(path.join(pluginDirectory, "index.server.ts"), SERVER_ENTRY);
-  const daemon = await createTestPaseoDaemon({ mcpEnabled: false });
+  const daemon = await createTestZenticDaemon({ mcpEnabled: false });
   const client = new DaemonClient({
     url: `ws://127.0.0.1:${daemon.port}/ws`,
     clientId: `clid_plugin_stream_${Date.now()}`,

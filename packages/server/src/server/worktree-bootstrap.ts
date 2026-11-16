@@ -5,9 +5,9 @@ import {
   getScriptConfigs,
   getWorktreeTerminalSpecs,
   isServiceScript,
-  paseoConfigParseError,
+  zenticConfigParseError,
   processCarriageReturns,
-  readPaseoConfig,
+  readZenticConfig,
   runWorktreeSetupCommands,
   type WorktreeConfig,
   type WorktreeSetupCommandResult,
@@ -27,7 +27,7 @@ import {
   requirePlannedWorkspaceServicePort,
   refreshWorkspaceServicePort,
 } from "./workspace-service-port-registry.js";
-import type { PaseoServicePortAllocation } from "@getpaseo/protocol/paseo-config-schema";
+import type { ZenticServicePortAllocation } from "@getzentic/protocol/zentic-config-schema";
 
 const MAX_WORKTREE_SETUP_COMMAND_OUTPUT_BYTES = 64 * 1024;
 const WORKTREE_SETUP_TRUNCATION_MARKER = "\n...<output truncated in the middle>...\n";
@@ -367,7 +367,7 @@ export interface SpawnWorkspaceScriptOptions {
   serviceProxy: ServiceProxySubsystem;
   runtimeStore: WorkspaceScriptRuntimeStore;
   terminalManager: TerminalManager;
-  globalServicePorts?: PaseoServicePortAllocation;
+  globalServicePorts?: ZenticServicePortAllocation;
   logger?: Logger;
   onLifecycleChanged?: () => void;
 }
@@ -391,7 +391,7 @@ async function setupServiceScriptRoute(params: {
   serviceProxyPublicBaseUrl: string | null | undefined;
   existingRuntimeEntry: ReturnType<WorkspaceScriptRuntimeStore["get"]>;
   serviceProxy: ServiceProxySubsystem;
-  servicePortAllocation: PaseoServicePortAllocation | undefined;
+  servicePortAllocation: ZenticServicePortAllocation | undefined;
 }): Promise<ServiceScriptSetupResult> {
   const {
     scriptConfigs,
@@ -534,14 +534,14 @@ export async function spawnWorkspaceScript(
     logger,
     onLifecycleChanged,
   } = options;
-  const configResult = await readPaseoConfig(repoRoot);
+  const configResult = await readZenticConfig(repoRoot);
   if (!configResult.ok) {
-    throw paseoConfigParseError(configResult);
+    throw zenticConfigParseError(configResult);
   }
   const scriptConfigs = getScriptConfigs(configResult.config);
   const config = scriptConfigs.get(scriptName);
   if (!config) {
-    throw new Error(`Script '${scriptName}' is not configured in paseo.json`);
+    throw new Error(`Script '${scriptName}' is not configured in zentic.json`);
   }
 
   const serviceScript = isServiceScript(config);
