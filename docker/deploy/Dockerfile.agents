@@ -1,0 +1,14 @@
+# Child image: the official daemon image built from this repository, plus agent CLIs.
+# The `zentic-base` context is supplied by docker-compose.yml (service:zentic-base).
+
+FROM zentic-base
+
+ARG AGENT_PACKAGES
+
+USER root
+RUN set -eux; \
+    npm install -g ${AGENT_PACKAGES}; \
+    npm cache clean --force
+
+# Leave the image user as root. The base entrypoint prepares mounted volumes,
+# then drops the daemon and launched agents to the non-root `zentic` user.

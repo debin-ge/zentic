@@ -1,0 +1,47 @@
+# Zentic daemon on a remote host, reached through the Zentic relay.
+#
+# The image is built on this host from the repository source in two layers:
+#   1. zentic-base: the official daemon image (docker/base/Dockerfile).
+#   2. zentic: a child image that adds the agent CLIs (Dockerfile.agents).
+# Settings come from .env (copy .env.example). See README.md.
+
+services:
+  # Built only as a dependency of `zentic`. The profile keeps it from running.
+  zentic-base:
+    image: zentic:base
+    build:
+      # The repository root, two levels up, holds the source the base image packs.
+      context: ../..
+      dockerfile: docker/base/Dockerfile
+    profiles: ["build"]
+
+  zentic:
+    image: zentic:server
+    build:
+      context: .
+      dockerfile: Dockerfile.agents
+      additional_contexts:
+        zentic-base: service:zentic-base
+      args:
+        AGENT_PACKAGES: ${AGENT_PACKAGES:-@anthropic-ai/claude-code @openai/codex opencode-ai}
+    restart: unless-stopped
+    ports:
+      # Loopback only. Remote clients reach the daemon through the relay, so no
+      # public port is needed. Use an SSH tunnel for the web UI or the CLI.
+      - "127.0.0.1:${ZENTIC_HTTP_PORT:-6767}:6767"
+    environment:
+      # Relay clients send this in the encrypted hello, so it is required even
+      # though the port is not public.
+      ZENTIC_PASSWORD: ${ZENTIC_PASSWORD:?set ZENTIC_PASSWORD in .env}
+      ZENTIC_RELAY_ENABLED: "true"
+      ZENTIC_RELAY_ENDPOINT: ${RELAY_ENDPOINT:?set RELAY_ENDPOINT in .env}
+      ZENTIC_RELAY_USE_TLS: ${RELAY_USE_TLS:-true}
+    volumes:
+      # Daemon state, pairing identity and agent logins. Keep it, or the daemon
+      # gets a new identity and every device has to pair again.
+      - zentic_home:/home/zentic
+      # Code that Zentic and the agents it launches can read and write.
+      - ${ZENTIC_WORKSPACE:-./workspace}:/workspace
+
+volumes:
+  zentic_home:

@@ -1,0 +1,3 @@
+# Per-server settings and the default workspace. Created on the host, not committed.
+.env
+workspace/
