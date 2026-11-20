@@ -1,157 +1,71 @@
 name: Docker
 
+# Builds the image for linux/amd64 and linux/arm64 and publishes it to GHCR.
+# A pushed v* tag publishes <version>, sha-<commit> and, for a stable version,
+# latest. A manual run publishes the version it is given.
 on:
   push:
-    branches: [main]
-    tags:
-      - "v*"
+    tags: ["v*"]
   workflow_dispatch:
     inputs:
-      zentic_version:
-        description: "Expected source version to build. Required when publish is true."
-        required: false
-        default: ""
-      publish:
-        description: "Publish the image to GHCR. Manual publishes require zentic_version."
-        required: false
-        default: "false"
-        type: choice
-        options:
-          - "false"
-          - "true"
-      publish_latest:
-        description: "Also publish ghcr.io/debin-ge/zentic:latest. Ignored for prereleases."
-        required: false
-        default: "false"
-        type: choice
-        options:
-          - "false"
-          - "true"
+      version:
+        description: "Version to build, matching package.json (e.g. 0.16.1)."
+        required: true
+      latest:
+        description: "Also move the latest tag. Ignored for prereleases."
+        type: boolean
+        default: false
 
 concurrency:
-  group: docker-${{ github.workflow }}-${{ github.ref }}
+  group: docker-${{ github.ref }}
   cancel-in-progress: false
 
+permissions:
+  contents: read
+  packages: write
+
 env:
-  REGISTRY: ghcr.io
-  PLATFORMS: linux/amd64,linux/arm64
+  IMAGE: ghcr.io/debin-ge/zentic
 
 jobs:
-  setup:
+  publish:
     runs-on: ubuntu-latest
-    outputs:
-      image: ${{ steps.values.outputs.image }}
-      install_version: ${{ steps.values.outputs.install_version }}
-      publish: ${{ steps.values.outputs.publish }}
-      check_tag: ${{ steps.values.outputs.check_tag }}
-      publish_tags: ${{ steps.values.outputs.publish_tags }}
     steps:
       - uses: actions/checkout@v6
 
-      - id: values
+      - name: Resolve tags
+        id: tags
         env:
-          INPUT_ZENTIC_VERSION: ${{ inputs.zentic_version }}
-          INPUT_PUBLISH: ${{ inputs.publish }}
-          INPUT_PUBLISH_LATEST: ${{ inputs.publish_latest }}
-          REPO_OWNER: ${{ github.repository_owner }}
-          REF_NAME: ${{ github.ref_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_LATEST: ${{ inputs.latest }}
         run: |
           set -euo pipefail
-
-          owner="$(printf '%s' "${REPO_OWNER}" | tr '[:upper:]' '[:lower:]')"
-          image="ghcr.io/${owner}/zentic"
-          package_version="$(node -p "require('./package.json').version")"
-          install_version="${INPUT_ZENTIC_VERSION:-${package_version}}"
-          publish=false
-          publish_latest=false
-          prerelease=false
-
-          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
-            install_version="${REF_NAME#v}"
-            publish=true
-            if [[ "${REF_NAME}" == *-* ]]; then
-              prerelease=true
-            else
-              publish_latest=true
-            fi
-          elif [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
-            if [[ "${INPUT_PUBLISH:-false}" == "true" ]]; then
-              if [[ -z "${INPUT_ZENTIC_VERSION}" || "${INPUT_ZENTIC_VERSION}" == "latest" ]]; then
-                echo "::error::zentic_version is required for manual Docker publishes."
-                exit 1
-              fi
-              publish=true
-            fi
-
-            if [[ "${install_version}" == *-* ]]; then
-              prerelease=true
-            fi
-
-            if [[ "${INPUT_PUBLISH_LATEST:-false}" == "true" && "${prerelease}" != "true" ]]; then
-              publish_latest=true
-            fi
+          if [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
+            version="${GITHUB_REF_NAME#v}"
+            latest=true
+          else
+            version="${INPUT_VERSION#v}"
+            latest="${INPUT_LATEST}"
           fi
-
-          check_tag="${image}:check-${GITHUB_SHA::12}"
-          publish_tags="${image}:${install_version}"
-          if [[ "${publish_latest}" == "true" ]]; then
-            publish_tags="${publish_tags}"$'\n'"${image}:latest"
-          fi
-
+          # A prerelease (any version with a "-") never moves latest.
+          [[ "${version}" != *-* ]] || latest=false
           {
-            echo "image=${image}"
-            echo "install_version=${install_version}"
-            echo "publish=${publish}"
-            echo "check_tag=${check_tag}"
-            echo "publish_tags<<EOF"
-            echo "${publish_tags}"
+            echo "version=${version}"
+            echo "tags<<EOF"
+            echo "${IMAGE}:${version}"
+            # The commit tag stays put when a version is published again, so a
+            # deployment can pin it and roll back to it.
+            echo "${IMAGE}:sha-${GITHUB_SHA::12}"
+            [[ "${latest}" != "true" ]] || echo "${IMAGE}:latest"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-          echo "Resolved image=${image} install_version=${install_version} publish=${publish}"
-
-  build:
-    needs: setup
-    if: needs.setup.outputs.publish != 'true'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v6
-
       - uses: docker/setup-qemu-action@v4
       - uses: docker/setup-buildx-action@v4
 
-      - uses: docker/build-push-action@v7
+      - uses: docker/login-action@v4
         with:
-          context: .
-          file: docker/base/Dockerfile
-          platforms: ${{ env.PLATFORMS }}
-          build-args: |
-            ZENTIC_VERSION=${{ needs.setup.outputs.install_version }}
-          tags: ${{ needs.setup.outputs.check_tag }}
-          push: false
-          provenance: false
-          cache-from: type=gha,scope=zentic
-          cache-to: type=gha,scope=zentic,mode=max
-
-  publish:
-    needs: setup
-    if: needs.setup.outputs.publish == 'true'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: docker/setup-qemu-action@v4
-      - uses: docker/setup-buildx-action@v4
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v4
-        with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -159,10 +73,10 @@ jobs:
         with:
           context: .
           file: docker/base/Dockerfile
-          platforms: ${{ env.PLATFORMS }}
+          platforms: linux/amd64,linux/arm64
           build-args: |
-            ZENTIC_VERSION=${{ needs.setup.outputs.install_version }}
-          tags: ${{ needs.setup.outputs.publish_tags }}
+            ZENTIC_VERSION=${{ steps.tags.outputs.version }}
+          tags: ${{ steps.tags.outputs.tags }}
           push: true
           provenance: false
           cache-from: type=gha,scope=zentic

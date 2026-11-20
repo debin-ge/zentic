@@ -201,7 +201,7 @@ npm run release:patch
 npm run release:minor
 ```
 
-This bumps the version across all workspaces, runs checks, publishes to npm, and pushes the branch + tag. The tag push triggers `Desktop Release`, `Android APK Release`, `Docker`, and `Release Notes Sync` on GitHub Actions. The workflows create the GitHub Release as a draft while builds and release-note sync run. EAS picks up the same tag via the EAS GitHub app and starts the iOS + Android store builds in parallel (see "Mobile builds (EAS)" below) — there is no mobile-release workflow under `.github/workflows`.
+This bumps the version across all workspaces, runs checks, publishes to npm, and pushes the branch + tag. The tag push triggers `Desktop Release`, `Android APK Release`, and `Docker` on GitHub Actions. `Desktop Release` creates the GitHub Release as a draft and fills its body from `CHANGELOG.md` while the builds run. EAS picks up the same tag via the EAS GitHub app and starts the iOS + Android store builds in parallel (see "Mobile builds (EAS)" below) — there is no mobile-release workflow under `.github/workflows`.
 
 After the stable release succeeds, check `npm view @getzentic/cli dist-tags`. When the new stable
 is newer than `beta`, move `beta` to it for every published package. This changes dist-tags only;
@@ -217,7 +217,7 @@ done
 Verify `latest` resolves to `ZENTIC_VERSION`, and `beta` resolves to `ZENTIC_VERSION` or the
 active newer beta, before considering the stable release complete.
 
-The Docker workflow builds images from the checked-out source tree on pull requests and on `main` as non-publishing checks. Stable `vX.Y.Z` tag pushes publish `ghcr.io/debin-ge/zentic:X.Y.Z` and `ghcr.io/debin-ge/zentic:latest`; beta `vX.Y.Z-beta.N` tag pushes publish only `ghcr.io/debin-ge/zentic:X.Y.Z-beta.N` and never move `latest`.
+The Docker workflow builds images from the checked-out source tree. It does not run on pushes to `main` or on pull requests; a manual run without `publish` is a non-publishing check. Stable `vX.Y.Z` tag pushes publish `ghcr.io/debin-ge/zentic:X.Y.Z` and `ghcr.io/debin-ge/zentic:latest`; beta `vX.Y.Z-beta.N` tag pushes publish only `ghcr.io/debin-ge/zentic:X.Y.Z-beta.N` and never move `latest`.
 
 The production relay is the Elixir service in [debin-ge/zentic-relay](https://github.com/debin-ge/zentic-relay), with its own deployment process. Zentic releases and pushes to this repository do not deploy it. The Cloudflare relay code and workflow in this repository are legacy and are not used in production.
 
@@ -254,7 +254,7 @@ npm run release:promote          # Promote X.Y.Z-beta.N to stable X.Y.Z
 - Desktop assets now come from the Electron package at `packages/desktop`
 - Require the Linux artifact CI checks with both restricted and usable user namespaces to pass before publication; see [packaged desktop smoke](testing.md#packaged-desktop-smoke). Keep the installed-package and AppImage checks together.
 - Beta releases use Electron's `beta` update channel. Users on the stable channel only receive stable releases; users on the beta channel receive beta releases and the final stable release when it is published.
-- **A beta series has one changelog entry.** Each beta folds into it and renames its heading to the new `## X.Y.Z-beta.N`, which `Release Notes Sync` mirrors into that prerelease body. Promotion renames it to the stable heading. See the Changelog policy section.
+- **A beta series has one changelog entry.** Each beta folds into it and renames its heading to the new `## X.Y.Z-beta.N`, which `Desktop Release` mirrors into that prerelease body. Promotion renames it to the stable heading. See the Changelog policy section.
 
 Use the beta path when you need to:
 
@@ -280,72 +280,23 @@ Drafts do not appear in GitHub's releases feed. Updater clients continue to see 
 
 `npm run release:patch` or `npm run release:minor` → tag push → 36h ramp. No extra action needed.
 
-The `rollout_hours` input on `desktop-release.yml` is **only read on `workflow_dispatch`** — tag-push runs always default to 36. To get any other rollout duration on a fresh release, use the post-publish flip below.
+The `rollout_hours` input on `desktop-release.yml` is read only on `workflow_dispatch`; tag-push runs always stamp 36. It is the total duration since the release date, and `0` admits every stable user on their next update check (within ~30 min for active clients).
 
-### Instant-admit release (rollout_hours=0)
-
-`npm run release:patch` and `npm run release:minor` tag-push, and tag-push runs always stamp 36 hours. To admit everyone immediately (hotfix, doc-only change, a release you want out fast), cut the release normally, wait for it to publish, then flip the manifests:
-
-```bash
-# 1. Cut and publish (36h ramp from tag push).
-npm run release:patch
-
-# 2. Wait for Desktop Release to publish the GitHub Release.
-gh run watch <desktop-release-run-id> --exit-status
-
-# 3. Flip the published manifests to instant admit.
-gh workflow run desktop-rollout.yml \
-  -f tag=v0.1.64 \
-  -f rollout_hours=0
-```
-
-Dispatch only after `finalize-rollout` has published the release. Until then the release is a draft, and a draft has no tag: `desktop-rollout.yml` looks the release up by tag and fails with `release not found`. The concurrency group `desktop-rollout-<tag>` that the two workflows share orders them only once both are queued; it does not hold an early dispatch until the draft is published.
-
-The first public manifests carry `rolloutHours=36` for the minutes between publish and the flip. The renderer polls every 30 minutes, so active stable users pick up the new manifest on their next check.
-
-### Adjusting an already-published release
-
-To change the rollout duration on a release that's already shipped — e.g. flip a hotfix to instant admit, or slow a release down — use the dedicated `desktop-rollout.yml` workflow. It edits the manifests in place on the GitHub release without rebuilding anything. It only rewrites `rolloutHours`; `releaseDate` is preserved, so the rollout clock keeps ticking from the original publish time.
-
-**Hotfix (instant admit) on an already-shipped release:**
-
-```bash
-gh workflow run desktop-rollout.yml \
-  -f tag=v0.1.42 \
-  -f rollout_hours=0
-```
-
-`rollout_hours=0` admits 100% of stable users on their next update check (within ~30 min for active clients).
-
-**Slow a rollout down** (e.g. extend total duration to 72h since the original release):
-
-```bash
-gh workflow run desktop-rollout.yml \
-  -f tag=v0.1.42 \
-  -f rollout_hours=72
-```
-
-`rollout_hours` is **total duration since the original release date**, not "extend by N more hours from now." If `v0.1.42` was published 2h ago and you set `rollout_hours=72`, the ramp finishes 70h from now.
-
-The dispatch is idempotent and shares the `desktop-rollout-<tag>` concurrency group with `desktop-release.yml`'s `finalize-rollout` job, so it serializes safely against an in-flight tag-push pipeline targeting the same release.
-
-### Custom ramp on a manually-dispatched build
-
-`desktop-release.yml` accepts `rollout_hours` only on `workflow_dispatch`, which is the path used to **rebuild an existing tag** (retry a failed release, force a rebuild on a different ref). When you go that route, you can stamp a non-default ramp directly:
+To ship with another ramp, such as an instant-admit hotfix, rebuild the tag with a manual run. It rebuilds every platform and stamps a fresh `releaseDate`:
 
 ```bash
 gh workflow run desktop-release.yml \
   -f tag=v0.1.43 \
-  -f rollout_hours=6
+  -f rollout_hours=0
 ```
 
-This does **not** apply to fresh releases cut via `npm run release:patch` or `npm run release:minor` — those paths always tag-push and stamp 36. For a fresh release with a custom ramp, cut normally and then dispatch `desktop-rollout.yml` (same pattern as the instant-admit flow above, with your chosen `rollout_hours`).
+No workflow edits `rolloutHours` on a published release without rebuilding. To do it by hand, download the release's `*.yml` manifests, run `node scripts/stamp-rollout.mjs --rollout-hours <N> <manifests>`, and upload them back with `gh release upload <tag> <manifests> --clobber`. That keeps `releaseDate`, so the ramp still counts from the original publish time.
 
 ### Releasing during an active rollout
 
 If you ship N+1 while N is still ramping, N+1 starts a fresh rollout from its own publish timestamp. N's rollout effectively ends — the newer manifest supersedes it. Rollout-aware clients revalidate the manifest for up to five seconds before installing a downloaded update on quit. If N+1 has replaced N but the client is not admitted to N+1 yet, it skips the downloaded N and waits rather than installing two updates in succession. If revalidation times out, the app exits without installing the cached update.
 
-If N+1 is a hotfix for a bug in N, dispatch `desktop-rollout.yml -f tag=v0.1.<N+1> -f rollout_hours=0` after N+1 publishes so the users who already got N reach the fix fast.
+If N+1 is a hotfix for a bug in N, give it `rollout_hours=0` as above so the users who already got N reach the fix fast.
 
 ### macOS system floor
 
@@ -483,7 +434,11 @@ later transitions and stops itself when the release is complete.
 
 ## Release notes on GitHub
 
-The GitHub Release body is populated automatically by the `Release Notes Sync` workflow (`.github/workflows/release-notes-sync.yml`). It triggers on every `v*` tag push and on any push to `main` that touches `CHANGELOG.md`, then runs `scripts/sync-release-notes-from-changelog.mjs` to mirror the matching changelog entry into the release body. You don't need to write release notes on GitHub manually — keep `CHANGELOG.md` correct and the workflow will sync it. To force a re-sync, dispatch the workflow with the tag input.
+`Desktop Release` fills the GitHub Release body: its `create-release` job runs `scripts/sync-release-notes-from-changelog.mjs`, which mirrors the changelog entry for the tag into the release body. Keep `CHANGELOG.md` correct and don't write release notes on GitHub by hand. To re-sync after a changelog fix, run the script yourself:
+
+```bash
+node scripts/sync-release-notes-from-changelog.mjs --repo debin-ge/zentic --tag vX.Y.Z
+```
 
 ## Website behavior
 
@@ -493,7 +448,7 @@ The GitHub Release body is populated automatically by the `Release Notes Sync` w
 - The default download target only moves when you publish the final stable release tag like `v0.1.41`.
 - The public `/changelog` page renders `CHANGELOG.md` as-is, so the in-flight `-beta.N` entry shows there once it lands on `main` — that's intended, it's where beta users check what's coming. Only the **default download target** stays pinned to the latest stable; the download links read GitHub's releases API, not the changelog, so a `-beta.N` heading on top never affects them.
 - The download page's "What's new" link deep-links the **minor group** anchor (`/changelog#release-0.3`), not the exact entry: the beta entry is renamed on each beta and on promotion, so the minor group remains the durable target. A version with no entry in the bundled changelog — a tag whose changelog commit hasn't redeployed the site yet — links the plain `/changelog` instead of a dead anchor.
-- The website itself is deployed by `Deploy Website` (Cloudflare Workers), which redeploys on the `release: published` event emitted when a stable draft is published and on pushes to `main` that touch `CHANGELOG.md` or `packages/website/**`. Its job condition excludes beta prereleases.
+- No workflow deploys the website. Deploy it by hand with `npm run deploy --workspace=@getzentic/website` after a stable release publishes.
 
 ## Fixing a failed release build
 
@@ -593,9 +548,9 @@ Release notes depend on the changelog heading format. The heading **must** be st
 ## X.Y.Z-beta.N - YYYY-MM-DD
 ```
 
-No prefix (`v`), no extra text. `Release Notes Sync` matches the `## X.Y.Z` (or `## X.Y.Z-beta.N`) line for the pushed tag to extract the version. A malformed heading breaks the release-notes sync for that tag.
+No prefix (`v`), no extra text. The release-notes sync matches the `## X.Y.Z` (or `## X.Y.Z-beta.N`) line for the pushed tag to extract the version. A malformed heading breaks the release-notes sync for that tag.
 
-`CHANGELOG.md` on `main` is also what the app's **What's new** sheet fetches and renders, so the file is a shipped product surface, not just a release input. `##` starts a release and `###` starts a section; the app reads section titles from the document, so renaming or adding one needs no app change. Content between the release heading and the first `###` is the release's [highlights](#changelog-highlights). The What's new sheet, the website changelog and the GitHub release body show the highlights and keep the sections collapsed behind one control: Show all changes in the app and on the website, and an All changes `<details>` block that `Release Notes Sync` writes into the release body, so the file itself never needs HTML. A release with nothing before its first `###` shows its sections. Older entries that open with summary paragraphs are treated as highlights. The app, the website and the release scripts each parse the file with their own code, and installed apps keep the parser they shipped with, so those two heading rules are fixed: new kinds of content go inside the highlights or a section as Markdown, never behind a new heading level or marker. `scripts/test-support/changelog-structure.json` holds the cases all three parsers are tested against; change a structure rule there first. Everything under a section is rendered as Markdown: prose, lists, links, inline code, fenced code, block quotes, tables, and images. Raw HTML does not render — the shared Markdown parser runs with `html: false`, so a `<video>`, `<iframe>` or `<embed>` tag reaches the reader as visible markup. Keep media out of the changelog, or link to it. A GitHub callout renders as a block quote with its `[!NOTE]` marker still in the text. A release entry is what a user reads on a phone the moment they are offered the update — write it for them.
+`CHANGELOG.md` on `main` is also what the app's **What's new** sheet fetches and renders, so the file is a shipped product surface, not just a release input. `##` starts a release and `###` starts a section; the app reads section titles from the document, so renaming or adding one needs no app change. Content between the release heading and the first `###` is the release's [highlights](#changelog-highlights). The What's new sheet, the website changelog and the GitHub release body show the highlights and keep the sections collapsed behind one control: Show all changes in the app and on the website, and an All changes `<details>` block that the release-notes sync writes into the release body, so the file itself never needs HTML. A release with nothing before its first `###` shows its sections. Older entries that open with summary paragraphs are treated as highlights. The app, the website and the release scripts each parse the file with their own code, and installed apps keep the parser they shipped with, so those two heading rules are fixed: new kinds of content go inside the highlights or a section as Markdown, never behind a new heading level or marker. `scripts/test-support/changelog-structure.json` holds the cases all three parsers are tested against; change a structure rule there first. Everything under a section is rendered as Markdown: prose, lists, links, inline code, fenced code, block quotes, tables, and images. Raw HTML does not render — the shared Markdown parser runs with `html: false`, so a `<video>`, `<iframe>` or `<embed>` tag reaches the reader as visible markup. Keep media out of the changelog, or link to it. A GitHub callout renders as a block quote with its `[!NOTE]` marker still in the text. A release entry is what a user reads on a phone the moment they are offered the update — write it for them.
 
 ## Changelog policy
 
@@ -606,7 +561,7 @@ No prefix (`v`), no extra text. `Release Notes Sync` matches the `## X.Y.Z` (or 
 - Anything that already shipped to stable through a patch release on an older line stays out of the beta entry.
 - Stable promotion renames the entry to `## 0.1.60 - YYYY-MM-DD` after a final review.
 
-Older prerelease bodies on GitHub keep the notes they were synced with; `Release Notes Sync` only writes the release whose tag matches the top entry.
+Older prerelease bodies on GitHub keep the notes they were synced with; the sync writes only the release being built.
 
 ## Changelog translations
 
@@ -815,7 +770,7 @@ Every entry covers `previous stable release → release source`: first beta, lat
 - [ ] The GitHub prerelease contains `beta-mac.yml`, `beta-linux.yml`, and `beta.yml`
 - [ ] GitHub `Android APK Release` workflow for the same tag is green
 - [ ] GitHub `Docker` workflow is green and the versioned beta image is published without moving `latest`
-- [ ] GitHub `Release Notes Sync` mirrored the beta entry into the prerelease body
+- [ ] The prerelease body on GitHub matches the beta changelog entry
 - [ ] EAS `Release iOS Beta` completed its build, TestFlight distribution, external beta group, and Beta App Review path
 - [ ] The [reconcile PR](#reconcile-main) brought the shipped changelog entries and version into `main`
 - [ ] The release heartbeat was created after the tag push and deleted only after every item above passed
@@ -841,7 +796,7 @@ Every entry covers `previous stable release → release source`: first beta, lat
 - [ ] `latest-mac.yml` contains the current `minimumSystemVersion` guard
 - [ ] GitHub `Android APK Release` workflow for the same tag is green
 - [ ] GitHub `Docker` workflow is green and both the versioned and `latest` images are published
-- [ ] GitHub `Release Notes Sync` is green and the release body matches the stable changelog entry
+- [ ] The release body on GitHub matches the stable changelog entry
 - [ ] EAS `Release Mobile` workflow for the same tag is green
 - [ ] EAS iOS `build_ios` completes for the same tag
 - [ ] EAS iOS `distribute_ios` succeeds, uploading the binary once, distributing it to `Zentic Beta`, and submitting it for Beta App Review

@@ -224,26 +224,25 @@ docker build \
   .
 ```
 
-The Docker workflow builds the image on pull requests and on `main` as a
-non-publishing check. Stable `vX.Y.Z` tag pushes publish
-`ghcr.io/debin-ge/zentic:X.Y.Z` and `ghcr.io/debin-ge/zentic:latest`. Beta tags
-publish only the exact prerelease tag, such as
-`ghcr.io/debin-ge/zentic:0.1.102-beta.1`, and do not update `latest`.
+The Docker workflow runs on `v*` tag pushes and manual runs, and every run
+publishes. A stable `vX.Y.Z` tag publishes `ghcr.io/debin-ge/zentic:X.Y.Z` and
+`ghcr.io/debin-ge/zentic:latest`. A beta tag publishes only the exact
+prerelease tag, such as `ghcr.io/debin-ge/zentic:0.1.102-beta.1`.
 
-To replace a Docker image in place without rebuilding desktop, APK, or EAS
-mobile release artifacts, dispatch the Docker workflow manually instead of
-pushing a `v*` release tag:
+To replace a Docker image without rebuilding desktop, APK, or EAS mobile
+release artifacts, start the workflow by hand instead of pushing a tag:
 
 ```bash
 gh workflow run docker.yml \
   --ref main \
-  -f zentic_version=0.1.102-beta.1 \
-  -f publish=true
+  -f version=0.1.102-beta.1
 ```
 
-Manual Docker publishes require an explicit `zentic_version`. The workflow builds
-from the checked-out source tree and publishes only the exact prerelease image
-tag for prerelease versions.
+`version` must match the checked-out `package.json`. A manual run moves
+`latest` only with `-f latest=true`, and never for a prerelease. Every publish
+also pushes `ghcr.io/debin-ge/zentic:sha-<first 12 characters of the commit>`.
+Publishing the same version again moves the version tag and leaves that commit
+tag in place, so a deployment can pin it and roll back to it.
 
 The published image is multi-arch for `linux/amd64` and `linux/arm64`.
 

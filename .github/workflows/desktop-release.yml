@@ -63,6 +63,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          # Cone mode also checks out root files, which brings CHANGELOG.md.
           sparse-checkout: scripts
           ref: ${{ env.CHECKOUT_REF }}
 
@@ -92,6 +93,12 @@ jobs:
                 node scripts/github-release.mjs --repo "${{ github.repository }}" --tag "$RELEASE_TAG" > /dev/null
               }
           fi
+
+      - name: Fill release notes from CHANGELOG.md
+        if: env.IS_SMOKE_TAG != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/sync-release-notes-from-changelog.mjs --repo "${{ github.repository }}" --tag "$RELEASE_TAG"
 
   publish-macos:
     needs: [create-release]
