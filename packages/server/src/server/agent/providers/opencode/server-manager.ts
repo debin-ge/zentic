@@ -394,13 +394,9 @@ export class OpenCodeServerManager implements OpenCodeServerManagerLike {
     let stderrBuffer = "";
     let stdoutBuffer = "";
     const STARTUP_BUFFER_CAP = 8192;
-    const appendCapped = (current: string, chunk: string): string => {
-      if (current.length >= STARTUP_BUFFER_CAP) {
-        return current;
-      }
-      const remaining = STARTUP_BUFFER_CAP - current.length;
-      return current + chunk.slice(0, remaining);
-    };
+    // Keep the tail: the line that explains a failed start is usually the last one written.
+    const appendCapped = (current: string, chunk: string): string =>
+      (current + chunk).slice(-STARTUP_BUFFER_CAP);
     const buildStartupErrorMessage = (headline: string): string => {
       const sections = [headline];
       const stderrTrimmed = stderrBuffer.trim();

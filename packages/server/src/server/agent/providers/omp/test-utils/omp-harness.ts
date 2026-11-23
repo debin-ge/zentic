@@ -120,12 +120,21 @@ export class OmpHarness {
     overrides: Partial<AgentSessionConfig> = {},
   ): Promise<void> {
     const sessionFile = await writeOmpHistory(history);
-    const handle: AgentPersistenceHandle = {
-      provider: "omp",
-      sessionId: "omp-session-1",
-      nativeHandle: sessionFile,
-      metadata: { cwd: CWD },
-    };
+    await this.resumeHandle(
+      {
+        provider: "omp",
+        sessionId: "omp-session-1",
+        nativeHandle: sessionFile,
+        metadata: { cwd: CWD },
+      },
+      overrides,
+    );
+  }
+
+  async resumeHandle(
+    handle: AgentPersistenceHandle,
+    overrides: Partial<AgentSessionConfig> = {},
+  ): Promise<void> {
     const session = await this.client.resumeSession(handle, overrides);
     if (!(session instanceof OmpAgentSession)) {
       throw new Error("OMP client returned a non-OMP session");

@@ -178,6 +178,21 @@ const MutableDaemonProviderConfigSchema = z
     zenticTools: ProviderZenticToolsPolicySchema.optional(),
     enabled: z.boolean().optional(),
     additionalModels: z.array(MutableDaemonProviderModelSchema).optional(),
+    extends: z.string().optional(),
+    command: z.array(z.string().min(1)).min(1).optional(),
+    env: z.record(z.string(), z.string()).optional(),
+    options: z.record(z.string(), z.unknown()).optional(),
+  })
+  .passthrough();
+
+// A provider patch deep-merges into the stored entry. `null` removes a value instead:
+// `command: null` clears the launch override, and a `null` key in `env` or `options`
+// deletes that key.
+const MutableDaemonProviderConfigPatchSchema = MutableDaemonProviderConfigSchema.partial()
+  .extend({
+    command: z.array(z.string().min(1)).min(1).nullable().optional(),
+    env: z.record(z.string(), z.string().nullable()).optional(),
+    options: z.record(z.string(), z.unknown()).optional(),
   })
   .passthrough();
 
@@ -266,9 +281,7 @@ export const MutableDaemonConfigPatchSchema = z
     mcp: z.object({ injectIntoAgents: z.boolean().optional() }).passthrough().optional(),
     usage: z.object({ enabled: z.boolean() }).optional(),
     browserTools: MutableBrowserToolsConfigSchema.partial().optional(),
-    providers: z
-      .record(z.string(), MutableDaemonProviderConfigSchema.partial().passthrough())
-      .optional(),
+    providers: z.record(z.string(), MutableDaemonProviderConfigPatchSchema).optional(),
     removeProviders: z.array(z.string().min(1)).optional(),
     metadataGeneration: MutableMetadataGenerationConfigSchema.partial().optional(),
     autoArchiveAfterMerge: z.boolean().optional(),
@@ -3998,6 +4011,8 @@ export const ServerInfoStatusPayloadSchema = z
         // so a theme plugin cannot start there at all.
         pluginThemes: z.boolean().optional(),
         pluginSettings: z.boolean().optional(),
+        // COMPAT(providerRuntimeSettings): added in v0.16.0, remove gate after 2027-05-22.
+        providerRuntimeSettings: z.boolean().optional(),
         pluginTimelineItems: z.boolean().optional(),
         // COMPAT(pluginSubscriptions): added in v0.15.0, remove gate after 2027-05-02.
         pluginSubscriptions: z.boolean().optional(),

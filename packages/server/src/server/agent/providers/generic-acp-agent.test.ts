@@ -44,6 +44,7 @@ describe("GenericACPAgentClient", () => {
     expect(mockState.superConstructorOptions).toEqual([
       {
         provider: "acp",
+        agentLabel: "The ACP agent",
         logger: expect.any(Object),
         runtimeSettings: {
           env: {
@@ -64,6 +65,26 @@ describe("GenericACPAgentClient", () => {
         },
         waitForInitialCommands: true,
       },
+    ]);
+  });
+
+  test("names the agent by its configured label in provider notices", () => {
+    mockState.superConstructorOptions.length = 0;
+    void new GenericACPAgentClient({
+      logger: createTestLogger(),
+      command: ["hermes", "acp"],
+      providerId: "hermes",
+      label: "Hermes",
+    });
+    void new GenericACPAgentClient({
+      logger: createTestLogger(),
+      command: ["hermes", "acp"],
+      providerId: "hermes",
+    });
+
+    expect(mockState.superConstructorOptions).toEqual([
+      expect.objectContaining({ agentLabel: "Hermes" }),
+      expect.objectContaining({ agentLabel: "hermes" }),
     ]);
   });
 });

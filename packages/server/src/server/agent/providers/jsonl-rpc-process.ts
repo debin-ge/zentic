@@ -79,6 +79,8 @@ export class JsonlRpcProcess {
   private readonly messageSubscribers = new Set<(message: Record<string, unknown>) => void>();
   private readonly exitSubscribers = new Set<(exit: JsonlRpcExit) => void>();
   private stderrBuffer = "";
+  /** Stderr not yet included in a request-timeout error, so consecutive timeouts don't repeat it. */
+  private unreportedStderr = "";
   private nextRequestId = 1;
   private disposed = false;
   private streamFailure: ProviderStreamLimitError | null = null;
@@ -110,10 +112,9 @@ export class JsonlRpcProcess {
       this.handleStdoutChunk(chunk);
     });
     this.child.stderr.on("data", (chunk) => {
-      this.stderrBuffer += chunk.toString();
-      if (this.stderrBuffer.length > STDERR_BUFFER_LIMIT) {
-        this.stderrBuffer = this.stderrBuffer.slice(-STDERR_BUFFER_LIMIT);
-      }
+      const text = chunk.toString();
+      this.stderrBuffer = appendCapped(this.stderrBuffer, text);
+      this.unreportedStderr = appendCapped(this.unreportedStderr, text);
     });
     this.child.stdin.on("error", (error) => {
       this.handleStdinError(error);
@@ -172,7 +173,7 @@ export class JsonlRpcProcess {
         this.pending.delete(id);
         reject(
           new Error(
-            `${this.diagnosticName} request timed out phase=${command.type} elapsedMs=${Date.now() - startedAt} timeoutMs=${requestTimeoutMs}\n${this.stderrBuffer}`.trim(),
+            `${this.diagnosticName} request timed out phase=${command.type} elapsedMs=${Date.now() - startedAt} timeoutMs=${requestTimeoutMs}\n${this.takeUnreportedStderr()}`.trim(),
           ),
         );
       });
@@ -265,6 +266,13 @@ export class JsonlRpcProcess {
     }
   }
 
+  /** Stderr since the previous timeout report; reported once, then cleared. */
+  private takeUnreportedStderr(): string {
+    const stderr = this.unreportedStderr;
+    this.unreportedStderr = "";
+    return stderr;
+  }
+
   private handleStdoutChunk(chunk: Buffer | string): void {
     this.frameDecoder.write(chunk);
   }
@@ -327,6 +335,11 @@ export class JsonlRpcProcess {
     }
     this.pending.clear();
   }
+}
+
+function appendCapped(buffer: string, text: string): string {
+  const next = buffer + text;
+  return next.length > STDERR_BUFFER_LIMIT ? next.slice(-STDERR_BUFFER_LIMIT) : next;
 }
 
 /**

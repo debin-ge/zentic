@@ -10,13 +10,14 @@ import { commands } from "./commands.js";
 
 import { waitForLocationReady } from "./readiness.js";
 
-import type { SessionInfo } from "@opencode/client";
+import { ClientError, isSessionNotFoundError, type SessionInfo } from "@opencode/client";
 
 import type { Logger } from "pino";
 import type {
   AgentCapabilityFlags,
   AgentClient,
   AgentCreateSessionOptions,
+  AgentResumeSessionOptions,
   AgentDraftControls,
   AgentLaunchContext,
   AgentPersistenceHandle,
@@ -42,6 +43,17 @@ import { resolveOpenCodeHomeDir } from "../paths.js";
 import { V2Runtime, type V2Connection } from "./runtime.js";
 import type { OpenCodeServiceSelection } from "./service-selection.js";
 import { modelRef, modesFromV2, modelsFromV2 } from "./mapping.js";
+
+// OpenCode answers a declared 404 with a SessionNotFoundError body and any other with a
+// ClientError; a test double or proxy may only say so in the message.
+function isMissingV2Session(error: unknown): boolean {
+  if (isSessionNotFoundError(error)) return true;
+  if (error instanceof ClientError && error.reason === "UnexpectedStatus") {
+    const cause = error.cause;
+    return typeof cause === "object" && cause !== null && "status" in cause && cause.status === 404;
+  }
+  return error instanceof Error && /\bsession not found\b/i.test(error.message);
+}
 
 interface V2AgentOptions {
   logger: Logger;
@@ -114,13 +126,7 @@ export class OpenCodeV2AgentClient implements AgentClient {
       requiresDedicatedV2Server(config, launch) ? { env: launch?.env, dedicated: true } : {},
     );
     try {
-      const info = await connection.client.session.create({
-        location: { directory: config.cwd },
-        title: config.title,
-        agent: config.modeId ?? "build",
-        model: config.model ? modelRef(config.model, config.thinkingOptionId) : undefined,
-        permissions: permissionRules(config),
-      });
+      const info = await this.createNativeSession(connection, config);
       return await this.attach(connection, info, config, launch, options?.persistSession !== false);
     } catch (error) {
       await connection.release();
@@ -131,6 +137,7 @@ export class OpenCodeV2AgentClient implements AgentClient {
     handle: AgentPersistenceHandle,
     overrides?: Partial<AgentSessionConfig>,
     launch?: AgentLaunchContext,
+    options?: AgentResumeSessionOptions,
   ): Promise<AgentSession> {
     const cwd = overrides?.cwd ?? handle.metadata?.cwd;
     if (typeof cwd !== "string")
@@ -146,16 +153,47 @@ export class OpenCodeV2AgentClient implements AgentClient {
       (await this.runtime.acquire(
         requiresDedicatedV2Server(config, launch) ? { env: launch?.env, dedicated: true } : {},
       ));
+    const sessionID = handle.nativeHandle ?? handle.sessionId;
     try {
-      const info = await connection.client.session.get({
-        sessionID: handle.nativeHandle ?? handle.sessionId,
-      });
-      await applyResumeOverrides(connection.client, info, overrides);
-      return await this.attach(connection, info, config, launch, true);
+      // A history-only load must not create a session or rewrite the persisted handle.
+      const existing =
+        options?.purpose === "history"
+          ? await connection.client.session.get({ sessionID })
+          : await this.readResumedSession(connection, sessionID);
+      if (existing) {
+        await applyResumeOverrides(connection.client, existing, overrides);
+        return await this.attach(connection, existing, config, launch, true);
+      }
+      this.options.logger.warn(
+        { sessionId: sessionID, cwd },
+        "OpenCode session to resume no longer exists; continuing in a new session",
+      );
+      const info = await this.createNativeSession(connection, config);
+      const session = await this.attach(connection, info, config, launch, true);
+      session.replacedMissingSession(sessionID);
+      return session;
     } catch (error) {
       await connection.release();
       throw error;
     }
+  }
+  /** Null when OpenCode confirms the session is gone, typically after its data directory moved. */
+  private async readResumedSession(connection: V2Connection, sessionID: string) {
+    try {
+      return await connection.client.session.get({ sessionID });
+    } catch (error) {
+      if (isMissingV2Session(error)) return null;
+      throw error;
+    }
+  }
+  private createNativeSession(connection: V2Connection, config: AgentSessionConfig) {
+    return connection.client.session.create({
+      location: { directory: config.cwd },
+      title: config.title,
+      agent: config.modeId ?? "build",
+      model: config.model ? modelRef(config.model, config.thinkingOptionId) : undefined,
+      permissions: permissionRules(config),
+    });
   }
   private async attach(
     connection: V2Connection,

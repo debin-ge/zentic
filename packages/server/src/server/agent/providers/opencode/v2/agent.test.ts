@@ -1,4 +1,4 @@
-import type { FormInfo, ModelInfo, SessionMessageInfo } from "@opencode/client";
+import type { FormInfo, ModelInfo, OpenCodeEvent, SessionMessageInfo } from "@opencode/client";
 import { describe, expect, test } from "vitest";
 
 import { createTestLogger } from "../../../../../test-utils/test-logger.js";
@@ -6,6 +6,31 @@ import type { AgentStreamEvent } from "../../../agent-sdk-types.js";
 import { OpenCodeV2AgentClient } from "./agent.js";
 import { V2Harness } from "../test-utils/v2-harness.js";
 import type { V2Api } from "./api.js";
+
+let retrySequence = 10_000;
+
+function retryScheduled(
+  attempt: number,
+  error: { type: string; message: string; status?: number },
+): OpenCodeEvent {
+  retrySequence += 1;
+  return {
+    id: `retry-${retrySequence}`,
+    created: retrySequence,
+    type: "session.retry.scheduled",
+    durable: { aggregateID: "session", seq: retrySequence, version: 1 },
+    data: { sessionID: "session", assistantMessageID: "assistant", attempt, at: 0, error },
+  };
+}
+
+function retryStatus(attempt: number, message: string): OpenCodeEvent {
+  return {
+    id: `status-${attempt}`,
+    created: attempt,
+    type: "session.status",
+    data: { sessionID: "session", status: { type: "retry", attempt, message, next: 0 } },
+  };
+}
 
 function terminalEvents(events: AgentStreamEvent[]) {
   return events.filter(
@@ -856,7 +881,7 @@ describe("OpenCode v2 session lifecycle", () => {
     }
   });
 
-  test("resumes the native session ID and never replaces a missing session", async () => {
+  test("resumes the native session ID and keeps other resume failures", async () => {
     const harness = new V2Harness();
     const client = new OpenCodeV2AgentClient({
       logger: createTestLogger(),
@@ -894,10 +919,183 @@ describe("OpenCode v2 session lifecycle", () => {
       await session.close();
     }
     harness.api.session.get = async () => {
-      throw new Error("Session not found");
+      throw new Error("connect ECONNREFUSED");
     };
-    await expect(client.resumeSession(handle)).rejects.toThrow("Session not found");
+    await expect(client.resumeSession(handle)).rejects.toThrow("ECONNREFUSED");
     expect(harness.creates).toEqual([]);
+
+    // Loading history for a missing session must not create one or rewrite the handle.
+    harness.api.session.get = async () => {
+      throw new Error("Session not found: session");
+    };
+    await expect(
+      client.resumeSession(handle, undefined, undefined, { purpose: "history" }),
+    ).rejects.toThrow("Session not found");
+    expect(harness.creates).toEqual([]);
+  });
+
+  test.each([
+    [
+      "a SessionNotFoundError body",
+      { _tag: "SessionNotFoundError", sessionID: "gone", message: "x" },
+    ],
+    ["a session-not-found error", new Error("Session not found: gone")],
+  ])("continues a missing resumed session in a new session after %s", async (_label, error) => {
+    const harness = new V2Harness();
+    const prompted: string[] = [];
+    harness.api.session.get = async ({ sessionID }) => {
+      if (sessionID === "gone") throw error;
+      return harness.info;
+    };
+    harness.api.session.create = async (input = {}) => {
+      harness.creates.push(input);
+      Object.assign(harness.info, { id: "replacement" });
+      return harness.info;
+    };
+    const prompt = harness.api.session.prompt;
+    harness.api.session.prompt = async (input, options) => {
+      prompted.push(input.sessionID);
+      await prompt(input, options);
+    };
+    const client = new OpenCodeV2AgentClient({
+      logger: createTestLogger(),
+      runtime: harness.runtime,
+    });
+    const session = await client.resumeSession(
+      { provider: "opencode", sessionId: "gone", nativeHandle: "gone", metadata: {} },
+      { cwd: "/tmp/project", modeId: "plan" },
+    );
+    const events: AgentStreamEvent[] = [];
+    session.subscribe((event) => events.push(event));
+    const notices = () =>
+      events.flatMap((event) =>
+        event.type === "timeline" && event.item.type === "notification" ? [event] : [],
+      );
+    try {
+      expect(harness.creates).toEqual([
+        expect.objectContaining({ location: { directory: "/tmp/project" }, agent: "plan" }),
+      ]);
+      expect(events).toContainEqual({
+        type: "thread_started",
+        provider: "opencode",
+        sessionId: "replacement",
+      });
+      expect(session.describePersistence()).toMatchObject({
+        sessionId: "replacement",
+        nativeHandle: "replacement",
+      });
+
+      await session.run("first");
+      const firstTurn = events.find((event) => event.type === "turn_started");
+      expect(notices()).toEqual([
+        {
+          type: "timeline",
+          provider: "opencode",
+          turnId: firstTurn?.type === "turn_started" ? firstTurn.turnId : "missing",
+          item: {
+            type: "notification",
+            level: "warning",
+            message:
+              "OpenCode couldn't find the previous session gone. Its data directory probably changed. This conversation continues in a new OpenCode session without the earlier context.",
+          },
+        },
+      ]);
+      await session.run("second");
+      expect(notices()).toHaveLength(1);
+      expect(prompted).toEqual(["replacement", "replacement"]);
+    } finally {
+      await session.close();
+    }
+  });
+
+  test("fails the turn on an auth retry, interrupts OpenCode, and runs the next turn", async () => {
+    const harness = new V2Harness();
+    harness.autoComplete = false;
+    let interrupts = 0;
+    harness.interrupt = async () => {
+      interrupts += 1;
+      harness.finishExecution("interrupted");
+      return { interrupted: true };
+    };
+    const client = new OpenCodeV2AgentClient({
+      logger: createTestLogger(),
+      runtime: harness.runtime,
+    });
+    const session = await client.createSession({ provider: "opencode", cwd: "/tmp/project" });
+    const events: AgentStreamEvent[] = [];
+    session.subscribe((event) => events.push(event));
+    try {
+      await session.startTurn("first");
+      await expect.poll(() => harness.prompts).toEqual(["first"]);
+      harness.push(retryScheduled(1, { type: "api", message: "Invalid API key", status: 401 }));
+
+      await expect
+        .poll(() => terminalEvents(events))
+        .toEqual([
+          expect.objectContaining({
+            type: "turn_failed",
+            error:
+              "OpenCode rejected the provider credentials (401 Invalid API key). Check the API key for this model provider (opencode auth login, or the provider env in Zentic's runtime settings).",
+          }),
+        ]);
+      await expect.poll(() => interrupts).toBe(1);
+      // A retry still in flight when the interrupt lands belongs to the failed turn.
+      harness.push(retryScheduled(2, { type: "api", message: "Invalid API key", status: 401 }));
+
+      harness.autoComplete = true;
+      const second = await session.startTurn("second");
+      await expect.poll(() => terminalEvents(events)).toHaveLength(2);
+      expect(terminalEvents(events)[1]).toMatchObject({
+        type: "turn_completed",
+        turnId: second.turnId,
+      });
+      expect(interrupts).toBe(1);
+      expect(events.some((event) => event.type === "turn_canceled")).toBe(false);
+    } finally {
+      await session.close();
+    }
+  });
+
+  test("announces a retried request once and keeps the turn running", async () => {
+    const harness = new V2Harness();
+    harness.autoComplete = false;
+    const client = new OpenCodeV2AgentClient({
+      logger: createTestLogger(),
+      runtime: harness.runtime,
+    });
+    const session = await client.createSession({ provider: "opencode", cwd: "/tmp/project" });
+    const events: AgentStreamEvent[] = [];
+    session.subscribe((event) => events.push(event));
+    const notices = () =>
+      events.flatMap((event) =>
+        event.type === "timeline" && event.item.type === "notification" ? [event.item] : [],
+      );
+    try {
+      await session.startTurn("work");
+      await expect.poll(() => harness.prompts).toEqual(["work"]);
+      for (const attempt of [1, 2, 3]) {
+        harness.push(
+          retryScheduled(attempt, { type: "api", message: "Rate limited", status: 429 }),
+        );
+        harness.push(retryStatus(attempt, "Rate limited"));
+      }
+      await expect.poll(notices).toEqual([
+        {
+          type: "notification",
+          level: "warning",
+          message: "OpenCode request failed (429 Rate limited); retrying.",
+        },
+      ]);
+      expect(terminalEvents(events)).toEqual([]);
+
+      harness.finishExecution();
+      await expect
+        .poll(() => terminalEvents(events))
+        .toEqual([expect.objectContaining({ type: "turn_completed" })]);
+      expect(notices()).toHaveLength(1);
+    } finally {
+      await session.close();
+    }
   });
 
   test("reconciles reconnect snapshots without replaying text or losing repeated chunks", async () => {

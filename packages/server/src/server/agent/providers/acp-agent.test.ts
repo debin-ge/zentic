@@ -25,6 +25,9 @@ import {
 import {
   ACPAgentClient,
   ACPAgentSession,
+  ACP_STDERR_BUFFER_LIMIT,
+  appendACPStderr,
+  isACPSessionNotFoundError,
   type SpawnedACPProcess,
   type SessionStateResponse,
   buildACPClientCapabilities,
@@ -4391,6 +4394,226 @@ describe("ACPAgentSession initialization cleanup", () => {
     await expect(session.initializeResumedSession()).rejects.toThrow("session/load failed");
 
     expect(terminator.terminated).toContain(child);
+  });
+});
+
+describe("isACPSessionNotFoundError", () => {
+  test.each([
+    ["the SDK resourceNotFound error", RequestError.resourceNotFound("session-1")],
+    ["a JSON-RPC resource-not-found payload", { code: -32002, message: "Resource not found" }],
+    [
+      "an internal error whose details name the missing session",
+      { code: -32603, message: "Internal error", data: { details: "Session session-1 not found" } },
+    ],
+    ["a plain error", new Error("No such session: session-1")],
+    ["an unknown session message", new Error("Unknown session id session-1")],
+  ])("recognizes %s", (_label, error) => {
+    expect(isACPSessionNotFoundError(error)).toBe(true);
+  });
+
+  test.each([
+    ["invalid params", RequestError.invalidParams()],
+    ["auth required", RequestError.authRequired()],
+    ["an internal error", { code: -32603, message: "Internal error", data: { details: "boom" } }],
+    ["an unrelated not-found", new Error("Model gpt-9 not found")],
+    ["a process exit", new Error("ACP agent disconnected (exit code 1)")],
+    ["a non-error value", "session not found"],
+  ])("ignores %s", (_label, error) => {
+    expect(isACPSessionNotFoundError(error)).toBe(false);
+  });
+});
+
+describe("appendACPStderr", () => {
+  test("keeps everything while under the limit", () => {
+    const chunks: string[] = [];
+    appendACPStderr(chunks, "first\n");
+    appendACPStderr(chunks, "second\n");
+    expect(chunks.join("")).toBe("first\nsecond\n");
+  });
+
+  test("keeps only the most recent output once the limit is exceeded", () => {
+    const chunks: string[] = [];
+    appendACPStderr(chunks, `HEAD${"a".repeat(ACP_STDERR_BUFFER_LIMIT)}`);
+    appendACPStderr(chunks, "b".repeat(100));
+    appendACPStderr(chunks, "TAIL");
+    const stderr = chunks.join("");
+    expect(stderr).toHaveLength(ACP_STDERR_BUFFER_LIMIT);
+    expect(stderr).not.toContain("HEAD");
+    expect(stderr.endsWith(`${"b".repeat(100)}TAIL`)).toBe(true);
+  });
+});
+
+describe("ACPAgentSession resume of a session the agent no longer has", () => {
+  const freshSessionResponse = {
+    sessionId: "fresh-session",
+    modes: null,
+    models: null,
+    configOptions: [],
+  };
+
+  function createResumeSession(args: {
+    loadSession: ReturnType<typeof vi.fn>;
+    resumePurpose?: "interactive" | "history";
+  }) {
+    const newSession = vi.fn().mockResolvedValue(freshSessionResponse);
+    const prompt = vi.fn().mockResolvedValue({ stopReason: "end_turn" });
+    const terminator = new FakeTerminator();
+    const child = createProbeChildStub();
+
+    class TestSession extends ACPAgentSession {
+      protected override async spawnProcess(): Promise<SpawnedACPProcess> {
+        return {
+          child,
+          connection: {
+            loadSession: args.loadSession,
+            newSession,
+            prompt,
+            signal: new AbortController().signal,
+          } as unknown as ClientSideConnection,
+          initialize: { agentCapabilities: { loadSession: true } },
+        };
+      }
+    }
+
+    const session = new TestSession(
+      { provider: "copilot", cwd: "/tmp/zentic-acp-test" },
+      {
+        provider: "copilot",
+        agentLabel: "Copilot",
+        logger: createTestLogger(),
+        defaultCommand: ["copilot", "--acp"],
+        defaultModes: [],
+        capabilities: {
+          supportsStreaming: true,
+          supportsSessionPersistence: true,
+          supportsMcpServers: true,
+        },
+        handle: { provider: "copilot", sessionId: "missing-session" },
+        resumePurpose: args.resumePurpose,
+        terminateProcess: terminator.terminate,
+      },
+    );
+    return { session, newSession, prompt, terminator, child };
+  }
+
+  function hasTurnCompleted(events: AgentStreamEvent[]): boolean {
+    return events.some((event) => event.type === "turn_completed");
+  }
+
+  function notifications(events: AgentStreamEvent[]) {
+    return events.flatMap((event) =>
+      event.type === "timeline" && event.item.type === "notification" ? [event.item] : [],
+    );
+  }
+
+  test("continues in a new session and tells the user once", async () => {
+    const { session, newSession, prompt } = createResumeSession({
+      loadSession: vi.fn().mockRejectedValue(RequestError.resourceNotFound("missing-session")),
+    });
+
+    await session.initializeResumedSession();
+
+    expect(newSession).toHaveBeenCalledWith({ cwd: "/tmp/zentic-acp-test", mcpServers: [] });
+    expect(session.id).toBe("fresh-session");
+    expect(session.describePersistence()).toMatchObject({
+      sessionId: "fresh-session",
+      nativeHandle: "fresh-session",
+    });
+
+    const events: AgentStreamEvent[] = [];
+    session.subscribe((event) => events.push(event));
+    expect(events[0]).toEqual({
+      type: "thread_started",
+      provider: "copilot",
+      sessionId: "fresh-session",
+    });
+
+    await session.startTurn("first");
+    await vi.waitFor(() => expect(hasTurnCompleted(events)).toBe(true));
+    await session.startTurn("second");
+
+    expect(prompt).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ sessionId: "fresh-session" }),
+    );
+    expect(prompt).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ sessionId: "fresh-session" }),
+    );
+    expect(notifications(events)).toEqual([
+      {
+        type: "notification",
+        level: "warning",
+        message:
+          "Copilot couldn't find the previous session missing-session. Its data directory probably changed. This conversation continues in a new session without the earlier context.",
+      },
+    ]);
+    await session.close();
+  });
+
+  test("streams the new session live instead of treating it as replayed history", async () => {
+    let sessionUnderTest!: ACPAgentSession;
+    const loadSession = vi.fn(async () => {
+      await sessionUnderTest.sessionUpdate({
+        sessionId: "missing-session",
+        update: {
+          sessionUpdate: "agent_message_chunk",
+          messageId: "old-message",
+          content: { type: "text", text: "from the missing session" },
+        },
+      });
+      throw RequestError.resourceNotFound("missing-session");
+    });
+    const { session } = createResumeSession({ loadSession });
+    sessionUnderTest = session;
+
+    await session.initializeResumedSession();
+    const events: AgentStreamEvent[] = [];
+    session.subscribe((event) => events.push(event));
+    await session.sessionUpdate({
+      sessionId: "fresh-session",
+      update: {
+        sessionUpdate: "agent_message_chunk",
+        messageId: "new-message",
+        content: { type: "text", text: "from the new session" },
+      },
+    });
+
+    const history: AgentStreamEvent[] = [];
+    for await (const event of session.streamHistory()) {
+      history.push(event);
+    }
+    expect(history).toEqual([]);
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        type: "timeline",
+        item: expect.objectContaining({ type: "assistant_message", text: "from the new session" }),
+      }),
+    );
+    expect(JSON.stringify(events)).not.toContain("from the missing session");
+    await session.close();
+  });
+
+  test("still fails and closes on any other load error", async () => {
+    const { session, newSession, terminator, child } = createResumeSession({
+      loadSession: vi.fn().mockRejectedValue(RequestError.internalError({ details: "boom" })),
+    });
+
+    await expect(session.initializeResumedSession()).rejects.toThrow("Internal error: boom");
+
+    expect(newSession).not.toHaveBeenCalled();
+    expect(terminator.terminated).toContain(child);
+  });
+
+  test("does not start a new session for a history-only resume", async () => {
+    const { session, newSession } = createResumeSession({
+      loadSession: vi.fn().mockRejectedValue(RequestError.resourceNotFound("missing-session")),
+      resumePurpose: "history",
+    });
+
+    await expect(session.initializeResumedSession()).rejects.toThrow("Resource not found");
+
+    expect(newSession).not.toHaveBeenCalled();
   });
 });
 

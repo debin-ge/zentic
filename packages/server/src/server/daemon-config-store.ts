@@ -31,7 +31,7 @@ interface SupportedMutableConfigPatch {
   mcp?: { injectIntoAgents?: boolean };
   usage?: { enabled: boolean };
   browserTools?: { enabled?: boolean };
-  providers?: MutableDaemonConfig["providers"];
+  providers?: MutableDaemonConfigPatch["providers"];
   removeProviders?: string[];
   metadataGeneration?: MutableDaemonConfig["metadataGeneration"];
   autoArchiveAfterMerge?: boolean;
@@ -113,6 +113,34 @@ function deepMerge<T extends Record<string, unknown>>(
   }
 
   return next as T;
+}
+
+// Provider patches remove values with `null` (see MutableDaemonProviderConfigPatchSchema).
+// deepMerge copies those nulls into the merged entry; drop them, and any `env` or `options`
+// record they leave empty, before the result is validated.
+function removeNullProviderFields<T extends Record<string, unknown>>(
+  providers: Record<string, T>,
+): Record<string, T> {
+  const next: Record<string, T> = {};
+  for (const [providerId, entry] of Object.entries(providers)) {
+    if (!isRecord(entry)) {
+      next[providerId] = entry;
+      continue;
+    }
+    const cleaned: Record<string, unknown> = { ...entry };
+    if (cleaned.command === null) delete cleaned.command;
+    for (const field of ["env", "options"] as const) {
+      const record = cleaned[field];
+      if (!isRecord(record)) continue;
+      const entries = Object.entries(record);
+      const kept = entries.filter(([, value]) => value !== null);
+      if (kept.length === entries.length) continue;
+      if (kept.length === 0) delete cleaned[field];
+      else cleaned[field] = Object.fromEntries(kept);
+    }
+    next[providerId] = cleaned as T;
+  }
+  return next;
 }
 
 function omitProvidersFromConfig<T extends { providers?: Record<string, unknown> }>(
@@ -402,6 +430,59 @@ export function applyMutableProviderConfigToOverrides(
   return nextOverrides;
 }
 
+// Returns undefined when the patch's `null`s removed every key, so the record goes away;
+// an explicitly empty record with no removals is kept as written.
+function mergeNullableRecord(
+  previous: Record<string, unknown> | undefined,
+  patch: Record<string, unknown>,
+): Record<string, unknown> | undefined {
+  const merged = Object.fromEntries(
+    Object.entries({ ...previous, ...patch }).filter(([, value]) => value !== null),
+  );
+  const removedKeys = Object.values(patch).some((value) => value === null);
+  return removedKeys && Object.keys(merged).length === 0 ? undefined : merged;
+}
+
+// The persisted overrides take a provider patch shallowly, so `env` and `options` are merged
+// key by key here and `null` removes a value, matching how the in-memory config deep-merges.
+function applyProviderPatchToOverrides(
+  baseOverrides: Record<string, ProviderOverride> | undefined,
+  patchProviders: MutableDaemonConfigPatch["providers"],
+): Record<string, ProviderOverride> | undefined {
+  if (!patchProviders) return applyMutableProviderConfigToOverrides(baseOverrides, undefined);
+  const prepared: Record<string, Record<string, unknown>> = {};
+  const removed = new Map<string, Array<"command" | "env" | "options">>();
+  for (const [providerId, entry] of Object.entries(patchProviders)) {
+    const previous = baseOverrides?.[providerId];
+    const { command, env, options, ...rest } = entry;
+    const next: Record<string, unknown> = { ...rest };
+    const removedFields: Array<"command" | "env" | "options"> = [];
+    if (command === null) removedFields.push("command");
+    else if (command !== undefined) next.command = command;
+    for (const [field, value, previousValue] of [
+      ["env", env, previous?.env],
+      ["options", options, previous?.options],
+    ] as const) {
+      if (value === undefined) continue;
+      const merged = mergeNullableRecord(previousValue, value);
+      if (merged) next[field] = merged;
+      else removedFields.push(field);
+    }
+    prepared[providerId] = next;
+    if (removedFields.length > 0) removed.set(providerId, removedFields);
+  }
+  const overrides = applyMutableProviderConfigToOverrides(
+    baseOverrides,
+    prepared as MutableDaemonConfig["providers"],
+  );
+  for (const [providerId, fields] of removed) {
+    const override = overrides?.[providerId];
+    if (!override) continue;
+    for (const field of fields) delete override[field];
+  }
+  return overrides;
+}
+
 export class DaemonConfigStore {
   private mutations: Promise<unknown> = Promise.resolve();
   private current: MutableDaemonConfig;
@@ -467,12 +548,14 @@ export class DaemonConfigStore {
   }
 
   private foldPatchProfiles<
-    T extends { agentProfiles?: AgentProfile[]; providers?: Record<string, ProviderOverride> },
+    T extends { agentProfiles?: AgentProfile[]; providers?: Record<string, object> },
   >(submittedPatch: T): T {
     return foldConfigProfiles({
       config: submittedPatch,
       // The provider graph this request will commit, so `extends` survives a partial edit.
-      providers: deepMerge(this.current.providers ?? {}, submittedPatch.providers ?? {}),
+      providers: removeNullProviderFields(
+        deepMerge(this.current.providers ?? {}, submittedPatch.providers ?? {}),
+      ) as Record<string, ProviderOverride>,
       source: "client write",
       held: this.current.agentProfiles,
     });
@@ -491,6 +574,7 @@ export class DaemonConfigStore {
     const { features: speechPatch, ...configPatch } = patch;
     const removedProviders = Array.from(new Set(removeProviders));
     const merged = deepMerge(this.current, configPatch);
+    if (merged.providers) merged.providers = removeNullProviderFields(merged.providers);
     if (speechPatch !== undefined) Object.assign(merged, this.readPatchedSpeech(speechPatch));
     if (parsedPatch.skills?.selection !== undefined) {
       merged.skills = { selection: parsedPatch.skills.selection };
@@ -808,7 +892,7 @@ function mergeMutableAgentPatch(
     persistedAgents?.providers as Record<string, ProviderOverride> | undefined,
     removeProviders,
   );
-  const providerOverrides = applyMutableProviderConfigToOverrides(
+  const providerOverrides = applyProviderPatchToOverrides(
     persistedProviderOverrides,
     patch.providers,
   );

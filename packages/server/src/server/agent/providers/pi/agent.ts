@@ -96,6 +96,12 @@ import type {
 } from "./rpc-types.js";
 import { PiUsagePoller, type PiUsagePollScheduler } from "./usage-poller.js";
 import {
+  describeCredentialRejection,
+  describeMissingSessionFile,
+  findMissingSessionFile,
+  isProviderAuthFailureMessage,
+} from "./provider-notices.js";
+import {
   mapToolDetail,
   parseToolArgs,
   parseToolResult,
@@ -252,6 +258,8 @@ interface PiRpcAgentSessionOptions {
   capabilities: AgentCapabilityFlags;
   currentModeId?: string | null;
   persistedSessionFile?: string;
+  /** The resumed session file that was missing, so this session started a new one instead. */
+  missingSessionFile?: string;
   cleanup?: () => void;
   closeAfterHistory?: boolean;
   extensionTimeoutMs?: number;
@@ -501,7 +509,8 @@ function buildResumeConfig(
 function buildResumeStartInput(input: {
   resumeConfig: PiResumeConfig;
   processCwd: string;
-  sessionFile: string;
+  /** Undefined starts a new session. */
+  sessionFile: string | undefined;
   launchContext: AgentLaunchContext | undefined;
   mcpConfigFile: PiTempFile | null;
   zenticExtension: PiTempFile | null;
@@ -509,7 +518,7 @@ function buildResumeStartInput(input: {
   return {
     cwd: input.processCwd,
     env: input.launchContext?.env,
-    session: input.sessionFile,
+    ...(input.sessionFile ? { session: input.sessionFile } : {}),
     thinkingOptionId: normalizePiThinkingOption(input.resumeConfig.thinkingOptionId) ?? undefined,
     mcpConfigPath: input.mcpConfigFile?.path,
     extensionPaths: input.zenticExtension ? [input.zenticExtension.path] : undefined,
@@ -625,6 +634,22 @@ function createPiMcpConfigFile(
     path: filePath,
     cleanup: () => rmSync(dir, { recursive: true, force: true }),
   };
+}
+
+/**
+ * The session file Pi launches with: none for a new session, a copy carrying the new cwd when the
+ * process runs elsewhere, or the persisted file itself.
+ */
+async function preparePiResumeSessionFile(input: {
+  sessionFile: string;
+  missingSessionFile: string | undefined;
+  processCwd: string;
+  cwd: string;
+}): Promise<{ launchFile: string | undefined; copy: PiTempFile | null }> {
+  if (input.missingSessionFile) return { launchFile: undefined, copy: null };
+  if (input.processCwd === input.cwd) return { launchFile: input.sessionFile, copy: null };
+  const copy = await createPiSessionCopy(input.sessionFile, input.processCwd);
+  return { launchFile: copy.path, copy };
 }
 
 async function createPiSessionCopy(sessionFile: string, cwd: string): Promise<PiTempFile> {
@@ -1028,6 +1053,13 @@ function isProcessExitEvent(
   return event.type === "process_exit" && typeof event.error === "string";
 }
 
+// Events about the session rather than a run, which an aborted run's leftovers never include.
+const PI_SESSION_LEVEL_EVENTS: ReadonlySet<PiAgentSessionEvent["type"]> = new Set([
+  "thinking_level_changed",
+  "compaction_start",
+  "compaction_end",
+]);
+
 function isPiAgentSessionEvent(event: PiRuntimeEvent): event is PiAgentSessionEvent {
   switch (event.type) {
     case "thinking_level_changed":
@@ -1230,6 +1262,11 @@ export class PiRpcAgentSession implements AgentSession {
   // Pi publishes the terminal before acknowledging abort. Autonomous runs have no
   // turn ID; retain their errors too until the cancellation request settles.
   private interruptingTurn: { turnId: string | undefined; error: string | null } | null = null;
+  // The abort sent after Pi's credentials were rejected. Until it settles every event belongs to
+  // the aborted run, and its late agent_end/agent_settled must not end the next turn.
+  private authAbort: { settled: boolean; promise: Promise<void> } | null = null;
+  // Timeline events cannot reach the manager during resume, so this warning opens the next turn.
+  private pendingMissingSessionNotice: string | null = null;
 
   private readonly usageSessionKey = randomUUID();
 
@@ -1253,6 +1290,12 @@ export class PiRpcAgentSession implements AgentSession {
     this.provider = PI_PROVIDER;
     this.currentModeId = options.currentModeId ?? null;
     this.persistedSessionFile = options.persistedSessionFile;
+    if (options.missingSessionFile) {
+      this.pendingMissingSessionNotice = describeMissingSessionFile({
+        label: "Pi",
+        sessionFile: options.missingSessionFile,
+      });
+    }
     this.cleanup = options.cleanup;
     this.closeAfterHistory = options.closeAfterHistory ?? false;
     this.extensionTimeoutMs = options.extensionTimeoutMs ?? DEFAULT_PI_EXTENSION_RESULT_TIMEOUT_MS;
@@ -1332,9 +1375,9 @@ export class PiRpcAgentSession implements AgentSession {
 
     void (async () => {
       try {
-        if (this.compactionPromise) {
-          // Pi RPC rejects prompts until the manual compaction request settles.
-          await this.compactionPromise.catch(() => undefined);
+        const promptGate = this.promptGate();
+        if (promptGate) {
+          await promptGate;
           const turnCanceled =
             this.closed || this.activeTurnId !== turnId || this.interruptingTurn?.turnId === turnId;
           if (turnCanceled) {
@@ -1428,6 +1471,18 @@ export class PiRpcAgentSession implements AgentSession {
       await this.clearPendingPermissionsForSteer();
     }
     return { status: "accepted" };
+  }
+
+  /**
+   * What a new prompt waits for, or null to send it at once: Pi RPC rejects prompts until a
+   * manual compaction settles, and an auth-failure abort must settle before the next run starts.
+   */
+  private promptGate(): Promise<void> | null {
+    const gates = [this.compactionPromise, this.authAbort?.promise].filter(
+      (gate): gate is Promise<void> => gate !== null && gate !== undefined,
+    );
+    if (gates.length === 0) return null;
+    return Promise.all(gates.map((gate) => gate.catch(() => undefined))).then(() => undefined);
   }
 
   private async clearPendingPermissionsForSteer(): Promise<void> {
@@ -2189,7 +2244,7 @@ export class PiRpcAgentSession implements AgentSession {
       return;
     }
     if (isPiAgentSessionEvent(event)) {
-      this.handleSessionEvent(event);
+      if (!this.dropAbortedRunEvent(event)) this.handleSessionEvent(event);
       return;
     }
   }
@@ -2198,6 +2253,7 @@ export class PiRpcAgentSession implements AgentSession {
     this.runtimeDead = true;
     this.rejectAllExtensionResults(new Error(error));
     this.interruptingTurn = null;
+    this.authAbort = null;
     if (!this.activeTurnId && !this.activeTurnStarted) {
       return;
     }
@@ -2256,6 +2312,7 @@ export class PiRpcAgentSession implements AgentSession {
           provider: this.provider,
           turnId,
         });
+        this.emitMissingSessionNotice(turnId);
         return;
       case "message_start":
         this.handleMessageStart(event);
@@ -2326,19 +2383,116 @@ export class PiRpcAgentSession implements AgentSession {
         });
         return;
       case "auto_retry_start":
-        this.emit({
-          type: "timeline",
-          provider: this.provider,
-          turnId,
-          item: {
-            type: "error",
-            message: `Provider retry (attempt ${event.attempt}): ${event.errorMessage}`,
-          },
-        });
+        this.handleAutoRetryStart(event, turnId);
         return;
       default:
         return;
     }
+  }
+
+  private handleAutoRetryStart(
+    event: Extract<PiAgentSessionEvent, { type: "auto_retry_start" }>,
+    turnId: string | undefined,
+  ): void {
+    if (isProviderAuthFailureMessage(event.errorMessage)) {
+      this.failTurnOnAuthRetry(event.errorMessage);
+      return;
+    }
+    this.emit({
+      type: "timeline",
+      provider: this.provider,
+      turnId,
+      item: {
+        type: "error",
+        message: `Provider retry (attempt ${event.attempt}): ${event.errorMessage}`,
+      },
+    });
+  }
+
+  /**
+   * A rejected key stays rejected, so Pi's retries only keep the turn running until they run out.
+   * End the turn on the first auth retry and abort Pi to stop the rest.
+   */
+  private failTurnOnAuthRetry(errorMessage: string): void {
+    if (!this.activeTurnId && !this.activeTurnStarted) {
+      this.logger.debug({ errorMessage }, "Ignoring a Pi auth retry outside a turn");
+      return;
+    }
+    const turnId = this.activeTurnId ?? undefined;
+    this.logger.warn(
+      { errorMessage },
+      "Pi provider rejected its credentials; failing the turn instead of retrying",
+    );
+    // Any interrupt in flight finds no turn left to settle.
+    this.interruptingTurn = null;
+    this.usagePoller.stopTurn();
+    this.clearActiveTurnState();
+    this.abortAuthFailedRun();
+    this.emit({
+      type: "turn_failed",
+      provider: this.provider,
+      turnId,
+      error: describeCredentialRejection({ label: "Pi", errorMessage }),
+    });
+  }
+
+  private abortAuthFailedRun(): void {
+    const abort = { settled: false, promise: Promise.resolve() };
+    // Set before the request: the runtime can stream the aborted run's teardown before it answers.
+    this.authAbort = abort;
+    abort.promise = this.runtimeSession
+      .abort()
+      .catch((error: unknown) => {
+        this.logger.warn({ err: error }, "Failed to abort Pi after an auth failure");
+      })
+      .finally(() => {
+        abort.settled = true;
+      });
+  }
+
+  /**
+   * Pi publishes an aborted run's events before it acknowledges the abort, except the settlement
+   * that can follow it. Drop everything until the acknowledgement, then only that run's terminal
+   * events until the next run starts.
+   */
+  private dropAbortedRunEvent(event: PiAgentSessionEvent): boolean {
+    if (!this.isAbortedRunEvent(event)) return false;
+    this.logger.debug({ eventType: event.type }, "Dropped an event of the auth-aborted Pi run");
+    return true;
+  }
+
+  private isAbortedRunEvent(event: PiAgentSessionEvent): boolean {
+    const abort = this.authAbort;
+    if (!abort || PI_SESSION_LEVEL_EVENTS.has(event.type)) return false;
+    if (!abort.settled) return true;
+    if (event.type === "agent_start" || event.type === "turn_start") {
+      this.authAbort = null;
+      return false;
+    }
+    return event.type === "agent_end" || event.type === "agent_settled";
+  }
+
+  private clearActiveTurnState(): void {
+    this.activeTurnId = null;
+    this.activeClientMessageId = null;
+    this.activeAssistantMessageId = null;
+    this.activeTurnStarted = false;
+    this.activeTurnStartedEmitted = false;
+    this.pendingSettledMessages = null;
+    this.pendingSteerSubmissions.length = 0;
+    this.clearNoTurnBuffers();
+  }
+
+  private emitMissingSessionNotice(turnId: string | undefined): void {
+    const message = this.pendingMissingSessionNotice;
+    if (!message) return;
+    this.pendingMissingSessionNotice = null;
+    this.emit({
+      type: "timeline",
+      provider: this.provider,
+      turnId,
+      item: { type: "notification", level: "warning", message },
+    });
   }
 
   private handleTurnBoundaryEvent({
@@ -2682,6 +2836,11 @@ export class PiRpcAgentClient implements AgentClient {
     const persistenceMetadata = parsePersistenceMetadata(handle.metadata);
     const resumeConfig = buildResumeConfig(persistenceMetadata, overrides, this.provider);
     const processCwd = await resolveResumeProcessCwd(resumeConfig.cwd, options?.purpose);
+    const missingSessionFile = await this.findMissingResumeSessionFile({
+      sessionFile,
+      processCwd,
+      purpose: options?.purpose,
+    });
 
     const providerOptions = PiProviderOptionsSchema.parse(
       resumeConfig.config.providerOptions ?? {},
@@ -2712,15 +2871,19 @@ export class PiRpcAgentClient implements AgentClient {
     let sessionCopy: PiTempFile | null = null;
     let runtimeSession: PiRuntimeSession;
     try {
-      if (processCwd !== resumeConfig.cwd) {
-        sessionCopy = await createPiSessionCopy(sessionFile, processCwd);
-        tempFiles.push(sessionCopy);
-      }
+      const resumed = await preparePiResumeSessionFile({
+        sessionFile,
+        missingSessionFile,
+        processCwd,
+        cwd: resumeConfig.cwd,
+      });
+      sessionCopy = resumed.copy;
+      if (sessionCopy) tempFiles.push(sessionCopy);
       runtimeSession = await runtime.startSession(
         buildResumeStartInput({
           resumeConfig,
           processCwd,
-          sessionFile: sessionCopy?.path ?? sessionFile,
+          sessionFile: resumed.launchFile,
           launchContext,
           mcpConfigFile,
           zenticExtension,
@@ -2741,6 +2904,7 @@ export class PiRpcAgentClient implements AgentClient {
         initialState,
         capabilities: capabilitiesForSession(mcp !== null),
         persistedSessionFile: sessionCopy ? sessionFile : undefined,
+        missingSessionFile,
         cleanup: cleanupTempFiles,
         closeAfterHistory: options?.purpose === "history",
         extensionTimeoutMs: providerOptions.extensionTimeoutMs,
@@ -2752,6 +2916,28 @@ export class PiRpcAgentClient implements AgentClient {
       cleanupTempFiles();
       throw error;
     }
+  }
+
+  /**
+   * A live resume of a session file that is gone starts a new session instead of failing on every
+   * load. History keeps refusing it: an empty replay would replace the stored timeline.
+   */
+  private async findMissingResumeSessionFile(input: {
+    sessionFile: string;
+    processCwd: string;
+    purpose: AgentResumeSessionOptions["purpose"];
+  }): Promise<string | undefined> {
+    if (input.purpose === "history") return undefined;
+    const missing = await findMissingSessionFile({
+      sessionFile: input.sessionFile,
+      cwd: input.processCwd,
+    });
+    if (!missing) return undefined;
+    this.logger.warn(
+      { sessionFile: missing },
+      "Pi session file is missing; resuming in a new session",
+    );
+    return missing;
   }
 
   // Pi resumes a session on the model it recorded, or on its default when that model

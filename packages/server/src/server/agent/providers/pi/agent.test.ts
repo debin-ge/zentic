@@ -16,7 +16,7 @@ import path from "node:path";
 import pino from "pino";
 import { setImmediate as waitForImmediate } from "node:timers/promises";
 import { pathToFileURL } from "node:url";
-import { describe, expect, onTestFinished, test } from "vitest";
+import { afterAll, describe, expect, onTestFinished, test } from "vitest";
 
 import type { AgentSession, AgentSessionConfig, AgentStreamEvent } from "../../agent-sdk-types.js";
 import {
@@ -50,6 +50,12 @@ const RESTRICTED_THINKING_MODEL: PiModel = {
     max: "max",
   },
 };
+
+// Resume starts a new session when the native session file is gone, so resumes use a real one.
+const NATIVE_PI_SESSION_DIR = mkdtempSync(path.join(tmpdir(), "zentic-pi-native-session-"));
+const NATIVE_PI_SESSION = path.join(NATIVE_PI_SESSION_DIR, "native-pi-session.jsonl");
+writeFileSync(NATIVE_PI_SESSION, "");
+afterAll(() => rmSync(NATIVE_PI_SESSION_DIR, { recursive: true, force: true }));
 
 interface PiThinkingCatalogCase {
   name: string;
@@ -1002,7 +1008,7 @@ describe("PiRpcAgentSession", () => {
     const session = (await client.resumeSession({
       provider: "pi",
       sessionId: "pi-session-1",
-      nativeHandle: "/tmp/native-pi-session",
+      nativeHandle: NATIVE_PI_SESSION,
       metadata: { cwd: "/workspace/project" },
     })) as PiRpcAgentSession;
     const events = new SessionEvents(session);
@@ -1526,6 +1532,77 @@ describe("PiRpcAgentSession", () => {
     ]);
   });
 
+  test("fails the turn on Pi's first auth retry, aborts the retries and runs the next turn", async () => {
+    const authError =
+      '401 {"type":"error","error":{"type":"authentication_error","message":"invalid x-api-key"}}';
+    const { pi, session, events } = await createSession();
+    const fakeSession = pi.latestSession();
+    const { turnId } = await session.startTurn("hello");
+    const failure = events.nextTurnFailure();
+
+    fakeSession.emit({ type: "turn_start" });
+    fakeSession.finishAgentRun({
+      message: {
+        role: "assistant",
+        provider: "anthropic",
+        model: "claude",
+        stopReason: "error",
+        errorMessage: authError,
+        content: [],
+      },
+      willRetry: true,
+    });
+    fakeSession.emit({
+      type: "auto_retry_start",
+      attempt: 1,
+      maxAttempts: 3,
+      delayMs: 2000,
+      errorMessage: authError,
+    });
+
+    await expect(failure).resolves.toMatchObject({
+      turnId,
+      error: `Pi rejected the provider credentials (${authError}). Check the API key this provider uses.`,
+    });
+    expect(fakeSession.controlRequests).toEqual(["abort"]);
+    expect(events.timelineItems()).not.toContainEqual(expect.objectContaining({ type: "error" }));
+
+    const next = await session.startTurn("again");
+    await flushTurnScheduling();
+    expect(fakeSession.prompts.map((prompt) => prompt.message)).toEqual(["hello", "again"]);
+    // The aborted run's settlement reaches Zentic after the next turn started.
+    fakeSession.finishAgentRun({
+      message: {
+        role: "assistant",
+        provider: "anthropic",
+        model: "claude",
+        stopReason: "aborted",
+        errorMessage: "Request was aborted",
+        content: [],
+      },
+      willRetry: false,
+    });
+    fakeSession.settleTurn();
+    expect(events.turnLifecycleEvents()).toEqual([
+      { type: "turn_started", turnId },
+      { type: "turn_failed", turnId },
+    ]);
+
+    fakeSession.emit({ type: "turn_start" });
+    fakeSession.finishTurn({
+      role: "assistant",
+      stopReason: "stop",
+      content: [{ type: "text", text: "Fresh response" }],
+    });
+
+    expect(events.turnLifecycleEvents()).toEqual([
+      { type: "turn_started", turnId },
+      { type: "turn_failed", turnId },
+      { type: "turn_started", turnId: next.turnId },
+      { type: "turn_completed", turnId: next.turnId },
+    ]);
+  });
+
   test("completes legacy Pi turns that have no settlement metadata", async () => {
     const { pi, session, events } = await createSession();
     const fakeSession = pi.latestSession();
@@ -1552,7 +1629,7 @@ describe("PiRpcAgentSession", () => {
       {
         provider: "pi",
         sessionId: "pi-session-1",
-        nativeHandle: "/tmp/native-pi-session",
+        nativeHandle: NATIVE_PI_SESSION,
         metadata: {
           cwd: "/workspace/project",
           model: "openrouter/model-a",
@@ -1574,7 +1651,7 @@ describe("PiRpcAgentSession", () => {
     expect(actualLaunch).toMatchObject({
       cwd: "/workspace/project",
       env: { RESUME_PROBE: "expected" },
-      session: "/tmp/native-pi-session",
+      session: NATIVE_PI_SESSION,
     });
     expect(actualLaunch.extensionPaths).toHaveLength(1);
     expect(actualLaunch.argv).toEqual([
@@ -1584,10 +1661,71 @@ describe("PiRpcAgentSession", () => {
       "--thinking",
       "high",
       "--session",
-      "/tmp/native-pi-session",
+      NATIVE_PI_SESSION,
       "--extension",
       actualLaunch.extensionPaths[0],
     ]);
+  });
+
+  test("resumes a missing Pi session file in a new session and warns once", async () => {
+    const pi = new FakePi();
+    const missingFile = path.join(NATIVE_PI_SESSION_DIR, "gone.jsonl");
+    const newFile = path.join(NATIVE_PI_SESSION_DIR, "new-session.jsonl");
+    pi.queueSessionSetup((runtimeSession) => {
+      runtimeSession.state = { ...runtimeSession.state, sessionFile: newFile, sessionId: "pi-new" };
+    });
+
+    const session = (await createClient(pi).resumeSession({
+      provider: "pi",
+      sessionId: "pi-old",
+      nativeHandle: missingFile,
+      metadata: { cwd: NATIVE_PI_SESSION_DIR },
+    })) as PiRpcAgentSession;
+    onTestFinished(() => session.close());
+
+    const launch = pi.recordedLaunches[0]!;
+    expect(launch.session).toBeUndefined();
+    expect(launch.argv).not.toContain("--session");
+    expect(session.describePersistence()).toMatchObject({
+      sessionId: "pi-new",
+      nativeHandle: newFile,
+    });
+
+    const events = new SessionEvents(session);
+    const fakeSession = pi.latestSession();
+    for (const prompt of ["hello", "again"]) {
+      await session.startTurn(prompt);
+      fakeSession.emit({ type: "turn_start" });
+      fakeSession.finishTurn();
+    }
+
+    expect(events.timelineItems().filter((item) => item.type === "notification")).toEqual([
+      {
+        type: "notification",
+        level: "warning",
+        message: `Pi couldn't find the previous session file ${missingFile}. Its config directory probably changed. This conversation continues in a new session without the earlier context.`,
+      },
+    ]);
+  });
+
+  test("keeps a missing Pi session file for a history resume", async () => {
+    const pi = new FakePi();
+    const missingFile = path.join(NATIVE_PI_SESSION_DIR, "gone-history.jsonl");
+
+    const session = await createClient(pi).resumeSession(
+      {
+        provider: "pi",
+        sessionId: "pi-old",
+        nativeHandle: missingFile,
+        metadata: { cwd: NATIVE_PI_SESSION_DIR },
+      },
+      {},
+      undefined,
+      { purpose: "history" },
+    );
+    onTestFinished(() => session.close());
+
+    expect(pi.recordedLaunches[0]?.session).toBe(missingFile);
   });
 
   test("closes a history-only Pi runtime after replaying its timeline", async () => {
@@ -1604,7 +1742,7 @@ describe("PiRpcAgentSession", () => {
       {
         provider: "pi",
         sessionId: "pi-session-1",
-        nativeHandle: "/tmp/native-pi-session",
+        nativeHandle: NATIVE_PI_SESSION,
         metadata: { cwd: tmpdir() },
       },
       {},
@@ -1643,7 +1781,7 @@ describe("PiRpcAgentSession", () => {
       {
         provider: "pi",
         sessionId: "pi-session-1",
-        nativeHandle: "/tmp/native-pi-session",
+        nativeHandle: NATIVE_PI_SESSION,
         metadata: { cwd: tmpdir() },
       },
       {},
@@ -1666,7 +1804,7 @@ describe("PiRpcAgentSession", () => {
       {
         provider: "pi",
         sessionId: "pi-session-1",
-        nativeHandle: "/tmp/native-pi-session",
+        nativeHandle: NATIVE_PI_SESSION,
         metadata: { cwd: tmpdir() },
       },
       {},
@@ -1684,7 +1822,7 @@ describe("PiRpcAgentSession", () => {
     const session = await createClient(pi).resumeSession({
       provider: "pi",
       sessionId: "pi-session-1",
-      nativeHandle: "/tmp/native-pi-session",
+      nativeHandle: NATIVE_PI_SESSION,
       metadata: { cwd: tmpdir() },
     });
     onTestFinished(() => session.close());
@@ -1705,7 +1843,7 @@ describe("PiRpcAgentSession", () => {
     const session = await createClient(pi).resumeSession({
       provider: "pi",
       sessionId: "pi-session-1",
-      nativeHandle: "/tmp/native-pi-session",
+      nativeHandle: NATIVE_PI_SESSION,
       metadata: { cwd: "/workspace/project", model: "9router/deepseek-v4-flash" },
     });
     onTestFinished(() => session.close());
@@ -1728,7 +1866,7 @@ describe("PiRpcAgentSession", () => {
     const session = await createClient(pi).resumeSession({
       provider: "pi",
       sessionId: "pi-session-1",
-      nativeHandle: "/tmp/native-pi-session",
+      nativeHandle: NATIVE_PI_SESSION,
       metadata: { cwd: "/workspace/project", model: "openrouter/a" },
     });
     onTestFinished(() => session.close());
@@ -1750,7 +1888,7 @@ describe("PiRpcAgentSession", () => {
     const session = await createClient(pi).resumeSession({
       provider: "pi",
       sessionId: "pi-session-1",
-      nativeHandle: "/tmp/native-pi-session",
+      nativeHandle: NATIVE_PI_SESSION,
       metadata: { cwd: "/workspace/project", model: "openrouter:a" },
     });
     onTestFinished(() => session.close());
@@ -1770,7 +1908,7 @@ describe("PiRpcAgentSession", () => {
       createClient(pi).resumeSession({
         provider: "pi",
         sessionId: "pi-session-1",
-        nativeHandle: "/tmp/native-pi-session",
+        nativeHandle: NATIVE_PI_SESSION,
         metadata: { cwd: "/workspace/project", model: "openrouter/a" },
       }),
     ).rejects.toThrow("FakePi setModel requires setModelResult to be scripted");
@@ -1788,7 +1926,7 @@ describe("PiRpcAgentSession", () => {
     const session = await createClient(pi).resumeSession({
       provider: "pi",
       sessionId: "pi-session-1",
-      nativeHandle: "/tmp/native-pi-session",
+      nativeHandle: NATIVE_PI_SESSION,
       metadata: {
         cwd: "/workspace/project",
         model: "kimi-coding/kimi-k3",
@@ -1925,7 +2063,7 @@ describe("PiRpcAgentSession", () => {
       {
         provider: "pi",
         sessionId: "pi-session-1",
-        nativeHandle: "/tmp/native-pi-session",
+        nativeHandle: NATIVE_PI_SESSION,
         metadata: {
           cwd: "/workspace/project",
           model: "openrouter/model-a",
@@ -1942,7 +2080,7 @@ describe("PiRpcAgentSession", () => {
     const actualLaunch = pi.recordedLaunches[0]!;
     expect(actualLaunch).toMatchObject({
       cwd: "/workspace/project",
-      session: "/tmp/native-pi-session",
+      session: NATIVE_PI_SESSION,
     });
     expect(actualLaunch.extensionPaths).toHaveLength(1);
     expect(actualLaunch.argv).toEqual([
@@ -1952,7 +2090,7 @@ describe("PiRpcAgentSession", () => {
       "--thinking",
       "high",
       "--session",
-      "/tmp/native-pi-session",
+      NATIVE_PI_SESSION,
       "--extension",
       actualLaunch.extensionPaths[0],
     ]);
@@ -3569,6 +3707,9 @@ describe("PiRpcAgentClient", () => {
   test("registers the resumed session's MCP servers through Pi's built-in MCP", async () => {
     const pi = new FakePi();
     const client = createClient(pi);
+    pi.queueSessionSetup((runtimeSession) => {
+      runtimeSession.state = { ...runtimeSession.state, sessionFile: NATIVE_PI_SESSION };
+    });
     const original = await client.createSession(createConfig());
     const persistence = original.describePersistence()!;
     await original.close();

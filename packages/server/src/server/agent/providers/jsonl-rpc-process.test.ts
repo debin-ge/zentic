@@ -203,6 +203,42 @@ describe("JsonlRpcProcess", () => {
     }
   });
 
+  test("reports each stderr line in only one request-timeout error", async () => {
+    const child = createInMemoryChildProcess();
+    const transport = startProcess({ child, defaultRequestTimeoutMs: 50 });
+
+    try {
+      child.stderr.write("first failure");
+      await expect(transport.request({ type: "hang" })).rejects.toThrow(/\nfirst failure$/);
+
+      child.stderr.write("second failure");
+      const second = await transport.request({ type: "hang" }).catch((error: Error) => error);
+      expect(second).toBeInstanceOf(Error);
+      expect((second as Error).message).toMatch(/\nsecond failure$/);
+      expect((second as Error).message).not.toContain("first failure");
+
+      await expect(transport.request({ type: "hang" })).rejects.toThrow(
+        /^JSONL RPC request timed out phase=hang elapsedMs=\d+ timeoutMs=50$/,
+      );
+    } finally {
+      await transport.close();
+    }
+  });
+
+  test("still publishes all buffered stderr when the child exits after a timeout", async () => {
+    const child = createInMemoryChildProcess();
+    const transport = startProcess({ child, defaultRequestTimeoutMs: 50 });
+    const exit = nextExit(transport);
+
+    child.stderr.write("earlier failure");
+    await expect(transport.request({ type: "hang" })).rejects.toThrow("earlier failure");
+    child.emit("exit", 1, null);
+
+    await expect(exit).resolves.toMatchObject({
+      error: expect.objectContaining({ message: expect.stringContaining("earlier failure") }),
+    });
+  });
+
   test("null timeout waits past short wall-clock limits until the response arrives", async () => {
     const transport = startProcess();
 

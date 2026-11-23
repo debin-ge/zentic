@@ -1853,8 +1853,9 @@ describe("OpenCode adapter startTurn error handling", () => {
         type: "timeline",
         provider: "opencode",
         item: {
-          type: "error",
-          message: "Provider retry (attempt 1): model does not exist",
+          type: "notification",
+          level: "warning",
+          message: "OpenCode request failed (model does not exist); retrying.",
         },
         turnId: turnIdAt(events, 0),
       });
@@ -7053,4 +7054,195 @@ test("OpenCode v1 runtime safety retains terminals and busy sessions on its shar
   } finally {
     await parent.close();
   }
+});
+
+function openCodeRetryStatus(sessionId: string, attempt: number, message: string): unknown {
+  return {
+    type: "session.status",
+    properties: { sessionID: sessionId, status: { type: "retry", attempt, message, next: 0 } },
+  };
+}
+
+test("OpenCode v1 fails the turn on an auth retry, aborts the run, and runs the next turn", async () => {
+  const { parent, openCode } = await createParentSession("ses_auth", (client) => {
+    client.sessionPromptAsyncEvents = [
+      openCodeRetryStatus("ses_auth", 1, "Unauthorized: invalid api key"),
+    ];
+  });
+  const events: AgentStreamEvent[] = [];
+  parent.subscribe((event) => events.push(event));
+  const terminals = () =>
+    events.filter(
+      (event) =>
+        event.type === "turn_completed" ||
+        event.type === "turn_failed" ||
+        event.type === "turn_canceled",
+    );
+  try {
+    const first = await parent.startTurn("first");
+    await vi.waitFor(() => expect(terminals()).toHaveLength(1));
+    expect(terminals()[0]).toEqual({
+      type: "turn_failed",
+      provider: "opencode",
+      turnId: first.turnId,
+      error:
+        "OpenCode rejected the provider credentials (Unauthorized: invalid api key). Check the API key for this model provider (opencode auth login, or the provider env in Zentic's runtime settings).",
+    });
+    await vi.waitFor(() => expect(openCode.calls.sessionAbort).toHaveLength(1));
+
+    // The aborted run's last retry and its terminal must not reach the next turn.
+    openCode.emitEvent(openCodeRetryStatus("ses_auth", 2, "Unauthorized: invalid api key"));
+    openCode.emitEvent({ type: "session.idle", properties: { sessionID: "ses_auth" } });
+
+    openCode.sessionPromptAsyncEvents = [];
+    const second = await parent.startTurn("second");
+    await vi.waitFor(() => expect(openCode.calls.sessionPromptAsync).toHaveLength(2));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(terminals()).toHaveLength(1);
+    openCode.emitEvent({ type: "session.idle", properties: { sessionID: "ses_auth" } });
+    await vi.waitFor(() => expect(terminals()).toHaveLength(2));
+    expect(terminals()[1]).toMatchObject({ type: "turn_completed", turnId: second.turnId });
+    expect(openCode.calls.sessionAbort).toHaveLength(1);
+    expect(
+      events.some((event) => event.type === "timeline" && event.item.type === "notification"),
+    ).toBe(false);
+  } finally {
+    await parent.close();
+  }
+});
+
+describe("OpenCode v1 resume of a missing session", () => {
+  test("continues in a new session and says so once", async () => {
+    const cwd = tmpCwd();
+    const runtime = new TestOpenCodeHarness();
+    const openCode = new TestOpenCodeClient();
+    openCode.sessionGetResponse = {
+      error: { name: "NotFoundError", data: { message: "Session not found: ses_gone" } },
+      response: { status: 404 },
+    };
+    openCode.sessionCreateResponse = { data: { id: "ses_new" } };
+    openCode.sessionPromptAsyncEvents = [
+      { type: "session.idle", properties: { sessionID: "ses_new" } },
+    ];
+    runtime.enqueueClient(openCode);
+    const client = new OpenCodeAgentClient(createTestLogger(), undefined, {
+      serverManager: runtime,
+      createClient: runtime.createClient,
+    });
+    try {
+      const session = await client.resumeSession({
+        provider: "opencode",
+        sessionId: "ses_gone",
+        nativeHandle: "ses_gone",
+        metadata: { cwd },
+      });
+      const events: AgentStreamEvent[] = [];
+      session.subscribe((event) => events.push(event));
+      const notices = () =>
+        events.flatMap((event) =>
+          event.type === "timeline" && event.item.type === "notification" ? [event] : [],
+        );
+      try {
+        expect(openCode.calls.sessionCreate).toEqual([expect.objectContaining({ directory: cwd })]);
+        expect(events).toContainEqual({
+          type: "thread_started",
+          provider: "opencode",
+          sessionId: "ses_new",
+        });
+        expect(session.describePersistence()).toMatchObject({
+          sessionId: "ses_new",
+          nativeHandle: "ses_new",
+        });
+
+        const first = await collectTurnEvents(streamSession(session, "first"));
+        expect(first.turnCompleted).toBe(true);
+        expect(notices()).toEqual([
+          {
+            type: "timeline",
+            provider: "opencode",
+            turnId: turnIdAt(events, 0),
+            item: {
+              type: "notification",
+              level: "warning",
+              message:
+                "OpenCode couldn't find the previous session ses_gone. Its data directory probably changed. This conversation continues in a new OpenCode session without the earlier context.",
+            },
+          },
+        ]);
+        const second = await collectTurnEvents(streamSession(session, "second"));
+        expect(second.turnCompleted).toBe(true);
+        expect(notices()).toHaveLength(1);
+        expect(
+          openCode.calls.sessionPromptAsync.map(
+            (request) => (request as { sessionID: string }).sessionID,
+          ),
+        ).toEqual(["ses_new", "ses_new"]);
+      } finally {
+        await session.close();
+      }
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+    }
+  });
+
+  test("leaves a missing session alone when only its history is loaded", async () => {
+    const cwd = tmpCwd();
+    const runtime = new TestOpenCodeHarness();
+    const openCode = new TestOpenCodeClient();
+    openCode.sessionGetResponse = {
+      error: { name: "NotFoundError", data: { message: "Session not found: ses_gone" } },
+      response: { status: 404 },
+    };
+    runtime.enqueueClient(openCode);
+    const client = new OpenCodeAgentClient(createTestLogger(), undefined, {
+      serverManager: runtime,
+      createClient: runtime.createClient,
+    });
+    try {
+      const session = await client.resumeSession(
+        { provider: "opencode", sessionId: "ses_gone", metadata: { cwd } },
+        undefined,
+        undefined,
+        { purpose: "history" },
+      );
+      try {
+        expect(openCode.calls.sessionCreate).toEqual([]);
+        expect(session.describePersistence()).toMatchObject({ sessionId: "ses_gone" });
+      } finally {
+        await session.close();
+      }
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+    }
+  });
+
+  test("keeps the persisted session when OpenCode cannot confirm it is gone", async () => {
+    const cwd = tmpCwd();
+    const runtime = new TestOpenCodeHarness();
+    const openCode = new TestOpenCodeClient();
+    openCode.sessionGetResponse = {
+      error: { name: "UnknownError", data: { message: "database is locked" } },
+      response: { status: 500 },
+    };
+    runtime.enqueueClient(openCode);
+    const client = new OpenCodeAgentClient(createTestLogger(), undefined, {
+      serverManager: runtime,
+      createClient: runtime.createClient,
+    });
+    try {
+      const session = await client.resumeSession({
+        provider: "opencode",
+        sessionId: "ses_kept",
+        metadata: { cwd },
+      });
+      try {
+        expect(openCode.calls.sessionCreate).toEqual([]);
+        expect(session.describePersistence()).toMatchObject({ sessionId: "ses_kept" });
+      } finally {
+        await session.close();
+      }
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+    }
+  });
 });

@@ -2,6 +2,7 @@ import { structuredOutput } from "./structured-output.js";
 import type { OpenCodeEvent, SessionInfo, SessionMessageInfo } from "@opencode/client";
 
 import { randomUUID } from "node:crypto";
+import { setTimeout as delay } from "node:timers/promises";
 
 import type {
   AgentPromptInput,
@@ -20,6 +21,13 @@ import { usageFromV2 } from "./mapping.js";
 import { commands } from "./commands.js";
 
 import type { V2Api } from "./api.js";
+import {
+  OpenCodeRetryNotices,
+  describeOpenCodeAuthFailure,
+  describeOpenCodeRetry,
+  isOpenCodeAuthFailure,
+  type OpenCodeRetryFailure,
+} from "../retry-failure.js";
 type ExecutionEvent = Extract<
   OpenCodeEvent,
   {
@@ -38,6 +46,41 @@ function isExecutionEvent(event: { type: string }): event is ExecutionEvent {
     event.type === "session.execution.interrupted"
   );
 }
+
+interface ObservedRetry {
+  attempt: number;
+  failure: OpenCodeRetryFailure;
+}
+
+// OpenCode 2.x publishes a retry twice: durably as session.retry.scheduled, which carries the
+// error type and HTTP status, and ephemerally as a retry session.status, which can carry an action.
+function readRetry(event: OpenCodeEvent): ObservedRetry | null {
+  if (event.type === "session.retry.scheduled") {
+    const { attempt, error } = event.data;
+    return {
+      attempt,
+      failure: {
+        message: error.message,
+        type: error.type,
+        ...(error.status === undefined ? {} : { status: error.status }),
+      },
+    };
+  }
+  if (event.type === "session.status" && event.data.status.type === "retry") {
+    const { attempt, message, action } = event.data.status;
+    return {
+      attempt,
+      failure: {
+        message,
+        ...(action ? { action: { label: action.label, link: action.link } } : {}),
+      },
+    };
+  }
+  return null;
+}
+
+/** How long a rejected execution gets to stop before the next prompt is let through anyway. */
+const ABANDONED_EXECUTION_STOP_TIMEOUT_MS = 10_000;
 
 interface TurnSnapshot {
   info: SessionInfo;
@@ -61,11 +104,14 @@ interface Turn {
   settle(): void;
   accepted: boolean;
   requestDenied: boolean;
+  retries: OpenCodeRetryNotices;
 }
 
 export class SessionTurns {
   private turn: Turn | null = null;
   private stopping: Promise<void> | null = null;
+  /** Stopping an execution whose turn already failed; holds the next turn until it ends. */
+  private abandoning: Promise<void> | null = null;
   private stopFailed = false;
   private revision = 0;
   private execution: ExecutionEvent | null = null;
@@ -114,6 +160,7 @@ export class SessionTurns {
       accepted,
       output,
       requestDenied: false,
+      retries: new OpenCodeRetryNotices(),
     };
     this.turn = turn;
     this.execution = null;
@@ -124,6 +171,7 @@ export class SessionTurns {
   }
   async startTurn(prompt: AgentPromptInput, options?: AgentRunOptions) {
     await this.stopping;
+    await this.abandoning;
     if (this.options.signal.aborted) throw new Error("OpenCode session is closed");
     if (this.turn) throw new Error("OpenCode session already has an active turn");
     const input = this.promptInput(prompt);
@@ -157,12 +205,66 @@ export class SessionTurns {
     }
   }
   observe(event: OpenCodeEvent) {
+    if (this.observeRetry(event)) return;
     if (!isExecutionEvent(event) || event.durable.seq <= this.sequence) return;
     this.revision += 1;
     if (event.type === "session.execution.started") this.observeActiveTurn();
     this.execution = event;
     this.sequence = event.durable.seq;
     this.requestReconciliation();
+  }
+  private observeRetry(event: OpenCodeEvent): boolean {
+    const retry = readRetry(event);
+    if (!retry) return false;
+    const turn = this.turn;
+    if (!turn) return true;
+    if (isOpenCodeAuthFailure(retry.failure)) {
+      this.abandonOnAuthFailure(turn, retry.failure);
+      return true;
+    }
+    // OpenCode retries a failed request with backoff and the turn shows nothing meanwhile.
+    if (turn.retries.shouldNotify(retry.attempt))
+      this.options.emit({
+        type: "timeline",
+        provider: "opencode",
+        turnId: turn.id,
+        item: {
+          type: "notification",
+          level: "warning",
+          message: describeOpenCodeRetry(retry.failure),
+        },
+      });
+    return true;
+  }
+  /**
+   * A rejected key stays rejected, so OpenCode would retry until the user stops it. Fail the turn
+   * now and interrupt the execution. The next turn waits for that execution to end and skips its
+   * terminal, so the interruption cannot cancel it.
+   */
+  private abandonOnAuthFailure(turn: Turn, failure: OpenCodeRetryFailure) {
+    this.fail(new Error(describeOpenCodeAuthFailure(failure)));
+    const abandoning = this.stopAbandonedExecution(turn)
+      .catch((error: unknown) => this.options.reportReconciliationError(error))
+      .finally(() => {
+        if (this.abandoning === abandoning) this.abandoning = null;
+      });
+    this.abandoning = abandoning;
+  }
+  private async stopAbandonedExecution(turn: Turn) {
+    await turn.submitted;
+    const signal = AbortSignal.any([
+      this.options.signal,
+      AbortSignal.timeout(ABANDONED_EXECUTION_STOP_TIMEOUT_MS),
+    ]);
+    await this.options.client().session.interrupt({ sessionID: this.options.id }, { signal });
+    while ((await this.options.client().session.active({ signal }))[this.options.id])
+      await delay(100, undefined, { signal });
+    // Consume the interrupted execution's terminal so a later reconciliation never reads it as
+    // the outcome of the next turn.
+    const execution = await this.readExecution();
+    if (!execution) return;
+    this.execution = execution;
+    this.sequence = Math.max(this.sequence, execution.durable.seq);
   }
   // OpenCode ends the execution when the user denies its permission or dismisses its question,
   // but reports the interruption as "shutdown", the same reason as an execution it will resume.
@@ -369,7 +471,8 @@ export class SessionTurns {
     } else await this.stopping;
   }
   private observeActiveTurn() {
-    if (this.turn || this.options.signal.aborted) return;
+    // An abandoned execution is still active until its interrupt lands; it is not a new turn.
+    if (this.turn || this.abandoning || this.options.signal.aborted) return;
     this.createTurn(Promise.resolve(), true);
   }
 }

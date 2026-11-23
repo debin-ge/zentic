@@ -1,5 +1,13 @@
 import * as Clipboard from "expo-clipboard";
-import { AlertTriangle, Copy, FileText, Plus, RotateCw, Trash2 } from "lucide-react-native";
+import {
+  AlertTriangle,
+  Copy,
+  FileText,
+  Plus,
+  RotateCw,
+  SlidersHorizontal,
+  Trash2,
+} from "lucide-react-native";
 import type { TFunction } from "i18next";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -22,6 +30,11 @@ import { useDaemonConfig } from "@/hooks/use-daemon-config";
 import { useProvidersSnapshot } from "@/hooks/use-providers-snapshot";
 import { useTimeAgo } from "@/hooks/use-time-ago";
 import { useHostRuntimeClient } from "@/runtime/host-runtime";
+import { useHostFeature } from "@/runtime/host-features";
+import {
+  ProviderRuntimeSubSheet,
+  useProviderRuntimeSpec,
+} from "@/components/provider-runtime-sheet";
 import { settingsStyles } from "@/styles/settings";
 import { resolveProviderLabel } from "@/utils/provider-definitions";
 import { compareMatchScores, scoreTextFields } from "@getzentic/protocol/search/text-match";
@@ -376,6 +389,7 @@ interface ProviderSheetFooterInput {
   t: TFunction;
   onOpenAddSheet: () => void;
   onOpenDiagSheet: () => void;
+  onOpenRuntimeSheet: (() => void) | null;
   onRefreshModels: () => void;
 }
 
@@ -386,6 +400,7 @@ function renderProviderSheetFooter({
   t,
   onOpenAddSheet,
   onOpenDiagSheet,
+  onOpenRuntimeSheet,
   onRefreshModels,
 }: ProviderSheetFooterInput) {
   const contentStyle = isCompact ? sheetStyles.compactFooterContent : sheetStyles.footerContent;
@@ -400,6 +415,17 @@ function renderProviderSheetFooter({
         <Button variant="secondary" leftIcon={Plus} onPress={onOpenAddSheet} style={buttonStyle}>
           {t("settings.providers.models.addModel")}
         </Button>
+        {onOpenRuntimeSheet ? (
+          <Button
+            variant="secondary"
+            leftIcon={SlidersHorizontal}
+            onPress={onOpenRuntimeSheet}
+            style={buttonStyle}
+            testID="provider-runtime-open"
+          >
+            {t("settings.providers.runtime.button")}
+          </Button>
+        ) : null}
         <Button
           variant="secondary"
           leftIcon={FileText}
@@ -546,6 +572,9 @@ export function ProviderDiagnosticSheet({
   const [query, setQuery] = useState("");
   const [addSheetOpen, setAddSheetOpen] = useState(false);
   const [diagSheetOpen, setDiagSheetOpen] = useState(false);
+  const [runtimeSheetOpen, setRuntimeSheetOpen] = useState(false);
+  const runtimeSettingsSupported = useHostFeature(serverId, "providerRuntimeSettings");
+  const runtimeSpec = useProviderRuntimeSpec(serverId, provider);
   const [deletingModelId, setDeletingModelId] = useState<string | null>(null);
 
   const providerLabel = resolveProviderLabel(provider, snapshotEntries);
@@ -580,6 +609,7 @@ export function ProviderDiagnosticSheet({
       setQuery("");
       setAddSheetOpen(false);
       setDiagSheetOpen(false);
+      setRuntimeSheetOpen(false);
     }
   }, [visible]);
 
@@ -601,6 +631,9 @@ export function ProviderDiagnosticSheet({
   const handleCloseAddSheet = useCallback(() => setAddSheetOpen(false), []);
   const handleOpenDiagSheet = useCallback(() => setDiagSheetOpen(true), []);
   const handleCloseDiagSheet = useCallback(() => setDiagSheetOpen(false), []);
+  const handleOpenRuntimeSheet = useCallback(() => setRuntimeSheetOpen(true), []);
+  const handleCloseRuntimeSheet = useCallback(() => setRuntimeSheetOpen(false), []);
+  const canEditRuntime = runtimeSettingsSupported && runtimeSpec !== null;
 
   const handleDeleteCustom = useCallback(
     (modelId: string) => {
@@ -639,6 +672,7 @@ export function ProviderDiagnosticSheet({
         visible={visible}
         onClose={onClose}
         testID="provider-settings-sheet"
+        desktopMaxWidth={640}
         footer={renderProviderSheetFooter({
           fetchedAt: providerEntry?.fetchedAt ?? null,
           isCompact,
@@ -646,6 +680,7 @@ export function ProviderDiagnosticSheet({
           t,
           onOpenAddSheet: handleOpenAddSheet,
           onOpenDiagSheet: handleOpenDiagSheet,
+          onOpenRuntimeSheet: canEditRuntime ? handleOpenRuntimeSheet : null,
           onRefreshModels: handleRefreshModels,
         })}
         snapPoints={MAIN_SNAP_POINTS}
@@ -678,6 +713,17 @@ export function ProviderDiagnosticSheet({
         visible={diagSheetOpen}
         onClose={handleCloseDiagSheet}
       />
+      {runtimeSettingsSupported && runtimeSpec ? (
+        <ProviderRuntimeSubSheet
+          provider={provider}
+          providerLabel={providerLabel}
+          serverId={serverId}
+          spec={runtimeSpec}
+          visible={runtimeSheetOpen}
+          onClose={handleCloseRuntimeSheet}
+          refresh={refresh}
+        />
+      ) : null}
     </>
   );
 }
@@ -788,7 +834,10 @@ const sheetStyles = StyleSheet.create((theme) => ({
     flex: 0,
   },
   footerActions: {
+    flexShrink: 1,
     flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "flex-end",
     alignItems: "center",
     gap: theme.spacing[2],
   },

@@ -645,6 +645,19 @@ async function startStatusNoticeTurnTest(): Promise<{
   return { appServer, session, events, terminalEvent };
 }
 
+// Codex names the turn it completes; the shared fake's `completeTurn` does not.
+function writeTurnCompleted(
+  appServer: FakeCodexAppServer,
+  params: { turnId: string; status: "completed" | "interrupted" },
+): void {
+  appServer.child.stdout.write(
+    `${JSON.stringify({
+      method: "turn/completed",
+      params: { threadId: "thread-1", turn: { id: params.turnId, status: params.status } },
+    })}\n`,
+  );
+}
+
 function describeStatusNotice(event: AgentStreamEvent): string {
   if (event.type !== "timeline") {
     return event.type;
@@ -804,6 +817,7 @@ type CapturedFakeCodexRecord = Record<string, unknown>;
 async function runCustomCodexProviderTurn(
   providerId: string,
   baseUrl: string,
+  options: { builtin?: boolean } = {},
 ): Promise<CapturedFakeCodexRecord[]> {
   const tempDir = await mkdtemp(path.join(tmpdir(), "codex-custom-provider-"));
   const fakeAppServerPath = path.join(tempDir, "fake-codex-app-server.cjs");
@@ -857,8 +871,7 @@ process.stdin.on("data", (chunk) => {
   const registry = buildProviderRegistry(createTestLogger(), {
     providerOverrides: {
       [providerId]: {
-        extends: "codex",
-        label: "Custom Codex",
+        ...(options.builtin ? {} : { extends: "codex", label: "Custom Codex" }),
         command: [process.execPath, fakeAppServerPath],
         env: {
           OPENAI_API_KEY: "sk-custom",
@@ -2950,6 +2963,27 @@ describe("Codex app-server provider", () => {
     });
   });
 
+  test("routes the built-in Codex provider through a base URL set in its env", async () => {
+    const capturedRequests = await runCustomCodexProviderTurn(
+      "codex",
+      "https://relay.example.com",
+      { builtin: true },
+    );
+
+    expect(capturedThreadStartConfig(capturedRequests)).toEqual({
+      model_provider: "zentic:codex",
+      model_providers: {
+        "zentic:codex": {
+          name: "Codex",
+          base_url: "https://relay.example.com/v1",
+          env_key: "OPENAI_API_KEY",
+          requires_openai_auth: false,
+          wire_api: "responses",
+        },
+      },
+    });
+  });
+
   test("namespaces provider ids that collide with Codex built-ins", async () => {
     // `ollama` is a reserved Codex provider id: without namespacing, Codex rejects
     // the generated config outright and the agent never starts.
@@ -3037,6 +3071,76 @@ describe("Codex app-server provider", () => {
     ]);
     expect(outcome).toBe("rejected");
     appServer.assertNoErrors();
+  });
+
+  test("resumeSession continues in a new thread when Codex no longer has the persisted one", async () => {
+    const threadRequests: string[] = [];
+    const loadedThreadIds: string[] = [];
+    const appServer = createFakeCodexAppServer({
+      "thread/loaded/list": () => ({ data: loadedThreadIds }),
+      "thread/resume": () => {
+        threadRequests.push("thread/resume");
+        return Promise.reject(new Error("no rollout found for thread id missing-thread-id"));
+      },
+      "thread/start": () => {
+        threadRequests.push("thread/start");
+        loadedThreadIds.push("replacement-thread-id");
+        return { thread: { id: "replacement-thread-id" } };
+      },
+    });
+    const provider = createProviderWithFakeAppServer(appServer, {
+      runtimeSettings: { env: { CODEX_HOME: "/tmp/other-codex-home" } },
+    });
+
+    const session = await provider.resumeSession({
+      sessionId: "missing-thread-id",
+      metadata: { cwd: "/tmp/codex-missing-thread", model: "gpt-5.4" },
+    });
+    expect(session.id).toBeNull();
+    expect(threadRequests).toEqual(["thread/resume"]);
+
+    const events: AgentStreamEvent[] = [];
+    session.subscribe((event) => events.push(event));
+    const runTurn = async (prompt: string, nativeTurnId: string) => {
+      const { turnId } = await session.startTurn(prompt);
+      appServer.startsTurn({ threadId: "replacement-thread-id", turnId: nativeTurnId });
+      appServer.completeTurn({ threadId: "replacement-thread-id" });
+      await vi.waitFor(() =>
+        expect(events).toContainEqual(expect.objectContaining({ type: "turn_completed", turnId })),
+      );
+      return turnId;
+    };
+
+    const firstTurnId = await runTurn("hello again", "native-1");
+    await runTurn("and again", "native-2");
+
+    expect(threadRequests).toEqual(["thread/resume", "thread/start"]);
+    const turnStarts = appServer.requests().filter((message) => message.method === "turn/start");
+    expect(turnStarts.map((message) => (message.params as { threadId?: string }).threadId)).toEqual(
+      ["replacement-thread-id", "replacement-thread-id"],
+    );
+    const notices = events.filter(
+      (event) => event.type === "timeline" && event.item.type === "notification",
+    );
+    expect(notices).toEqual([
+      {
+        type: "timeline",
+        provider: "codex",
+        turnId: firstTurnId,
+        item: {
+          type: "notification",
+          level: "warning",
+          message:
+            "Codex couldn't find the previous thread missing-thread-id in /tmp/other-codex-home. It was probably started with a different CODEX_HOME. This conversation continues in a new Codex thread without the earlier context.",
+        },
+      },
+    ]);
+    expect(events).toContainEqual(
+      expect.objectContaining({ type: "thread_started", sessionId: "replacement-thread-id" }),
+    );
+    expect(session.describePersistence()).toMatchObject({ sessionId: "replacement-thread-id" });
+    appServer.assertNoErrors();
+    await session.close();
   });
 
   test("lists repo skills using WorkspaceGitService repo-root resolution", async () => {
@@ -6331,6 +6435,95 @@ describe("Codex app-server provider", () => {
     } finally {
       await session.close();
     }
+  });
+
+  test("fails the turn on refused credentials instead of retrying, and the next turn runs", async () => {
+    const appServer: FakeCodexAppServer = createFakeCodexAppServer({
+      "turn/interrupt": () => {
+        // Codex ends the interrupted turn after accepting the interrupt.
+        setImmediate(() => {
+          appServer.reportsTurnError({
+            threadId: "thread-1",
+            turnId: "native-auth",
+            message: "Reconnecting... 2/5",
+            willRetry: true,
+          });
+          writeTurnCompleted(appServer, { turnId: "native-auth", status: "interrupted" });
+        });
+        return {};
+      },
+    });
+    const session = new CodexAppServerAgentSession(
+      createConfig({ cwd: "/workspace/project" }),
+      null,
+      createTestLogger(),
+      async () => appServer.child,
+    );
+    const events: AgentStreamEvent[] = [];
+    session.subscribe((event) => events.push(event));
+
+    const first = await session.startTurn("first");
+    appServer.startsTurn({ threadId: "thread-1", turnId: "native-auth" });
+    appServer.child.stdout.write(
+      `${JSON.stringify({
+        method: "error",
+        params: {
+          threadId: "thread-1",
+          turnId: "native-auth",
+          willRetry: true,
+          error: {
+            message: "Reconnecting... 1/5",
+            codexErrorInfo: { responseStreamConnectionFailed: { httpStatusCode: 401 } },
+            additionalDetails: "unexpected status 401 Unauthorized: Incorrect API key provided",
+          },
+        },
+      })}\n`,
+    );
+
+    await expect(appServer.waitForRequest("turn/interrupt")).resolves.toEqual({
+      threadId: "thread-1",
+      turnId: "native-auth",
+    });
+    await vi.waitFor(() =>
+      expect(events).toContainEqual(expect.objectContaining({ type: "turn_failed" })),
+    );
+    // Let the interrupted turn's late error and ending arrive before the next turn.
+    await new Promise<void>((resolve) => setTimeout(resolve, 10));
+
+    const second = await session.startTurn("second");
+    appServer.startsTurn({ threadId: "thread-1", turnId: "native-next" });
+    appServer.says({ threadId: "thread-1", itemId: "reply", text: "Hello." });
+    writeTurnCompleted(appServer, { turnId: "native-next", status: "completed" });
+    await vi.waitFor(() =>
+      expect(events).toContainEqual(expect.objectContaining({ type: "turn_completed" })),
+    );
+
+    const terminalEvents = events.filter(
+      (event) =>
+        event.type === "turn_failed" ||
+        event.type === "turn_canceled" ||
+        event.type === "turn_completed",
+    );
+    expect(terminalEvents).toEqual([
+      {
+        type: "turn_failed",
+        provider: "codex",
+        turnId: first.turnId,
+        error:
+          "Codex rejected the credentials (unexpected status 401 Unauthorized: Incorrect API key provided). Check the API key or login this provider uses (OPENAI_API_KEY in its runtime settings, or the login in CODEX_HOME).",
+      },
+      expect.objectContaining({ type: "turn_completed", turnId: second.turnId }),
+    ]);
+    expect(
+      events.some(
+        (event) =>
+          event.type === "timeline" &&
+          event.item.type === "tool_call" &&
+          event.item.name === "codex_retry",
+      ),
+    ).toBe(false);
+    appServer.assertNoErrors();
+    await session.close();
   });
 
   test("keeps one root reconnect row while a child completes", async () => {

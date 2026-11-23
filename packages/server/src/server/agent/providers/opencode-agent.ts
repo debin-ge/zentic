@@ -12,6 +12,7 @@ import {
   type OpencodeClientConfig,
   type Part as OpenCodePart,
   type Session as OpenCodeSession,
+  type SessionStatus as OpenCodeSessionStatus,
   type TextPartInput as OpenCodeTextPartInput,
 } from "@opencode-ai/sdk/v2/client";
 import fs from "node:fs/promises";
@@ -27,6 +28,7 @@ import {
   type AgentCapabilityFlags,
   type AgentClient,
   type AgentCreateSessionOptions,
+  type AgentResumeSessionOptions,
   type AgentDraftControls,
   type AgentOptionControl,
   type AgentLaunchContext,
@@ -94,6 +96,14 @@ import {
   type OpenCodeEventSourceInput,
 } from "./opencode/event-consumer.js";
 import { resolveOpenCodeHomeDir } from "./opencode/paths.js";
+import {
+  OpenCodeRetryNotices,
+  describeMissingOpenCodeSession,
+  describeOpenCodeAuthFailure,
+  describeOpenCodeRetry,
+  isOpenCodeAuthFailure,
+  type OpenCodeRetryFailure,
+} from "./opencode/retry-failure.js";
 import {
   formatProviderDiagnostic,
   formatProviderDiagnosticError,
@@ -543,6 +553,48 @@ function isOpenCodeNotFoundError(error: unknown): boolean {
     "name" in error &&
     (error as { name?: unknown }).name === "NotFoundError"
   );
+}
+
+/**
+ * OpenCode 1.x answers `session.get` for an unknown id with a 404 NotFoundError body. Only that
+ * proves the session is gone; any other failure says nothing about it.
+ */
+function isMissingOpenCodeSessionResponse(response: unknown): boolean {
+  const record = readOpenCodeRecord(response);
+  if (!record?.error) return false;
+  return (
+    isOpenCodeNotFoundError(record.error) || readOpenCodeRecord(record.response)?.status === 404
+  );
+}
+
+function isMissingOpenCodeSessionError(error: unknown): boolean {
+  return (
+    isOpenCodeNotFoundError(error) ||
+    (error instanceof Error && /\bsession not found\b/i.test(error.message))
+  );
+}
+
+/** A retry of this session's request that failed on its provider credentials. */
+function readOpenCodeAuthRetry(
+  event: OpenCodeEvent,
+  sessionId: string,
+): OpenCodeRetryFailure | null {
+  if (event.type !== "session.status" || event.properties.sessionID !== sessionId) return null;
+  const { status } = event.properties;
+  if (status.type !== "retry") return null;
+  const failure = readOpenCodeRetryFailure(status);
+  return isOpenCodeAuthFailure(failure) ? failure : null;
+}
+
+function readOpenCodeRetryFailure(
+  status: Extract<OpenCodeSessionStatus, { type: "retry" }>,
+): OpenCodeRetryFailure {
+  const message = typeof status.message === "string" ? status.message : "";
+  const action = status.action;
+  return {
+    message,
+    ...(action ? { action: { label: action.label, link: action.link } } : {}),
+  };
 }
 
 async function abortOpenCodeSession(params: {
@@ -1460,44 +1512,15 @@ export class OpenCodeAgentClient implements AgentClient {
     const connection = await connectServer();
     const { client } = connection;
 
-    // OpenCode stores permission rules on the session, so they are set here and on resume
-    // rather than sent with each prompt, which drops them.
-    const permission = buildOpenCodePermissionRules(
-      openCodeConfig.providerOptions,
-      openCodeConfig.toolPolicy,
-    );
-
     try {
-      // Creating the first session for a directory is part of OpenCode coming up, so it
-      // shares the server startup budget instead of a shorter one that fails agent
-      // creation on contended cold starts.
-      const response = await withTimeout(
-        client.session.create({
-          directory: openCodeConfig.cwd,
-          ...(permission ? { permission } : {}),
-        }),
-        OPENCODE_SERVER_STARTUP_TIMEOUT_MS,
-        `OpenCode session.create timed out after ${Math.round(
-          OPENCODE_SERVER_STARTUP_TIMEOUT_MS / 1000,
-        )}s`,
-      );
-
-      if (response.error) {
-        throw new Error(`Failed to create OpenCode session: ${JSON.stringify(response.error)}`);
-      }
-
-      const session = response.data;
-      if (!session) {
-        throw new Error("OpenCode session creation returned no data");
-      }
-
+      const sessionId = await this.createNativeSession(client, openCodeConfig);
       await this.populateModelContextWindowCache(client, openCodeConfig.cwd);
-      const unbindBridge = this.bindBridgeSession(session.id, launchContext);
+      const unbindBridge = this.bindBridgeSession(sessionId, launchContext);
 
       return new OpenCodeAgentSession(
         openCodeConfig,
         client,
-        session.id,
+        sessionId,
         this.logger,
         connection.environment,
         new Map(this.modelContextWindows),
@@ -1521,6 +1544,7 @@ export class OpenCodeAgentClient implements AgentClient {
     handle: AgentPersistenceHandle,
     overrides?: Partial<AgentSessionConfig>,
     launchContext?: AgentLaunchContext,
+    options?: AgentResumeSessionOptions,
   ): Promise<AgentSession> {
     const metadata = (handle.metadata ?? {}) as Partial<AgentSessionConfig>;
     const cwd = overrides?.cwd ?? metadata.cwd;
@@ -1546,14 +1570,16 @@ export class OpenCodeAgentClient implements AgentClient {
     const { client } = connection;
 
     try {
-      await this.applySessionPermissionRules(client, openCodeConfig, handle.sessionId);
+      const sessionId = await this.openResumedSession(client, openCodeConfig, handle.sessionId, {
+        replaceMissing: options?.purpose !== "history",
+      });
       await this.populateModelContextWindowCache(client, openCodeConfig.cwd);
-      const unbindBridge = this.bindBridgeSession(handle.sessionId, launchContext);
+      const unbindBridge = this.bindBridgeSession(sessionId, launchContext);
 
-      return new OpenCodeAgentSession(
+      const session = new OpenCodeAgentSession(
         openCodeConfig,
         client,
-        handle.sessionId,
+        sessionId,
         this.logger,
         connection.environment,
         new Map(this.modelContextWindows),
@@ -1567,9 +1593,83 @@ export class OpenCodeAgentClient implements AgentClient {
         connectServer,
         openCodeOpenOptionsPatch({ given: config, opened: openCodeConfig }),
       );
+      if (sessionId !== handle.sessionId) {
+        session.replacedMissingSession(handle.sessionId);
+      }
+      return session;
     } catch (error) {
       await connection.release();
       throw error;
+    }
+  }
+
+  private async createNativeSession(
+    client: OpencodeClient,
+    config: OpenCodeAgentConfig,
+  ): Promise<string> {
+    // OpenCode stores permission rules on the session, so they are set here and on resume
+    // rather than sent with each prompt, which drops them.
+    const permission = buildOpenCodePermissionRules(config.providerOptions, config.toolPolicy);
+    // Creating the first session for a directory is part of OpenCode coming up, so it
+    // shares the server startup budget instead of a shorter one that fails agent
+    // creation on contended cold starts.
+    const response = await withTimeout(
+      client.session.create({
+        directory: config.cwd,
+        ...(permission ? { permission } : {}),
+      }),
+      OPENCODE_SERVER_STARTUP_TIMEOUT_MS,
+      `OpenCode session.create timed out after ${Math.round(
+        OPENCODE_SERVER_STARTUP_TIMEOUT_MS / 1000,
+      )}s`,
+    );
+
+    if (response.error) {
+      throw new Error(`Failed to create OpenCode session: ${JSON.stringify(response.error)}`);
+    }
+
+    const session = response.data;
+    if (!session) {
+      throw new Error("OpenCode session creation returned no data");
+    }
+    return session.id;
+  }
+
+  /**
+   * Returns the session to attach to: the persisted one, or a new one in the same directory when
+   * OpenCode confirms the persisted one is gone, typically because its data directory changed.
+   * Prompts to a missing session would fail forever.
+   */
+  private async openResumedSession(
+    client: OpencodeClient,
+    config: OpenCodeAgentConfig,
+    sessionId: string,
+    // A history-only load must not create a session or rewrite the persisted handle.
+    { replaceMissing }: { replaceMissing: boolean },
+  ): Promise<string> {
+    if (!replaceMissing || !(await this.isNativeSessionMissing(client, config.cwd, sessionId))) {
+      await this.applySessionPermissionRules(client, config, sessionId);
+      return sessionId;
+    }
+    this.logger.warn(
+      { sessionId, cwd: config.cwd },
+      "OpenCode session to resume no longer exists; continuing in a new session",
+    );
+    return this.createNativeSession(client, config);
+  }
+
+  private async isNativeSessionMissing(
+    client: OpencodeClient,
+    directory: string,
+    sessionId: string,
+  ): Promise<boolean> {
+    try {
+      return isMissingOpenCodeSessionResponse(
+        await client.session.get({ sessionID: sessionId, directory }),
+      );
+    } catch (error) {
+      // Anything but a confirmed miss resumes as before; the session may well be there.
+      return isMissingOpenCodeSessionError(error);
     }
   }
 
@@ -1984,6 +2084,8 @@ export interface OpenCodeEventTranslationState {
   hydratedMessageFingerprints?: Map<string, string>;
   hydratedPartFingerprints?: Map<string, string>;
   suppressAssistantMessagesUntilIdle?: { active: boolean };
+  /** Without it, a retry is announced on its first attempt only. */
+  retryNotices?: OpenCodeRetryNotices;
   partTypes: Map<string, string>;
   subAgentsByCallId?: Map<string, OpenCodeSubAgentActivityState>;
   subAgentCallIdByChildSessionId?: Map<string, string>;
@@ -2362,6 +2464,7 @@ export function translateOpenCodeEvent(
 
 function resetOpenCodeTurnTrackingState(state: OpenCodeEventTranslationState): void {
   state.partTypes.clear();
+  state.retryNotices?.reset();
   state.compactionSummaryMessageIds.clear();
   state.emittedCompactionPartIds.clear();
   if (state.suppressAssistantMessagesUntilIdle) {
@@ -3178,20 +3281,22 @@ function appendOpenCodeSessionStatus(
     return;
   }
   if (status.type === "retry") {
-    // Mirror what opencode's TUI shows: retry attempts are visible activity, not
-    // terminal. opencode itself never gives up — it backs off and tries again
-    // forever. If we silently swallow these the user sees a spinner with no
-    // explanation. Forwarding as a timeline error item is a no-op for old
-    // clients (the schema already supports it).
-    const message = typeof status.message === "string" ? status.message.trim() : "";
-    const text = message
-      ? `Provider retry (attempt ${status.attempt}): ${message}`
-      : `Provider retry (attempt ${status.attempt})`;
-    events.push({
-      type: "timeline",
-      provider: "opencode",
-      item: { type: "error", message: text },
-    });
+    // OpenCode backs off and retries a failed request, possibly forever, and the turn shows
+    // nothing meanwhile. Say so once per failing request rather than once per attempt.
+    const notify = state.retryNotices
+      ? state.retryNotices.shouldNotify(status.attempt)
+      : status.attempt === 1;
+    if (notify) {
+      events.push({
+        type: "timeline",
+        provider: "opencode",
+        item: {
+          type: "notification",
+          level: "warning",
+          message: describeOpenCodeRetry(readOpenCodeRetryFailure(status)),
+        },
+      });
+    }
     return;
   }
 }
@@ -3412,6 +3517,10 @@ class OpenCodeAgentSession implements AgentSession {
   private compactionSummaryMessageIds = new Set<string>();
   private emittedCompactionPartIds = new Set<string>();
   private suppressAssistantMessagesUntilIdle = { active: false };
+  private readonly retryNotices = new OpenCodeRetryNotices();
+  /** Set when resume found the persisted session gone and opened this one in its place. */
+  private replacedSessionId: string | null = null;
+  private replacementNotice: string | null = null;
   private partTypes = new Map<string, string>();
   private availableModesCache: AgentMode[] | null = null;
   private readonly subscribers = new Set<(event: AgentStreamEvent) => void>();
@@ -3918,6 +4027,7 @@ class OpenCodeAgentSession implements AgentSession {
     this.materializedParts.clear();
     this.turnState = { status: "running", turnId };
     this.notifySubscribers({ type: "turn_started", provider: "opencode" }, turnId);
+    this.emitReplacementNotice(turnId);
 
     const slashCommand = await this.resolveSlashCommandInvocation(prompt);
     if (slashCommand) {
@@ -4087,6 +4197,26 @@ class OpenCodeAgentSession implements AgentSession {
     return { turnId };
   }
 
+  /** Resume could not find `previousId`, so this session replaced it; say so on the next turn. */
+  replacedMissingSession(previousId: string): void {
+    this.replacedSessionId = previousId;
+    this.replacementNotice = describeMissingOpenCodeSession(previousId);
+  }
+
+  private emitReplacementNotice(turnId: string): void {
+    const notice = this.replacementNotice;
+    if (!notice) return;
+    this.replacementNotice = null;
+    this.notifySubscribers(
+      {
+        type: "timeline",
+        provider: "opencode",
+        item: { type: "notification", level: "warning", message: notice },
+      },
+      turnId,
+    );
+  }
+
   private async awaitEventStreamReady(turnAbortController: AbortController): Promise<void> {
     try {
       await withTimeout(
@@ -4114,6 +4244,10 @@ class OpenCodeAgentSession implements AgentSession {
   }
   subscribe(callback: (event: AgentStreamEvent) => void): () => void {
     this.subscribers.add(callback);
+    // The daemon registered this agent under the missing session's handle; report the new one.
+    if (this.replacedSessionId) {
+      callback({ type: "thread_started", provider: "opencode", sessionId: this.sessionId });
+    }
     this.startExternalStatusReconciliation();
     this.startChildSessionHydration();
     return () => {
@@ -4611,6 +4745,9 @@ class OpenCodeAgentSession implements AgentSession {
     if (this.discardEventWhileStopping(event, eventCount)) {
       return;
     }
+    if (this.failTurnOnAuthRetry(event)) {
+      return;
+    }
     const translated = await this.translateEvent(event);
     const foregroundEvents: AgentStreamEvent[] = [];
     for (const translatedEvent of translated) {
@@ -4678,6 +4815,36 @@ class OpenCodeAgentSession implements AgentSession {
       n: eventCount,
       reason: "turn_stopping",
       type: event.type,
+    });
+    return true;
+  }
+
+  /**
+   * A rejected key stays rejected, so OpenCode would retry until the user stops it. Fail the turn
+   * on the first auth retry and abort the run. The abort is a stop like Stop's, so the aborted
+   * run's residue and terminal are discarded and cannot end the next turn.
+   */
+  private failTurnOnAuthRetry(event: OpenCodeEvent): boolean {
+    const failure = readOpenCodeAuthRetry(event, this.sessionId);
+    if (!failure) {
+      return false;
+    }
+    const turnId = this.activeForegroundTurnId;
+    this.logger.warn(
+      { sessionId: this.sessionId, turnId, error: failure.message },
+      "OpenCode rejected the provider credentials; failing the turn instead of retrying",
+    );
+    if (turnId) {
+      this.finishForegroundTurn(
+        { type: "turn_failed", provider: "opencode", error: describeOpenCodeAuthFailure(failure) },
+        turnId,
+      );
+    }
+    void this.issueStop(null, { awaitTerminal: true }).catch((error: unknown) => {
+      this.logger.warn(
+        { err: error, sessionId: this.sessionId },
+        "Failed to abort OpenCode after an auth failure",
+      );
     });
     return true;
   }
@@ -4753,7 +4920,10 @@ class OpenCodeAgentSession implements AgentSession {
     return this.turnState.status === "stopping" && this.turnState.stop === stop;
   }
 
-  private issueStop(turnId: string | null): Promise<void> {
+  private issueStop(
+    turnId: string | null,
+    options: { awaitTerminal: boolean } = { awaitTerminal: turnId !== null },
+  ): Promise<void> {
     if (this.turnState.status === "stopping") {
       // Stop pressed again during a stop retries that same stop. There is one
       // runner per session, so a second boundary would race the first — and
@@ -4768,6 +4938,8 @@ class OpenCodeAgentSession implements AgentSession {
     const abort = this.issueOwnedAbort(stop);
     if (turnId) {
       this.synthesizeInterruptedToolCalls(turnId);
+    }
+    if (options.awaitTerminal) {
       // An idle session has no run to observe, so only abort settlement gates
       // reuse there. A running one also owes the canceled run's terminal.
       this.turnState = { status: "stopping", stop };
@@ -5279,6 +5451,7 @@ class OpenCodeAgentSession implements AgentSession {
       compactionSummaryMessageIds: this.compactionSummaryMessageIds,
       emittedCompactionPartIds: this.emittedCompactionPartIds,
       suppressAssistantMessagesUntilIdle: this.suppressAssistantMessagesUntilIdle,
+      retryNotices: this.retryNotices,
       partTypes: this.partTypes,
       subAgentsByCallId: this.subAgentsByCallId,
       subAgentCallIdByChildSessionId: this.subAgentCallIdByChildSessionId,

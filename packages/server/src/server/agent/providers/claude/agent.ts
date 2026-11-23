@@ -4195,11 +4195,19 @@ class ClaudeAgentSession implements AgentSession {
     // failing against a dead transport forever.
     this.query = null;
     this.input = null;
+    if (this.stderrReportsMissingConversation()) {
+      const failure = this.buildTurnFailedEvent(this.describeMissingConversation());
+      this.forgetMissingConversation();
+      this.dispatchEvents([failure]);
+      return;
+    }
     this.dispatchEvents([
       this.buildTurnFailedEvent(
         `Claude stopped unexpectedly (${signal ? `signal ${signal}` : `exit code ${code ?? "unknown"}`}). Any background shells, monitors or other work it had running were terminated with it.`,
       ),
     ]);
+    // Reported once: the next failure must not repeat this one's output.
+    this.clearRecentStderr();
   }
 
   private failRunningRuntimeTasks(): void {
@@ -4330,7 +4338,7 @@ class ClaudeAgentSession implements AgentSession {
           }
           if (!this.closed && this.query === activeQuery) {
             await this.awaitRecentStderrAfterProcessExit(error);
-            this.failActiveTurns(error instanceof Error ? error.message : "Claude stream failed");
+            this.failTurnsOnStreamError(error);
           }
           return;
         }
@@ -4343,13 +4351,41 @@ class ClaudeAgentSession implements AgentSession {
     }
   }
 
+  /**
+   * A rejected key or token stays rejected, so Claude Code's retries only keep the turn running
+   * for minutes before it fails anyway. End the turn on the first auth retry and interrupt Claude
+   * to stop the rest; the interrupted request's result is then consumed as stale.
+   */
+  private failTurnOnAuthRetry(message: SDKMessage): boolean {
+    if (message.type !== "system" || message.subtype !== "api_retry" || !isAuthRetry(message)) {
+      return false;
+    }
+    if (!this.activeForegroundTurnId && !this.autonomousTurn) {
+      return true;
+    }
+    this.logger.warn(
+      { agentId: this.agentId, status: message.error_status, error: message.error },
+      "Claude API rejected its credentials; failing the turn instead of retrying",
+    );
+    this.rejectAllPendingPermissions(new Error("Claude API authentication failed"));
+    this.failActiveTurns(describeAuthFailure(message));
+    void this.interruptActiveTurn(true).catch((error) => {
+      this.logger.warn({ err: error }, "Failed to interrupt after an auth failure");
+    });
+    return true;
+  }
+
   private shouldSuppressStaleResult(message: SDKMessage): boolean {
     // Suppress stale results from interrupted requests. The cancel path already
     // emitted the terminal event; this result is leftover from the killed API
     // request. Consume the flag on ANY result so it doesn't linger.
     if (message.type === "result" && this.pendingInterruptAbort) {
       this.pendingInterruptAbort = false;
-      if (message.subtype !== "success") {
+      // Claude Code reports a request that ended on an API error as `success` with `is_error`,
+      // so an errored result after an interrupt is the killed request's too.
+      if (message.subtype !== "success" || message.is_error) {
+        // The killed request's API error reply waits for this result; it goes with it.
+        this.withheldErrorReply = [];
         this.logger.debug("Suppressing stale non-success result from interrupted request");
         return true;
       }
@@ -4415,12 +4451,17 @@ class ClaudeAgentSession implements AgentSession {
     return !this.closed && this.query === query;
   }
 
-  private async routeSdkMessageFromPump(message: SDKMessage): Promise<void> {
+  /** Handles frames that never reach the timeline. Returns true when the frame is consumed. */
+  private consumeControlMessage(message: SDKMessage): boolean {
     if (this.consumeSessionStateChange(message)) {
-      return;
+      return true;
     }
     this.observeMainTurnBracket(message);
-    if (this.shouldSuppressStaleResult(message)) {
+    return this.shouldSuppressStaleResult(message) || this.failTurnOnAuthRetry(message);
+  }
+
+  private async routeSdkMessageFromPump(message: SDKMessage): Promise<void> {
+    if (this.consumeControlMessage(message)) {
       return;
     }
 
@@ -4551,7 +4592,7 @@ class ClaudeAgentSession implements AgentSession {
       "Claude resumed session no longer exists; invalidating persisted session",
     );
 
-    this.failActiveTurns(staleResumeError);
+    this.failActiveTurns(this.describeMissingConversation());
     // Ending the input retires the process on purpose. Detach first so its exit
     // is not reported as a crash.
     const retiredChild = this.childProcess;
@@ -4585,8 +4626,50 @@ class ClaudeAgentSession implements AgentSession {
     this.activeForegroundTurnId = null;
     this.activeForegroundQuery = null;
     this.activeForegroundInput = null;
+    this.forgetMissingConversation();
     this.syncTurnState("missing resumed conversation");
     return true;
+  }
+
+  private failTurnsOnStreamError(error: unknown): void {
+    if (this.stderrReportsMissingConversation()) {
+      this.failActiveTurns(this.describeMissingConversation());
+      this.forgetMissingConversation();
+      return;
+    }
+    this.failActiveTurns(error instanceof Error ? error.message : "Claude stream failed");
+    // Reported once: the next failure must not repeat this one's output.
+    this.clearRecentStderr();
+  }
+
+  /**
+   * Claude cannot resume a conversation its config directory does not hold, typically one started
+   * under another CLAUDE_CONFIG_DIR. Every later launch would fail the same way, so the next one
+   * starts a new conversation instead.
+   */
+  private forgetMissingConversation(): void {
+    this.startFreshConversationSession();
+    // No query is running to restart: the next send creates one.
+    this.queryRestartNeeded = false;
+    this.clearRecentStderr();
+  }
+
+  private describeMissingConversation(): string {
+    const configDir = claudeConfigDir(this.harnessEnvironment);
+    return `Claude can't find this conversation in ${configDir}. It was probably started with a different CLAUDE_CONFIG_DIR. Your next message starts a new Claude conversation; to continue the old one, switch CLAUDE_CONFIG_DIR back.`;
+  }
+
+  /** Newer Claude Code reports a missing resumed conversation on stderr and exits, with no result. */
+  private stderrReportsMissingConversation(): boolean {
+    const sessionId = this.claudeSessionId;
+    if (!sessionId) return false;
+    return this.recentStderr.split("\n").some(
+      (line) =>
+        line
+          .trim()
+          .match(/^No conversation found with session ID:\s*(.+)$/)?.[1]
+          ?.trim() === sessionId,
+    );
   }
 
   /**
@@ -4936,6 +5019,19 @@ class ClaudeAgentSession implements AgentSession {
       return;
     }
     if (message.subtype === "task_progress") {
+      return;
+    }
+    if (message.subtype === "api_retry") {
+      // Claude Code retries a failed API request up to ten times with backoff, minutes in total,
+      // and the turn shows nothing meanwhile. Say so once per failing request. An auth failure
+      // never gets here: failTurnOnAuthRetry ends the turn instead.
+      if (message.attempt === 1) {
+        events.push({
+          type: "timeline",
+          provider: "claude",
+          item: { type: "notification", level: "warning", message: describeApiRetry(message) },
+        });
+      }
       return;
     }
   }
@@ -6407,6 +6503,30 @@ function hasToolLikeBlock(block?: ClaudeContentChunk | null): boolean {
   }
   const type = typeof block.type === "string" ? block.type.toLowerCase() : "";
   return type.includes("tool");
+}
+
+const CLAUDE_AUTH_RETRY_ERRORS = new Set(["authentication_failed", "oauth_org_not_allowed"]);
+
+type ClaudeApiRetryMessage = Extract<SDKMessage, { type: "system"; subtype: "api_retry" }>;
+
+function isAuthRetry(message: ClaudeApiRetryMessage): boolean {
+  return (
+    CLAUDE_AUTH_RETRY_ERRORS.has(message.error) ||
+    message.error_status === 401 ||
+    message.error_status === 403
+  );
+}
+
+function describeRetryStatus(message: ClaudeApiRetryMessage): string {
+  return message.error_status === null ? message.error : `${message.error_status} ${message.error}`;
+}
+
+function describeApiRetry(message: ClaudeApiRetryMessage): string {
+  return `Claude API request failed (${describeRetryStatus(message)}); retrying up to ${message.max_retries} times.`;
+}
+
+function describeAuthFailure(message: ClaudeApiRetryMessage): string {
+  return `Claude API rejected the credentials (${describeRetryStatus(message)}). Check the API key or token this provider uses, in its CLAUDE_CONFIG_DIR settings.json or its runtime settings.`;
 }
 
 function readCompactionMetadata(

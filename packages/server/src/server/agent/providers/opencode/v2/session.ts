@@ -41,6 +41,7 @@ import { commands } from "./commands.js";
 import { messages } from "./history.js";
 import { SessionPermissions } from "./permissions.js";
 import { SessionUsage } from "./usage.js";
+import { describeMissingOpenCodeSession } from "../retry-failure.js";
 
 export class OpenCodeV2Session implements AgentSession {
   readonly provider = "opencode";
@@ -64,6 +65,9 @@ export class OpenCodeV2Session implements AgentSession {
   private history: SessionMessageInfo[] = [];
   private readonly background: OpenCodeBackgroundInventory;
   private modes: AgentMode[] = [];
+  /** Set when resume found the persisted session gone and opened this one in its place. */
+  private replacedSessionId: string | null = null;
+  private replacementNotice: string | null = null;
   constructor(
     private connection: V2Connection,
     private info: SessionInfo,
@@ -140,6 +144,11 @@ export class OpenCodeV2Session implements AgentSession {
   }
   get controls() {
     return controls;
+  }
+  /** Resume could not find `previousId`, so this session replaced it; say so on the next turn. */
+  replacedMissingSession(previousId: string) {
+    this.replacedSessionId = previousId;
+    this.replacementNotice = describeMissingOpenCodeSession(previousId);
   }
   private get client() {
     return this.connection.client;
@@ -261,6 +270,9 @@ export class OpenCodeV2Session implements AgentSession {
     this.listeners.add(callback);
     const background = this.background.snapshot();
     if (background) callback(background);
+    // The daemon registered this agent under the missing session's handle; report the new one.
+    if (this.replacedSessionId)
+      callback({ type: "thread_started", provider: "opencode", sessionId: this.id });
     // Reopening can adopt an execution during initialization, before its caller
     // can subscribe. Deliver that live turn so it remains visible and interruptible.
     if (this.turns.id)
@@ -440,7 +452,18 @@ export class OpenCodeV2Session implements AgentSession {
   async startTurn(prompt: AgentPromptInput, options?: AgentRunOptions) {
     await this.reconnectIfExited();
     await this.connection.bindSession(this.id, this.config.cwd);
-    return this.turns.startTurn(prompt, options);
+    const started = await this.turns.startTurn(prompt, options);
+    const notice = this.replacementNotice;
+    if (notice) {
+      this.replacementNotice = null;
+      this.emit({
+        type: "timeline",
+        provider: "opencode",
+        turnId: started.turnId,
+        item: { type: "notification", level: "warning", message: notice },
+      });
+    }
+    return started;
   }
   steerActiveTurn(prompt: AgentPromptInput, options: SteerActiveTurnOptions): Promise<SteerResult> {
     return this.turns.steerActiveTurn(prompt, options);

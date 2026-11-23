@@ -13,6 +13,10 @@ interface ScriptedTurn {
   before?: string;
   after?: string;
   isError: boolean;
+  // Failed API attempts Claude Code reports before the turn ends, as `api_retry` messages.
+  apiRetries?: { status: number; error: string }[];
+  // Hold the turn after its retries until Zentic interrupts Claude, as a stuck retry loop would.
+  untilInterrupted?: boolean;
   subtype?:
     | "error_max_turns"
     | "error_during_execution"
@@ -26,10 +30,40 @@ interface ScriptedTurn {
   };
 }
 
+async function* apiRetryMessages(
+  turn: ScriptedTurn,
+  turnIndex: number,
+  interrupted: Promise<void>,
+) {
+  yield* (turn.apiRetries ?? []).map((retry, attempt) => ({
+    type: "system",
+    subtype: "api_retry",
+    attempt: attempt + 1,
+    max_retries: 10,
+    retry_delay_ms: 500,
+    error_status: retry.status,
+    error: retry.error,
+    uuid: `retry-${turnIndex}-${attempt}`,
+    session_id: "error-session",
+  }));
+  if (turn.untilInterrupted) await interrupted;
+}
+
 // A query dependency that speaks Claude Code's stream interface, one scripted turn per prompt.
-function scriptedQuery(turns: ScriptedTurn[]): ClaudeQueryFactory {
+interface QueryCalls {
+  interrupts: number;
+}
+
+function scriptedQuery(
+  turns: ScriptedTurn[],
+  calls: QueryCalls = { interrupts: 0 },
+): ClaudeQueryFactory {
   return ({ prompt }) => {
     let index = 0;
+    let resolveInterrupted!: () => void;
+    const interrupted = new Promise<void>((resolve) => {
+      resolveInterrupted = resolve;
+    });
     const assistant = (id: string, text: string, error?: string) => ({
       type: "assistant",
       session_id: "error-session",
@@ -57,6 +91,7 @@ function scriptedQuery(turns: ScriptedTurn[]): ClaudeQueryFactory {
           permissionMode: "default",
           model: "claude-opus-5-5",
         };
+        yield* apiRetryMessages(turn, index, interrupted);
         if (turn.before) yield assistant(`before-${index}`, turn.before);
         if (turn.errorReply) yield assistant(`error-${index}`, turn.errorReply, "rate_limit");
         if (turn.after) yield assistant(`after-${index}`, turn.after);
@@ -87,7 +122,10 @@ function scriptedQuery(turns: ScriptedTurn[]): ClaudeQueryFactory {
       close: () => {
         void messages.return();
       },
-      interrupt: async () => undefined,
+      interrupt: async () => {
+        calls.interrupts += 1;
+        resolveInterrupted();
+      },
       setModel: async () => undefined,
       setPermissionMode: async () => undefined,
       supportedModels: async () => [],
@@ -96,10 +134,10 @@ function scriptedQuery(turns: ScriptedTurn[]): ClaudeQueryFactory {
   };
 }
 
-async function runTurns(turns: ScriptedTurn[]) {
+async function runTurns(turns: ScriptedTurn[], calls?: QueryCalls) {
   const client = new ClaudeAgentClient({
     logger: createTestLogger(),
-    queryFactory: scriptedQuery(turns),
+    queryFactory: scriptedQuery(turns, calls),
     resolveBinary: async () => process.execPath,
   });
   const session = await client.createSession({
@@ -223,4 +261,68 @@ test.each([
   expect(assistantTexts(failed)).toEqual(["Running the command."]);
   expect(terminal(next)).toMatchObject({ type: "turn_completed" });
   expect(assistantTexts(next)).toEqual(["Done."]);
+});
+
+function notifications(events: Awaited<ReturnType<typeof runTurns>>[number]) {
+  return events.flatMap((event) =>
+    event.type === "timeline" && event.item.type === "notification" ? [event.item] : [],
+  );
+}
+
+test("a rejected key fails the turn on the first retry and stops Claude retrying", async () => {
+  const calls = { interrupts: 0 };
+  const [rejected, next] = await runTurns(
+    [
+      {
+        apiRetries: [{ status: 401, error: "authentication_failed" }],
+        untilInterrupted: true,
+        errorReply: "Failed to authenticate. API Error: 401 Invalid API key",
+        isError: true,
+      },
+      { after: "Done.", isError: false },
+    ],
+    calls,
+  );
+
+  expect(terminal(rejected)).toMatchObject({
+    type: "turn_failed",
+    error:
+      "Claude API rejected the credentials (401 authentication_failed). Check the API key or token this provider uses, in its CLAUDE_CONFIG_DIR settings.json or its runtime settings.",
+  });
+  expect(notifications(rejected)).toEqual([]);
+  expect(calls.interrupts).toBe(1);
+
+  // The interrupted request's own result is dropped, and the next message runs normally.
+  expect(terminal(next)).toMatchObject({ type: "turn_completed" });
+  expect(assistantTexts(next)).toEqual(["Done."]);
+});
+
+test("a request Claude Code retries for a passing error shows one warning, then the turn fails", async () => {
+  const calls = { interrupts: 0 };
+  const [overloaded] = await runTurns(
+    [
+      {
+        apiRetries: [
+          { status: 529, error: "overloaded" },
+          { status: 529, error: "overloaded" },
+        ],
+        errorReply: "API Error: 529 Overloaded",
+        isError: true,
+      },
+    ],
+    calls,
+  );
+
+  expect(notifications(overloaded)).toEqual([
+    {
+      type: "notification",
+      level: "warning",
+      message: "Claude API request failed (529 overloaded); retrying up to 10 times.",
+    },
+  ]);
+  expect(terminal(overloaded)).toMatchObject({
+    type: "turn_failed",
+    error: "API Error: 529 Overloaded",
+  });
+  expect(calls.interrupts).toBe(0);
 });

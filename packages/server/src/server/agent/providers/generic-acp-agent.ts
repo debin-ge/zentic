@@ -42,6 +42,7 @@ export class GenericACPAgentClient extends ACPAgentClient {
   constructor(options: GenericACPAgentClientOptions) {
     super({
       provider: "acp",
+      agentLabel: options.label ?? options.providerId ?? "The ACP agent",
       usageProvider: options.usageProvider,
       logger: options.logger,
       runtimeSettings: {

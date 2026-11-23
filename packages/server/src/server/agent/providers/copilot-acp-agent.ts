@@ -82,6 +82,7 @@ export class CopilotACPAgentClient extends ACPAgentClient {
   constructor(options: CopilotACPAgentClientOptions) {
     super({
       provider: "copilot",
+      agentLabel: "Copilot",
       logger: options.logger,
       runtimeSettings: options.runtimeSettings,
       defaultCommand: ["copilot", "--acp"],

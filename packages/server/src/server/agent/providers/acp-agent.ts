@@ -195,6 +195,47 @@ function isACPInvalidParams(error: unknown): boolean {
   return isACPError(error) && error.code === -32602;
 }
 
+// JSON-RPC code the ACP SDK uses for RequestError.resourceNotFound.
+const ACP_RESOURCE_NOT_FOUND_CODE = -32002;
+const ACP_SESSION_NOT_FOUND_MESSAGE =
+  /\bsession\b[^\n]{0,100}\bnot found\b|\bno such session\b|\bunknown session\b/i;
+
+/**
+ * True only when the agent definitely reports that the session it was asked to load or resume does
+ * not exist. Anything else (crashes, invalid params, auth) must keep failing the resume.
+ */
+export function isACPSessionNotFoundError(error: unknown): boolean {
+  const code = isRecord(error) && typeof error.code === "number" ? error.code : null;
+  if (code === ACP_RESOURCE_NOT_FOUND_CODE) {
+    return true;
+  }
+  if (!isACPError(error) && !(error instanceof Error)) {
+    return false;
+  }
+  return ACP_SESSION_NOT_FOUND_MESSAGE.test(summarizeACPRequestError(error).message);
+}
+
+// Matches the rolling stderr window other provider processes keep (jsonl-rpc-process.ts).
+export const ACP_STDERR_BUFFER_LIMIT = 8192;
+
+/**
+ * Keeps only the most recent ACP_STDERR_BUFFER_LIMIT characters of a long-lived process's stderr,
+ * so a chatty agent cannot grow the buffer (and the exit diagnostic) for its whole lifetime.
+ */
+export function appendACPStderr(chunks: string[], chunk: string): void {
+  chunks.push(chunk);
+  let total = 0;
+  for (const entry of chunks) {
+    total += entry.length;
+  }
+  if (total <= ACP_STDERR_BUFFER_LIMIT) {
+    return;
+  }
+  const tail = chunks.join("").slice(-ACP_STDERR_BUFFER_LIMIT);
+  chunks.length = 0;
+  chunks.push(tail);
+}
+
 function extractACPErrorDataMessage(data: unknown): string | null {
   if (!isRecord(data)) {
     return null;
@@ -485,6 +526,8 @@ export type ACPCatalogModelResolver = (
 
 interface ACPAgentClientOptions {
   provider: string;
+  /** Name shown to the user in provider notices, e.g. "Copilot". Defaults to the provider id. */
+  agentLabel?: string;
   // Provider id usage sources match a session against; ACP sessions without one report no usage.
   usageProvider?: string;
   logger: Logger;
@@ -519,6 +562,7 @@ interface ACPAgentClientOptions {
 
 interface ACPAgentSessionOptions {
   provider: string;
+  agentLabel?: string;
   usageProvider?: string;
   logger: Logger;
   runtimeSettings?: ProviderRuntimeSettings;
@@ -1045,6 +1089,7 @@ function isACPCreateConfigUnattended(input: AgentCreateConfigUnattendedInput): b
 
 export class ACPAgentClient implements AgentClient {
   readonly provider: string;
+  private readonly agentLabel?: string;
   private readonly usageProvider?: string;
   readonly capabilities: AgentCapabilityFlags;
   readonly resolveCreateConfig = resolveACPCreateConfig;
@@ -1087,6 +1132,7 @@ export class ACPAgentClient implements AgentClient {
 
   constructor(options: ACPAgentClientOptions) {
     this.provider = options.provider;
+    this.agentLabel = options.agentLabel;
     this.usageProvider = options.usageProvider;
     this.terminateProcess = options.terminateProcess ?? terminateWithTreeKill;
     this.capabilities = options.capabilities ?? DEFAULT_ACP_CAPABILITIES;
@@ -1126,6 +1172,7 @@ export class ACPAgentClient implements AgentClient {
       { ...config, provider: this.provider },
       {
         provider: this.provider,
+        agentLabel: this.agentLabel,
         usageProvider: this.usageProvider,
         logger: this.logger,
         runtimeSettings: this.runtimeSettings,
@@ -1184,6 +1231,7 @@ export class ACPAgentClient implements AgentClient {
     const providerOptions = ACPProviderOptionsSchema.parse(mergedConfig.providerOptions ?? {});
     const session = new ACPAgentSession(mergedConfig, {
       provider: this.provider,
+      agentLabel: this.agentLabel,
       usageProvider: this.usageProvider,
       logger: this.logger,
       runtimeSettings: this.runtimeSettings,
@@ -1560,7 +1608,7 @@ export class ACPAgentClient implements AgentClient {
 
     const stderrChunks: string[] = [];
     child.stderr.on("data", (chunk: Buffer | string) => {
-      stderrChunks.push(chunk.toString());
+      appendACPStderr(stderrChunks, chunk.toString());
     });
 
     const processErrorPromise = rejectOnProcessFailure(child, stderrChunks);
@@ -1832,6 +1880,8 @@ export class ACPAgentSession implements AgentSession, ACPClient {
   readonly provider: string;
   readonly capabilities: AgentCapabilityFlags;
 
+  private readonly agentLabel: string;
+
   private readonly logger: Logger;
   private readonly runtimeSettings?: ProviderRuntimeSettings;
   private readonly defaultCommand: [string, ...string[]];
@@ -1909,10 +1959,13 @@ export class ACPAgentSession implements AgentSession, ACPClient {
   private historyRuntimeReleased = false;
   private replayingHistory = false;
   private bootstrapThreadEventPending = false;
+  /** Warning for the next turn after a missing resumed session was replaced with a new one. */
+  private pendingReplacedSessionNotice: string | null = null;
   private readonly terminateProcess: ProcessTerminator;
 
   constructor(config: AgentSessionConfig, options: ACPAgentSessionOptions) {
     this.provider = options.provider;
+    this.agentLabel = options.agentLabel ?? options.provider;
     this.terminateProcess = options.terminateProcess ?? terminateWithTreeKill;
     this.capabilities = options.capabilities;
     this.logger = options.logger.child({ module: "agent", provider: options.provider });
@@ -2011,31 +2064,13 @@ export class ACPAgentSession implements AgentSession, ACPClient {
       this.sessionId = handle.sessionId;
       this.bootstrapThreadEventPending = true;
 
-      const sessionCapabilities = this.agentCapabilities?.sessionCapabilities;
-      if (this.agentCapabilities?.loadSession) {
-        this.replayingHistory = true;
-        const response = await this.runACPRequest(() =>
-          this.connection!.loadSession({
-            sessionId: handle.sessionId,
-            cwd: this.config.cwd,
-            mcpServers: this.acpMcpServers(),
-          }),
-        );
-        this.deliverTranslatedEvents(this.flushPendingUserMessage());
-        this.replayingHistory = false;
-        this.historyPending = this.persistedHistory.length > 0;
-        this.applySessionState(response);
-      } else if (sessionCapabilities?.resume) {
-        const response = await this.runACPRequest(() =>
-          this.connection!.unstable_resumeSession({
-            sessionId: handle.sessionId,
-            cwd: this.config.cwd,
-            mcpServers: this.acpMcpServers(),
-          }),
-        );
-        this.applySessionState(response);
-      } else {
-        throw new Error(`${this.provider} does not support ACP session resume`);
+      try {
+        await this.loadOrResumeSession(handle.sessionId);
+      } catch (error) {
+        if (this.resumePurpose === "history" || !isACPSessionNotFoundError(error)) {
+          throw error;
+        }
+        await this.replaceMissingSession(handle.sessionId, error);
       }
 
       await this.applyConfiguredOverrides();
@@ -2046,6 +2081,88 @@ export class ACPAgentSession implements AgentSession, ACPClient {
     } catch (error) {
       await this.closeAfterInitializationFailure(error);
     }
+  }
+
+  private async loadOrResumeSession(sessionId: string): Promise<void> {
+    const sessionCapabilities = this.agentCapabilities?.sessionCapabilities;
+    if (this.agentCapabilities?.loadSession) {
+      this.replayingHistory = true;
+      const response = await this.runACPRequest(() =>
+        this.connection!.loadSession({
+          sessionId,
+          cwd: this.config.cwd,
+          mcpServers: this.acpMcpServers(),
+        }),
+      );
+      this.deliverTranslatedEvents(this.flushPendingUserMessage());
+      this.replayingHistory = false;
+      this.historyPending = this.persistedHistory.length > 0;
+      this.applySessionState(response);
+      return;
+    }
+    if (sessionCapabilities?.resume) {
+      const response = await this.runACPRequest(() =>
+        this.connection!.unstable_resumeSession({
+          sessionId,
+          cwd: this.config.cwd,
+          mcpServers: this.acpMcpServers(),
+        }),
+      );
+      this.applySessionState(response);
+      return;
+    }
+    throw new Error(`${this.provider} does not support ACP session resume`);
+  }
+
+  /**
+   * The agent no longer has the session this agent was persisted with, typically because it was
+   * deleted or the agent's data directory changed. Every later resume would fail the same way, so
+   * continue in a new session on the same process; the new id is what describePersistence and
+   * thread_started report from now on, which rewrites the persisted handle.
+   */
+  private async replaceMissingSession(missingSessionId: string, error: unknown): Promise<void> {
+    this.logger.warn(
+      { err: error, missingSessionId },
+      "ACP agent could not find the resumed session; starting a new session",
+    );
+    // Drop whatever a partial replay of the missing session left behind.
+    this.replayingHistory = false;
+    this.pendingUserMessage = null;
+    this.persistedHistory.length = 0;
+    this.historyPending = false;
+    this.toolCalls.clear();
+    // Buffer updates the agent sends for the new session before session/new answers.
+    this.sessionId = null;
+    this.earlySessionUpdates.length = 0;
+
+    const response = await this.runACPRequest(() =>
+      this.connection!.newSession({
+        cwd: this.config.cwd,
+        mcpServers: this.acpMcpServers(),
+      }),
+    );
+    this.sessionId = response.sessionId;
+    this.bootstrapThreadEventPending = true;
+    this.applySessionState(response);
+    for (const update of this.earlySessionUpdates.splice(0)) {
+      await this.sessionUpdate(update);
+    }
+    this.pendingReplacedSessionNotice = `${this.agentLabel} couldn't find the previous session ${missingSessionId}. Its data directory probably changed. This conversation continues in a new session without the earlier context.`;
+  }
+
+  /** Timeline events cannot reach the manager during resume, so the notice opens the next turn. */
+  private emitReplacedSessionNotice(turnId: string): void {
+    const message = this.pendingReplacedSessionNotice;
+    if (!message) {
+      return;
+    }
+    this.pendingReplacedSessionNotice = null;
+    this.pushEvent({
+      type: "timeline",
+      provider: this.provider,
+      turnId,
+      item: { type: "notification", level: "warning", message },
+    });
   }
 
   // History resumes exist to replay persisted events into the canonical
@@ -2125,6 +2242,7 @@ export class ACPAgentSession implements AgentSession, ACPClient {
     this.submittedUserMessageTurnId = null;
     this.emitBootstrapThreadEvent();
     this.pushEvent({ type: "turn_started", provider: this.provider, turnId });
+    this.emitReplacedSessionNotice(turnId);
     this.emitSubmittedUserMessage(prompt, messageId, turnId, options?.clientMessageId);
 
     const connection = this.connection;
@@ -3144,7 +3262,7 @@ export class ACPAgentSession implements AgentSession, ACPClient {
 
     const stderrChunks: string[] = [];
     child.stderr.on("data", (chunk: Buffer | string) => {
-      stderrChunks.push(chunk.toString());
+      appendACPStderr(stderrChunks, chunk.toString());
     });
     const processError = rejectOnProcessFailure(child, stderrChunks);
     child.once("exit", (code, signal) => {

@@ -132,6 +132,87 @@ describe("DaemonConfigStore", () => {
     expect(loadPersistedConfig(zenticHome).daemon?.relay?.enabled).toBe(true);
   });
 
+  describe("provider runtime fields", () => {
+    function storeWithClaudeRuntime() {
+      const zenticHome = mkdtempSync(path.join(tmpdir(), "zentic-daemon-config-store-"));
+      tempDirs.push(zenticHome);
+      const providers = {
+        claude: {
+          enabled: true,
+          command: ["/opt/claude/bin/claude", "--verbose"],
+          env: { CLAUDE_CONFIG_DIR: "/tmp/claude-home", API_TIMEOUT_MS: "60000" },
+        },
+        pi: { options: { rpcTimeoutMs: 30000, sessionDir: "/tmp/pi" } },
+      };
+      const persisted = loadPersistedConfig(zenticHome);
+      writeFileSync(
+        path.join(zenticHome, "config.json"),
+        `${JSON.stringify({ ...persisted, agents: { ...persisted.agents, providers } })}\n`,
+      );
+      const store = new DaemonConfigStore(zenticHome, {
+        relay: { enabled: false },
+        mcp: { injectIntoAgents: false },
+        browserTools: { enabled: false },
+        providers,
+        metadataGeneration: { providers: [] },
+        autoArchiveAfterMerge: false,
+        enableTerminalAgentHooks: false,
+        appendSystemPrompt: "",
+      });
+      return { store, zenticHome };
+    }
+
+    test("a null env value deletes only that key and the rest of the entry survives", async () => {
+      const { store, zenticHome } = storeWithClaudeRuntime();
+
+      await store.patch({
+        providers: { claude: { env: { API_TIMEOUT_MS: null, ANTHROPIC_BASE_URL: "https://x" } } },
+      });
+
+      expect(store.get().providers.claude).toEqual({
+        enabled: true,
+        command: ["/opt/claude/bin/claude", "--verbose"],
+        env: { CLAUDE_CONFIG_DIR: "/tmp/claude-home", ANTHROPIC_BASE_URL: "https://x" },
+      });
+      expect(loadPersistedConfig(zenticHome).agents?.providers?.claude?.env).toEqual({
+        CLAUDE_CONFIG_DIR: "/tmp/claude-home",
+        ANTHROPIC_BASE_URL: "https://x",
+      });
+    });
+
+    test("clearing every env key and the command leaves no empty records behind", async () => {
+      const { store, zenticHome } = storeWithClaudeRuntime();
+
+      await store.patch({
+        providers: {
+          claude: { command: null, env: { CLAUDE_CONFIG_DIR: null, API_TIMEOUT_MS: null } },
+        },
+      });
+
+      expect(store.get().providers.claude).toEqual({ enabled: true });
+      expect(loadPersistedConfig(zenticHome).agents?.providers?.claude).toEqual({ enabled: true });
+    });
+
+    test("a null option deletes that option", async () => {
+      const { store, zenticHome } = storeWithClaudeRuntime();
+
+      await store.patch({ providers: { pi: { options: { rpcTimeoutMs: null } } } });
+
+      expect(store.get().providers.pi).toEqual({ options: { sessionDir: "/tmp/pi" } });
+      expect(loadPersistedConfig(zenticHome).agents?.providers?.pi).toEqual({
+        options: { sessionDir: "/tmp/pi" },
+      });
+    });
+
+    test("a replaced command overwrites the whole argv", async () => {
+      const { store } = storeWithClaudeRuntime();
+
+      await store.patch({ providers: { claude: { command: ["claude"] } } });
+
+      expect(store.get().providers.claude?.command).toEqual(["claude"]);
+    });
+  });
+
   test("patch persists the relay protected security requirement independently of relay enablement", async () => {
     const zenticHome = mkdtempSync(path.join(tmpdir(), "zentic-daemon-config-store-"));
     tempDirs.push(zenticHome);

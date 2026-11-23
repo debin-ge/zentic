@@ -105,6 +105,12 @@ import { mapOmpAvailableCommandsUpdate, mapOmpRuntimeSlashCommands } from "./com
 import { readOmpHistoryTodoState, streamOmpHistory } from "./history.js";
 import { mapOmpTodoReminderEvent, mapOmpTodoState, mapOmpTodoToolResult } from "./todo-mapper.js";
 import { mapOmpRuntimeEventToTimelineItem } from "./event-mapper.js";
+import { isOmpAuthRetry } from "./auth-retry.js";
+import {
+  describeCredentialRejection,
+  describeMissingSessionFile,
+  findMissingSessionFile,
+} from "../pi/provider-notices.js";
 import { mapOmpAdvisorMessageToToolCall } from "./advisor-message.js";
 import { handleOmpHostToolRuntimeEvent, OmpHostToolRouter } from "./host-tools.js";
 import { OmpSubagentIndex } from "./subagent-index.js";
@@ -219,6 +225,8 @@ interface OmpAgentSessionOptions {
    * timeline items.
    */
   live?: boolean;
+  /** The resumed session file that was missing, so this session started a new one instead. */
+  missingSessionFile?: string;
 }
 
 function createOmpProviderIdleScheduler(): OmpProviderIdleScheduler {
@@ -451,7 +459,8 @@ function buildResumeConfig(
 
 function buildResumeStartInput(input: {
   resumeConfig: OmpResumeConfig;
-  sessionFile: string;
+  /** Undefined starts a new session. */
+  sessionFile: string | undefined;
   launchContext: AgentLaunchContext | undefined;
   launchMode: { modeId: string | null; extraArgs?: string[] };
 }): OmpStartSessionInput {
@@ -459,7 +468,7 @@ function buildResumeStartInput(input: {
     cwd: input.resumeConfig.cwd,
     protocolMode: "rpc-ui",
     env: input.launchContext?.env,
-    session: input.sessionFile,
+    ...(input.sessionFile ? { session: input.sessionFile } : {}),
     thinkingOptionId: normalizeOmpThinkingOption(input.resumeConfig.thinkingOptionId) ?? undefined,
     ...(input.launchMode.modeId ? { modeId: input.launchMode.modeId } : {}),
     ...(input.launchMode.extraArgs ? { extraArgs: input.launchMode.extraArgs } : {}),
@@ -727,6 +736,11 @@ export class OmpAgentSession implements AgentSession {
   private currentModeId: string | null;
   private runtimeDead = false;
   private replacingRuntime: Promise<void> | null = null;
+  // The abort sent after OMP's credentials were rejected. Until it settles every event belongs to
+  // the aborted run, and its late agent_end must not end the next turn.
+  private authAbort: { settled: boolean; promise: Promise<void> } | null = null;
+  // Timeline events cannot reach the manager during resume, so this warning opens the next turn.
+  private pendingMissingSessionNotice: string | null = null;
   private unsubscribeRuntime: (() => void) | null = null;
   private readonly providerIdleScheduler: OmpProviderIdleScheduler;
   private readonly providerIdleDeadlineMs: number;
@@ -762,6 +776,12 @@ export class OmpAgentSession implements AgentSession {
     this.currentModeId = options.currentModeId ?? null;
     this.logger = options.logger;
     this.live = options.live ?? true;
+    if (options.missingSessionFile) {
+      this.pendingMissingSessionNotice = describeMissingSessionFile({
+        label: "OMP",
+        sessionFile: options.missingSessionFile,
+      });
+    }
     this.providerIdleScheduler = options.providerIdleScheduler ?? createOmpProviderIdleScheduler();
     this.providerIdleDeadlineMs = options.providerIdleDeadlineMs ?? OMP_PROVIDER_IDLE_DEADLINE_MS;
     this.noTurnScheduler = options.noTurnScheduler ?? createOmpNoTurnScheduler();
@@ -926,8 +946,7 @@ export class OmpAgentSession implements AgentSession {
 
     void (async () => {
       try {
-        if (this.runtimeDead) await this.replaceRuntime(this.currentModeId ?? "full");
-        if (this.closed) throw new Error("OMP session is closed");
+        if (!(await this.prepareRuntimeForPrompt(turnId))) return;
         const ack = await this.runtimeSession.prompt({
           message: payload.text,
           images: payload.images,
@@ -975,6 +994,18 @@ export class OmpAgentSession implements AgentSession {
     })();
 
     return { turnId };
+  }
+
+  /** False when the turn ended while it waited. */
+  private async prepareRuntimeForPrompt(turnId: string): Promise<boolean> {
+    // The next run starts only once OMP stopped the run an auth failure aborted.
+    if (this.authAbort) {
+      await this.authAbort.promise;
+      if (this.activeTurnId !== turnId) return false;
+    }
+    if (this.runtimeDead) await this.replaceRuntime(this.currentModeId ?? "full");
+    if (this.closed) throw new Error("OMP session is closed");
+    return true;
   }
 
   async steerActiveTurn(
@@ -1110,6 +1141,7 @@ export class OmpAgentSession implements AgentSession {
         // correlate with prompts sent to the new one.
         this.pendingPromptResults.clear();
         this.runtimeSession = next;
+        this.authAbort = null;
         this.hostTools = restarted.hostTools;
         this.installState(state);
         this.currentModeId = modeId;
@@ -1758,6 +1790,9 @@ export class OmpAgentSession implements AgentSession {
       }
       return true;
     }
+    if (this.failTurnOnAuthRetry(event)) {
+      return true;
+    }
     const mappedEvent = mapOmpRuntimeEventToTimelineItem(event);
     if (!mappedEvent.handled) {
       return false;
@@ -1775,6 +1810,78 @@ export class OmpAgentSession implements AgentSession {
       );
     }
     return true;
+  }
+
+  /**
+   * A rejected key stays rejected, so OMP's retries only keep the turn running until they run out
+   * or the provider idle deadline passes. End the turn on the first auth retry and abort OMP to
+   * stop the rest. Returns true when the event was an auth retry.
+   */
+  private failTurnOnAuthRetry(event: OmpRuntimeEvent): boolean {
+    if (event.type !== "auto_retry_start" || !isOmpAuthRetry(event)) return false;
+    const { errorMessage, errorId } = event;
+    if (!this.activeTurnId && !this.activeTurnStarted) {
+      this.logger.debug({ errorMessage, errorId }, "Ignoring an OMP auth retry outside a turn");
+      return true;
+    }
+    const turnId = this.activeTurnId ?? undefined;
+    this.logger.warn(
+      { errorMessage, errorId },
+      "OMP provider rejected its credentials; failing the turn instead of retrying",
+    );
+    this.usagePoller.stopTurn();
+    this.resetActiveTurn({ terminalizeWork: true });
+    this.abortAuthFailedRun();
+    this.emit({
+      type: "turn_failed",
+      provider: this.provider,
+      turnId,
+      error: describeCredentialRejection({ label: "OMP", errorMessage }),
+    });
+    return true;
+  }
+
+  private abortAuthFailedRun(): void {
+    const abort = { settled: false, promise: Promise.resolve() };
+    // Set before the request: the runtime can stream the aborted run's teardown before it answers.
+    this.authAbort = abort;
+    abort.promise = this.runtimeSession
+      .abort()
+      .catch((error: unknown) => {
+        this.logger.warn({ err: error }, "Failed to abort OMP after an auth failure");
+      })
+      .finally(() => {
+        abort.settled = true;
+      });
+  }
+
+  /**
+   * OMP streams an aborted run's teardown before it answers the abort. Drop everything until the
+   * answer, then only that run's agent_end until the next run starts.
+   */
+  private isAbortedRunEvent(event: OmpAgentSessionEvent): boolean {
+    const abort = this.authAbort;
+    if (!abort || event.type === "compaction_start" || event.type === "compaction_end") {
+      return false;
+    }
+    if (!abort.settled) return true;
+    if (event.type === "agent_start" || event.type === "turn_start") {
+      this.authAbort = null;
+      return false;
+    }
+    return event.type === "agent_end";
+  }
+
+  private emitMissingSessionNotice(turnId: string | undefined): void {
+    const message = this.pendingMissingSessionNotice;
+    if (!message) return;
+    this.pendingMissingSessionNotice = null;
+    this.emit({
+      type: "timeline",
+      provider: this.provider,
+      turnId,
+      item: { type: "notification", level: "warning", message },
+    });
   }
 
   private emitActiveToolCall(toolCallId: string): boolean {
@@ -1856,6 +1963,7 @@ export class OmpAgentSession implements AgentSession {
 
   private handleProcessExit(error: string): void {
     this.runtimeDead = true;
+    this.authAbort = null;
     void this.hostTools?.close();
     this.usagePoller.stopTurn();
     if (!this.activeTurnId) {
@@ -1876,6 +1984,10 @@ export class OmpAgentSession implements AgentSession {
   }
 
   private handleSessionEvent(event: OmpAgentSessionEvent): void {
+    if (this.isAbortedRunEvent(event)) {
+      this.logger.debug({ eventType: event.type }, "Dropped an event of the auth-aborted OMP run");
+      return;
+    }
     const turnId = this.currentTurnIdForEvent();
 
     switch (event.type) {
@@ -1896,6 +2008,7 @@ export class OmpAgentSession implements AgentSession {
         } else {
           this.emit({ type: "turn_started", provider: this.provider, turnId });
         }
+        this.emitMissingSessionNotice(turnId);
         return;
       case "message_start":
         this.handleMessageStart(event);
@@ -2437,9 +2550,20 @@ export class OmpAgentClient implements AgentClient {
       resumeConfig.modeId,
       resumeConfig.config.providerOptions,
     );
+    // A session file that is gone would fail every load, so the live session starts a new one.
+    const missingSessionFile = await findMissingSessionFile({
+      sessionFile,
+      cwd: resumeConfig.cwd,
+    });
+    if (missingSessionFile) {
+      this.logger.warn(
+        { sessionFile: missingSessionFile },
+        "OMP session file is missing; resuming in a new session",
+      );
+    }
     const startInput = buildResumeStartInput({
       resumeConfig,
-      sessionFile,
+      sessionFile: missingSessionFile ? undefined : sessionFile,
       launchContext,
       launchMode,
     });
@@ -2473,6 +2597,7 @@ export class OmpAgentClient implements AgentClient {
         usagePollScheduler: this.usagePollScheduler,
         providerIdleDeadlineMs: this.providerIdleDeadlineMs,
         live: false,
+        missingSessionFile: missingSessionFile ?? undefined,
       });
     } catch (error) {
       await hostTools?.close();

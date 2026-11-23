@@ -17,6 +17,16 @@ Provider definitions live under `agents.providers` in config.json:
 
 Provider IDs must be lowercase alphanumeric with hyphens (`/^[a-z][a-z0-9-]*$/`).
 
+## Editing a provider's runtime in Settings
+
+Settings → Providers → a provider → **Runtime** edits the same entry: binary path and launch arguments become `command`, environment variables become `env`, and Pi and OMP session settings become `options`. The field list per provider is `packages/app/src/provider-runtime/fields.ts`; add a field there only for a value the provider or Zentic actually reads. Plugin providers have no Runtime sheet because the plugin owns their launch.
+
+- Saving deep-merges into `agents.providers.<id>`. A `null` in the patch removes a value: `command: null` clears the launch override, and a `null` key in `env` or `options` deletes that key. Keys you did not touch stay as written, including ones edited by hand.
+- Changes apply to new sessions. Running sessions keep the environment they started with.
+- Pointing `CLAUDE_CONFIG_DIR` or `CODEX_HOME` at another directory also moves where Zentic reads that provider's session history, so sessions under the old directory drop out of import.
+- Setting `OPENAI_BASE_URL` on the built-in `codex` routes it through a `zentic:codex` model provider (see [Codex with a custom OpenAI-compatible endpoint](#codex-with-a-custom-openai-compatible-endpoint)). Threads created that way are listed apart from native Codex threads.
+- Tokens and keys are stored in plain text in `config.json`, as they are when you write them by hand.
+
 Each provider catalog refresh waits up to 2 minutes. If a provider loads many plugins or a large
 agent catalog during startup, raise the limit in milliseconds:
 
@@ -64,6 +74,7 @@ per-agent examples and provider-specific keys.
 
 ## Table of Contents
 
+- [Editing a provider's runtime in Settings](#editing-a-providers-runtime-in-settings)
 - [Extending a built-in provider](#extending-a-built-in-provider)
 - [OpenCode with an existing v2 server](#opencode-with-an-existing-v2-server)
 - [Z.AI (Zhipu) coding plan](#zai-zhipu-coding-plan)
@@ -260,7 +271,7 @@ For pay-as-you-go, use `ANTHROPIC_API_KEY` with a standard Model Studio key (`sk
 
 ## Codex with a custom OpenAI-compatible endpoint
 
-Codex talks to OpenAI's Responses API by default. Custom providers that extend `"codex"` can point Codex at any OpenAI-compatible endpoint (OpenRouter, LiteLLM, vLLM, llama.cpp server, an internal gateway, etc.) by setting `OPENAI_BASE_URL` and `OPENAI_API_KEY` in the provider `env`.
+Codex talks to OpenAI's Responses API by default. The built-in `codex` provider and custom providers that extend `"codex"` can point Codex at any OpenAI-compatible endpoint (OpenRouter, LiteLLM, vLLM, llama.cpp server, an internal gateway, etc.) by setting `OPENAI_BASE_URL` and `OPENAI_API_KEY` in the provider `env`.
 
 Zentic passes those variables through to the Codex app-server process **and** maps them into Codex's thread config under `model_provider` / `model_providers`, because Codex reads provider routing from config rather than from `OPENAI_BASE_URL` alone. The generated Codex provider key is `zentic:<provider-id>`, so a Zentic provider such as `ollama` does not override a Codex built-in. Existing custom sessions created with a non-built-in provider key remain available in Import session. Native Codex conversations using a built-in key stay separate from a custom provider of the same name.
 
@@ -287,7 +298,7 @@ Zentic passes those variables through to the Codex app-server process **and** ma
 
 ### What Zentic wires up
 
-Under the hood, for each custom Codex provider Zentic injects this into Codex's config:
+Under the hood, for each Codex provider with `OPENAI_BASE_URL` set, Zentic injects this into Codex's config:
 
 ```toml
 model_provider = "zentic:my-codex"

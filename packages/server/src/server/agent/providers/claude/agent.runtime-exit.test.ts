@@ -474,6 +474,55 @@ describe("Claude runtime exit", () => {
     }
   });
 
+  test("starts a new conversation after Claude reports the resumed one missing and exits", async () => {
+    const launches: Options[] = [];
+    let capturedOptions: Options | undefined;
+    const queryFactory = vi.fn(({ options }: ClaudeQueryInput) => {
+      capturedOptions = options;
+      launches.push(options);
+      return createQueryMock(COMPLETED_TURN_EVENTS);
+    });
+    const child = createChildProcessStub();
+    vi.spyOn(spawnUtils, "spawnProcess").mockReturnValue(child);
+    const client = new ClaudeAgentClient({
+      logger: createTestLogger(),
+      queryFactory,
+      resolveBinary: async () => "/test/claude/bin",
+    });
+    const session = await client.createSession({ provider: "claude", cwd: process.cwd() });
+
+    try {
+      // Establishes the claude session id the restarted process then fails to resume.
+      await session.run("first turn");
+      capturedOptions?.spawnClaudeCodeProcess?.(SPAWN_OPTIONS);
+
+      const events: AgentStreamEvent[] = [];
+      session.subscribe((event) => events.push(event));
+
+      const missing = "No conversation found with session ID: claude-runtime-exit-session";
+      child.stderr?.emit("data", missing);
+      child.emit("exit", 1, null);
+
+      const failures = events.filter((event) => event.type === "turn_failed");
+      expect(failures).toHaveLength(1);
+      const failure = failures[0];
+      expect(failure && "error" in failure ? failure.error : "").toContain(
+        "Claude can't find this conversation",
+      );
+      expect(failure && "diagnostic" in failure ? failure.diagnostic : undefined).toBe(missing);
+
+      // The next launch starts a new conversation instead of resuming the missing one again.
+      await session.run("second turn");
+      const relaunch = launches.at(-1);
+      expect(launches).toHaveLength(2);
+      expect(relaunch?.resume).toBeUndefined();
+      expect(relaunch?.sessionId).toEqual(expect.any(String));
+      expect(relaunch?.sessionId).not.toBe("claude-runtime-exit-session");
+    } finally {
+      await session.close();
+    }
+  });
+
   test("leaves a mid-turn crash to the query pump", async () => {
     let rejectStream: ((error: Error) => void) | undefined;
     const tail = new Promise<never>((_resolve, reject) => {

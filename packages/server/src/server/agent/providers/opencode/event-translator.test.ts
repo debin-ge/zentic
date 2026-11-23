@@ -4,6 +4,7 @@ import { V2Timeline } from "./v2/timeline.js";
 import { describe, expect, it } from "vitest";
 
 import { translateOpenCodeEvent, type OpenCodeEventTranslationState } from "../opencode-agent.js";
+import { OpenCodeRetryNotices } from "./retry-failure.js";
 
 const openCodePermissionActions = [
   {
@@ -1379,7 +1380,7 @@ describe("translateOpenCodeEvent", () => {
     expect(state.partTypes.size).toBe(0);
   });
 
-  it("forwards session.status retry as a non-terminal timeline error item", () => {
+  it("forwards session.status retry as a non-terminal warning notification", () => {
     const state = createState();
     state.materializedParts.set("part-1", {
       messageId: "message-1",
@@ -1395,7 +1396,7 @@ describe("translateOpenCodeEvent", () => {
           sessionID: "session-1",
           status: {
             type: "retry",
-            attempt: 3,
+            attempt: 1,
             message: "Internal server error",
             next: Date.now() + 1000,
           },
@@ -1408,7 +1409,11 @@ describe("translateOpenCodeEvent", () => {
       {
         type: "timeline",
         provider: "opencode",
-        item: { type: "error", message: "Provider retry (attempt 3): Internal server error" },
+        item: {
+          type: "notification",
+          level: "warning",
+          message: "OpenCode request failed (Internal server error); retrying.",
+        },
       },
     ]);
     // Streaming state must NOT be reset — the turn is still alive, opencode
@@ -1417,7 +1422,7 @@ describe("translateOpenCodeEvent", () => {
     expect(state.partTypes.size).toBe(1);
   });
 
-  it("forwards retry without a message using just the attempt number", () => {
+  it("forwards a retry without a message", () => {
     const state = createState();
 
     const result = translateOpenCodeEvent(
@@ -1440,9 +1445,57 @@ describe("translateOpenCodeEvent", () => {
       {
         type: "timeline",
         provider: "opencode",
-        item: { type: "error", message: "Provider retry (attempt 1)" },
+        item: {
+          type: "notification",
+          level: "warning",
+          message: "OpenCode request failed (no details); retrying.",
+        },
       },
     ]);
+  });
+
+  it("announces each failing request once, with its action, however many attempts it takes", () => {
+    const state = { ...createState(), retryNotices: new OpenCodeRetryNotices() };
+    const retry = (attempt: number) =>
+      translateOpenCodeEvent(
+        {
+          type: "session.status",
+          properties: {
+            sessionID: "session-1",
+            status: {
+              type: "retry",
+              attempt,
+              message: "Rate limited",
+              action: {
+                reason: "rate_limit",
+                provider: "test",
+                title: "Slow down",
+                message: "Too many requests",
+                label: "Upgrade",
+                link: "https://example.test/upgrade",
+              },
+              next: Date.now() + 1000,
+            },
+          },
+        },
+        state,
+      );
+
+    const first = [retry(1), retry(2), retry(3)].flat();
+    const second = retry(1);
+
+    const notice = {
+      type: "timeline",
+      provider: "opencode",
+      item: {
+        type: "notification",
+        level: "warning",
+        message:
+          "OpenCode request failed (Rate limited); retrying. Upgrade: https://example.test/upgrade",
+      },
+    };
+    expect(first).toEqual([notice]);
+    expect(second).toEqual([notice]);
   });
 
   it("ignores transient session.status busy updates", () => {

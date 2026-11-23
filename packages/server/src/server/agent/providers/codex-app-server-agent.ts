@@ -154,6 +154,69 @@ function isCodexAlreadyUnarchivedError(error: unknown, threadId: string): boolea
   return message.includes(`no archived rollout found for thread id ${threadId}`);
 }
 
+// What `thread/resume` answers when this CODEX_HOME holds no rollout for the thread.
+// `no archived rollout found for thread id` belongs to unarchiving and does not match.
+const MISSING_CODEX_THREAD_MESSAGES = ["no rollout found for thread id ", "thread not found: "];
+
+function isMissingCodexThreadResumeError(error: unknown, threadId: string): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return MISSING_CODEX_THREAD_MESSAGES.some((prefix) => {
+    const expected = `${prefix}${threadId}`;
+    const index = message.indexOf(expected);
+    // The id must end there, so a thread whose id extends this one does not match.
+    return index !== -1 && !/[\w-]/.test(message.charAt(index + expected.length));
+  });
+}
+
+function describeMissingCodexThread(threadId: string, codexHome: string): string {
+  return `Codex couldn't find the previous thread ${threadId} in ${codexHome}. It was probably started with a different CODEX_HOME. This conversation continues in a new Codex thread without the earlier context.`;
+}
+
+interface CodexTurnErrorReport {
+  message: string;
+  details: string | null;
+  errorInfo: unknown;
+}
+
+// Only these mean the credentials were refused; a bare status or a generic failure does not.
+const CODEX_AUTH_ERROR_PATTERNS = [
+  /\b(?:status|http)\D{0,3}40[13]\b/i,
+  /\b40[13] (?:unauthorized|forbidden)\b/i,
+  /\bunauthorized\b/i,
+  /\b(?:invalid|incorrect) api key\b/i,
+];
+const CODEX_AUTH_FAILURE_DETAIL_MAX_LENGTH = 300;
+
+function readCodexErrorHttpStatus(errorInfo: unknown): number | null {
+  // Variants such as `responseStreamConnectionFailed` carry the upstream status.
+  for (const variant of Object.values(toObjectRecord(errorInfo) ?? {})) {
+    const status = toObjectRecord(variant)?.httpStatusCode;
+    if (typeof status === "number") return status;
+  }
+  return null;
+}
+
+function isCodexAuthError(report: CodexTurnErrorReport): boolean {
+  if (report.errorInfo === "unauthorized") return true;
+  const status = readCodexErrorHttpStatus(report.errorInfo);
+  if (status === 401 || status === 403) return true;
+  return [report.message, report.details].some(
+    (text) => text !== null && CODEX_AUTH_ERROR_PATTERNS.some((pattern) => pattern.test(text)),
+  );
+}
+
+function describeCodexAuthFailure(report: CodexTurnErrorReport): string {
+  const status = readCodexErrorHttpStatus(report.errorInfo);
+  const text = report.details?.trim() || report.message.trim();
+  const detail =
+    text.length > CODEX_AUTH_FAILURE_DETAIL_MAX_LENGTH
+      ? `${text.slice(0, CODEX_AUTH_FAILURE_DETAIL_MAX_LENGTH)}…`
+      : text;
+  const withStatus =
+    status !== null && !detail.includes(String(status)) ? `HTTP ${status}: ${detail}` : detail;
+  return `Codex rejected the credentials (${withStatus}). Check the API key or login this provider uses (OPENAI_API_KEY in its runtime settings, or the login in CODEX_HOME).`;
+}
+
 const TURN_START_TIMEOUT_MS = 90 * 1000;
 const INTERRUPT_TIMEOUT_MS = 2_000;
 // `turn/interrupt` ends a turn but leaves the shell commands it started running.
@@ -2360,10 +2423,12 @@ const TurnCompletedNotificationSchema = z
 const TurnErrorNotificationSchema = z
   .object({
     threadId: z.string().optional(),
+    turnId: z.string().nullable().optional(),
     willRetry: z.boolean(),
     error: z
       .object({
         message: z.string(),
+        codexErrorInfo: z.unknown().optional(),
         additionalDetails: z.string().nullable().optional(),
       })
       .passthrough(),
@@ -2658,13 +2723,16 @@ type ParsedCodexNotification =
       status: string;
       errorMessage: string | null;
       threadId: string | null;
+      turnId: string | null;
     }
   | {
       kind: "turn_error";
       message: string;
       details: string | null;
+      errorInfo: unknown;
       willRetry: boolean;
       threadId: string | null;
+      turnId: string | null;
     }
   | { kind: "warning"; message: string; threadId: string | null }
   | {
@@ -2818,6 +2886,7 @@ const CodexNotificationSchema = z.union([
         status: params.turn.status,
         errorMessage: params.turn.error?.message ?? null,
         threadId: params.threadId ?? null,
+        turnId: params.turn.id ?? null,
       }),
     ),
   z.object({ method: z.literal("turn/completed"), params: z.unknown() }).transform(
@@ -2832,8 +2901,10 @@ const CodexNotificationSchema = z.union([
       kind: "turn_error",
       message: params.error.message,
       details: params.error.additionalDetails ?? null,
+      errorInfo: params.error.codexErrorInfo ?? null,
       willRetry: params.willRetry,
       threadId: params.threadId ?? null,
+      turnId: params.turnId ?? null,
     }),
   ),
   z.object({ method: z.literal("error"), params: z.unknown() }).transform(
@@ -3272,6 +3343,7 @@ const CodexNotificationSchema = z.union([
         status: "interrupted",
         errorMessage: null,
         threadId: getCodexEventThreadId(params),
+        turnId: null,
       }),
     ),
   z.object({ method: z.literal("codex/event/turn_aborted"), params: z.unknown() }).transform(
@@ -3292,6 +3364,7 @@ const CodexNotificationSchema = z.union([
         status: "completed",
         errorMessage: null,
         threadId: getCodexEventThreadId(params),
+        turnId: null,
       }),
     ),
   z.object({ method: z.literal("codex/event/task_complete"), params: z.unknown() }).transform(
@@ -3527,7 +3600,14 @@ function buildCodexCustomProviderConfig(
   runtimeSettings: ProviderRuntimeSettings | undefined,
   customProvider: CodexAppServerAgentDeps["customProvider"],
 ): CodexCustomProviderConfig | null {
-  if (customProvider?.extends !== CODEX_PROVIDER) {
+  // The built-in Codex provider has no custom entry, but a base URL set on it in the
+  // provider settings still has to reach Codex's routing config to take effect.
+  const provider = customProvider ?? {
+    id: CODEX_PROVIDER,
+    label: "Codex",
+    extends: CODEX_PROVIDER,
+  };
+  if (provider.extends !== CODEX_PROVIDER) {
     return null;
   }
   const baseUrl = runtimeSettings?.env?.OPENAI_BASE_URL;
@@ -3539,7 +3619,7 @@ function buildCodexCustomProviderConfig(
     return null;
   }
   const providerConfig: Record<string, unknown> = {
-    name: customProvider.label,
+    name: provider.label,
     base_url: normalizedBaseUrl,
     wire_api: "responses",
   };
@@ -3550,7 +3630,7 @@ function buildCodexCustomProviderConfig(
   // Namespace Zentic ids so they cannot override Codex's built-ins. A colon is
   // forbidden in Zentic ids, keeping these keys distinct from every legacy id
   // when both generations are listed together.
-  const providerKey = `zentic:${customProvider.id}`;
+  const providerKey = `zentic:${provider.id}`;
   return {
     model_provider: providerKey,
     model_providers: {
@@ -3653,6 +3733,11 @@ export class CodexAppServerAgentSession implements AgentSession {
   // The root turn's model-stream reconnect run that has not yet resumed or ended.
   private activeStreamRetry: CodexStreamRetry | null = null;
   private readonly shownWarningMessages = new Set<string>();
+  // Native turns already reported failed because Codex refused the credentials. Codex
+  // still ends them after the interrupt; that ending belongs to no Zentic turn.
+  private readonly abandonedNativeTurnIds = new Set<string>();
+  // Shown once, when the next turn starts, after a resumed thread turned out to be missing.
+  private pendingThreadNotice: string | null = null;
   private terminalCommandByProcessId = new Map<string, string>();
   // The root thread's still-running command process ids, keyed by the native turn that
   // started them. Codex's `thread/backgroundTerminals/list` carries no turn, so
@@ -4328,23 +4413,73 @@ export class CodexAppServerAgentSession implements AgentSession {
       const response = await this.client.request("thread/resume", params);
       this.rememberResolvedSandboxPolicy(response);
     } catch (error) {
-      const threadId = this.currentThreadId;
-      const message = error instanceof Error ? error.message : String(error);
-      if (isArchivedCodexThreadResumeError(error, threadId)) {
-        try {
-          await this.client.request("thread/unarchive", { threadId });
-        } catch (unarchiveError) {
-          if (!isCodexAlreadyUnarchivedError(unarchiveError, threadId)) {
-            throw unarchiveError;
-          }
+      await this.recoverThreadResume({
+        client: this.client,
+        threadId: this.currentThreadId,
+        params,
+        error,
+      });
+    }
+  }
+
+  private async recoverThreadResume(input: {
+    client: CodexAppServerClient;
+    threadId: string;
+    params: Record<string, unknown>;
+    error: unknown;
+  }): Promise<void> {
+    const { client, threadId, params, error } = input;
+    if (isArchivedCodexThreadResumeError(error, threadId)) {
+      try {
+        await client.request("thread/unarchive", { threadId });
+      } catch (unarchiveError) {
+        if (!isCodexAlreadyUnarchivedError(unarchiveError, threadId)) {
+          throw unarchiveError;
         }
-        const response = await this.client.request("thread/resume", params);
-        this.rememberResolvedSandboxPolicy(response);
-        this.logger.info({ threadId }, "Unarchived Codex thread to restore active Zentic agent");
-        return;
       }
-      this.logger.warn({ error, threadId }, "Failed to resume persisted Codex thread");
-      throw new Error(`Failed to resume Codex thread ${threadId}: ${message}`, { cause: error });
+      const response = await client.request("thread/resume", params);
+      this.rememberResolvedSandboxPolicy(response);
+      this.logger.info({ threadId }, "Unarchived Codex thread to restore active Zentic agent");
+      return;
+    }
+    if (isMissingCodexThreadResumeError(error, threadId)) {
+      this.forgetMissingThread(threadId, error);
+      return;
+    }
+    const message = error instanceof Error ? error.message : String(error);
+    this.logger.warn({ error, threadId }, "Failed to resume persisted Codex thread");
+    throw new Error(`Failed to resume Codex thread ${threadId}: ${message}`, { cause: error });
+  }
+
+  /**
+   * Codex cannot resume a thread its CODEX_HOME does not hold, typically one started under
+   * another CODEX_HOME. Every later resume would fail the same way, so the agent drops the
+   * thread and the next turn starts a new one.
+   */
+  private forgetMissingThread(threadId: string, error: unknown): void {
+    this.logger.warn(
+      { err: error, threadId, codexHome: this.codexHome },
+      "Codex thread no longer exists; the next turn starts a new thread",
+    );
+    this.currentThreadId = null;
+    this.savedThreadId = null;
+    this.cachedRuntimeInfo = null;
+    this.stagedHistory = null;
+    this.historyIndexed = true;
+    this.resetCodexUserMessageTurns();
+    this.subAgentCallsByCallId.clear();
+    this.subAgentCallIdByChildThreadId.clear();
+    this.pendingSubAgentNotificationsByThreadId.clear();
+    this.pendingThreadNotice = describeMissingCodexThread(threadId, this.codexHome);
+  }
+
+  // Loads the current thread, or starts one when there is none or it no longer exists.
+  private async ensureCurrentThread(): Promise<void> {
+    if (this.currentThreadId) {
+      await this.ensureThreadLoaded();
+    }
+    if (!this.currentThreadId) {
+      await this.ensureThread();
     }
   }
 
@@ -4625,12 +4760,9 @@ export class CodexAppServerAgentSession implements AgentSession {
         ? await this.buildCommandPromptInput(slashCommand.commandName, slashCommand.args)
         : prompt;
 
-      if (this.currentThreadId) {
-        await this.ensureThreadLoaded();
-        await this.ensureHistoryIndexed();
-      } else {
-        await this.ensureThread();
-      }
+      // A resumed thread Codex no longer has is replaced here, so the prompt is not lost.
+      await this.ensureCurrentThread();
+      await this.ensureHistoryIndexed();
 
       const turnStart = await this.buildTurnStartParams(effectivePrompt, options);
       const turnId = this.createTurnId();
@@ -5241,11 +5373,7 @@ export class CodexAppServerAgentSession implements AgentSession {
     if (!this.client) {
       throw new Error("Codex client is not initialized");
     }
-    if (this.currentThreadId) {
-      await this.ensureThreadLoaded();
-    } else {
-      await this.ensureThread();
-    }
+    await this.ensureCurrentThread();
     await this.ensureHistoryIndexed();
 
     await revertCodexConversation({
@@ -5303,25 +5431,11 @@ export class CodexAppServerAgentSession implements AgentSession {
     if (!turnId || (foregroundTurnId && this.activeForegroundTurnId !== foregroundTurnId)) {
       throw new Error("Cannot interrupt Codex before turn/started identifies the active turn");
     }
-    const client = this.client;
-    const threadId = this.currentThreadId;
-    const interruptRequest = client.request(
-      "turn/interrupt",
-      {
-        threadId,
-        turnId,
-      },
-      INTERRUPT_TIMEOUT_MS,
-    );
-    // Once Codex accepts the interrupt, end the commands this turn started. Registered
-    // before the await, so a turn start racing this interrupt waits for it. An already-idle
-    // turn was not interrupted, and what it left running stays.
-    this.trackInterruptedTurnCleanup(
-      interruptRequest.then(
-        () => this.endInterruptedTurnProcesses(client, threadId, turnId),
-        () => undefined,
-      ),
-    );
+    const interruptRequest = this.requestTurnInterrupt({
+      client: this.client,
+      threadId: this.currentThreadId,
+      turnId,
+    });
     try {
       await interruptRequest;
     } catch (error) {
@@ -5334,6 +5448,32 @@ export class CodexAppServerAgentSession implements AgentSession {
       this.pendingForegroundTurnIdentification?.resolve(null);
       this.pendingForegroundTurnIdentification = null;
     }
+  }
+
+  private requestTurnInterrupt(input: {
+    client: CodexAppServerClient;
+    threadId: string | null;
+    turnId: string;
+  }): Promise<unknown> {
+    const { client, threadId, turnId } = input;
+    const interruptRequest = client.request(
+      "turn/interrupt",
+      {
+        threadId,
+        turnId,
+      },
+      INTERRUPT_TIMEOUT_MS,
+    );
+    // Once Codex accepts the interrupt, end the commands this turn started. Registered
+    // before the caller awaits, so a turn start racing this interrupt waits for it. An
+    // already-idle turn was not interrupted, and what it left running stays.
+    this.trackInterruptedTurnCleanup(
+      interruptRequest.then(
+        () => this.endInterruptedTurnProcesses(client, threadId, turnId),
+        () => undefined,
+      ),
+    );
+    return interruptRequest;
   }
 
   stopBackgroundWork(id: string): Promise<void> {
@@ -5622,11 +5762,7 @@ export class CodexAppServerAgentSession implements AgentSession {
   private async executeCompactCommand(): Promise<string | null> {
     try {
       await this.connect();
-      if (this.currentThreadId) {
-        await this.ensureThreadLoaded();
-      } else {
-        await this.ensureThread();
-      }
+      await this.ensureCurrentThread();
       if (!this.client || !this.currentThreadId) {
         throw new Error("Codex thread is not available");
       }
@@ -5652,13 +5788,9 @@ export class CodexAppServerAgentSession implements AgentSession {
     }
     try {
       await this.connect();
-      if (this.currentThreadId) {
-        await this.ensureThreadLoaded();
-        // A goal runs turns of its own.
-        await this.ensureHistoryIndexed();
-      } else {
-        await this.ensureThread();
-      }
+      await this.ensureCurrentThread();
+      // A goal runs turns of its own.
+      await this.ensureHistoryIndexed();
       if (!this.client || !this.currentThreadId) {
         throw new Error("Codex thread is not available");
       }
@@ -6647,6 +6779,18 @@ export class CodexAppServerAgentSession implements AgentSession {
     }
     this.resetTurnTrackingState();
     this.emitEvent({ type: "turn_started", provider: CODEX_PROVIDER });
+    this.emitPendingThreadNotice();
+  }
+
+  private emitPendingThreadNotice(): void {
+    const message = this.pendingThreadNotice;
+    if (!message) return;
+    this.pendingThreadNotice = null;
+    this.emitEvent({
+      type: "timeline",
+      provider: CODEX_PROVIDER,
+      item: { type: "notification", level: "warning", message },
+    });
   }
 
   // Codex has written the rollout by the time it announces a thread's turn, including a
@@ -6673,6 +6817,9 @@ export class CodexAppServerAgentSession implements AgentSession {
         status = "canceled";
       }
       this.emitSubAgentActivityUpdate(subAgentCallId, status);
+      return;
+    }
+    if (this.consumeAbandonedTurnEnd(parsed.turnId)) {
       return;
     }
     this.completePendingRootCompactions();
@@ -6713,7 +6860,10 @@ export class CodexAppServerAgentSession implements AgentSession {
     parsed: Extract<ParsedCodexNotification, { kind: "turn_error" }>,
   ): void {
     // A final error is followed by `turn/completed`, which reports it as the turn's failure.
-    if (!parsed.willRetry) {
+    if (!parsed.willRetry || this.belongsToAbandonedTurn(parsed.turnId)) {
+      return;
+    }
+    if (isCodexAuthError(parsed) && this.failTurnOnAuthError(parsed)) {
       return;
     }
     this.activeStreamRetry = {
@@ -6726,6 +6876,78 @@ export class CodexAppServerAgentSession implements AgentSession {
       provider: CODEX_PROVIDER,
       item: mapCodexStreamRetryToStatusLine(this.activeStreamRetry, { status: "running" }),
     });
+  }
+
+  /**
+   * Refused credentials stay refused, so Codex's retries only keep the turn running until it
+   * fails anyway. End the turn on the first auth error and interrupt Codex to stop the rest.
+   * Returns false when no root turn can be identified; the error then shows as a retry.
+   */
+  private failTurnOnAuthError(
+    parsed: Extract<ParsedCodexNotification, { kind: "turn_error" }>,
+  ): boolean {
+    const nativeTurnId = parsed.turnId ?? this.currentTurnId;
+    const client = this.client;
+    if (!nativeTurnId || !client || (!this.activeForegroundTurnId && !this.currentTurnId)) {
+      return false;
+    }
+    const error = describeCodexAuthFailure(parsed);
+    this.logger.warn(
+      {
+        agentId: this.agentId,
+        turnId: nativeTurnId,
+        error: parsed.message,
+        details: parsed.details,
+      },
+      "Codex rejected its credentials; failing the turn instead of retrying",
+    );
+    this.rememberAbandonedTurn(nativeTurnId);
+    this.clearPendingPermissions({ preservePlanApprovals: true });
+    this.settleStreamRetry({ status: "failed", error });
+    this.emitEvent({ type: "turn_failed", provider: CODEX_PROVIDER, error });
+    this.activeForegroundTurnId = null;
+    this.activeClientMessageId = null;
+    this.currentTurnId = null;
+    this.pendingForegroundTurnIdentification?.resolve(null);
+    this.pendingForegroundTurnIdentification = null;
+    this.resetTurnTrackingState();
+    this.requestTurnInterrupt({
+      client,
+      threadId: parsed.threadId ?? this.currentThreadId,
+      turnId: nativeTurnId,
+    }).catch((interruptError: unknown) => {
+      if (isCodexAlreadyIdleInterrupt(interruptError)) return;
+      this.logger.warn(
+        { err: interruptError, turnId: nativeTurnId },
+        "Failed to interrupt Codex after an auth failure",
+      );
+    });
+    return true;
+  }
+
+  private rememberAbandonedTurn(turnId: string): void {
+    this.abandonedNativeTurnIds.add(turnId);
+    for (const oldest of this.abandonedNativeTurnIds) {
+      if (this.abandonedNativeTurnIds.size <= INTERRUPTED_TURN_TRACKED_TURNS) break;
+      this.abandonedNativeTurnIds.delete(oldest);
+    }
+  }
+
+  // Without a turn id, an ending that arrives before any newer turn is identified is the
+  // abandoned turn's.
+  private belongsToAbandonedTurn(turnId: string | null): boolean {
+    if (this.abandonedNativeTurnIds.size === 0) return false;
+    return turnId ? this.abandonedNativeTurnIds.has(turnId) : this.currentTurnId === null;
+  }
+
+  private consumeAbandonedTurnEnd(turnId: string | null): boolean {
+    if (!this.belongsToAbandonedTurn(turnId)) return false;
+    if (turnId) {
+      this.abandonedNativeTurnIds.delete(turnId);
+    } else {
+      this.abandonedNativeTurnIds.clear();
+    }
+    return true;
   }
 
   private handleWarningNotification(
@@ -7978,9 +8200,12 @@ export class CodexAppServerAgentClient implements AgentClient {
       // Include legacy custom ids, but keep Codex built-in sessions separate.
       const customProviderConfig = this.customProviderConfig();
       let modelProviders: string[] | undefined;
-      if (customProviderConfig && this.deps.customProvider) {
+      if (customProviderConfig) {
         modelProviders = [customProviderConfig.model_provider];
-        if (!CODEX_BUILTIN_MODEL_PROVIDER_IDS.has(this.deps.customProvider.id)) {
+        if (
+          this.deps.customProvider &&
+          !CODEX_BUILTIN_MODEL_PROVIDER_IDS.has(this.deps.customProvider.id)
+        ) {
           modelProviders.push(this.deps.customProvider.id);
         }
       }

@@ -1,4 +1,4 @@
-import { describe, expect, onTestFinished, test } from "vitest";
+import { describe, expect, onTestFinished, test, vi } from "vitest";
 import { setImmediate as waitForImmediate } from "node:timers/promises";
 import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -38,6 +38,14 @@ const ABORTED_TERMINAL_RESPONSE: OmpAgentMessage = {
   stopReason: "aborted",
   errorMessage: "Interrupted by user",
 };
+
+// Resume starts a new session when the native session file is gone, so resumes use a real one.
+async function writeEmptyOmpSession(): Promise<string> {
+  const directory = await mkdtemp(path.join(tmpdir(), "zentic-omp-native-session-"));
+  const sessionFile = path.join(directory, "session.jsonl");
+  await writeFile(sessionFile, "");
+  return sessionFile;
+}
 
 test("an idle follow-up is submitted as a prompt so OMP can start a turn", async () => {
   const runtime = new FakeOmp();
@@ -93,7 +101,7 @@ test("OMP resumes a session whose model was removed on the model OMP falls back 
   const session = await client.resumeSession({
     provider: "omp",
     sessionId: "omp-session-1",
-    nativeHandle: "/tmp/omp-session.jsonl",
+    nativeHandle: await writeEmptyOmpSession(),
     metadata: { cwd: "/workspace/project", model: "9router/deepseek-v4-flash" },
   });
   onTestFinished(() => session.close());
@@ -115,7 +123,7 @@ test("OMP resumes a session on the requested model when it differs from the sess
   const session = await client.resumeSession({
     provider: "omp",
     sessionId: "omp-session-1",
-    nativeHandle: "/tmp/omp-session.jsonl",
+    nativeHandle: await writeEmptyOmpSession(),
     metadata: { cwd: "/workspace/project", model: "openrouter/requested" },
   });
   onTestFinished(() => session.close());
@@ -1402,6 +1410,116 @@ describe("OMP agent client and session", () => {
     await expect(omp.currentMode()).resolves.toBe("ask");
     expect(omp.runtimeLaunches()[1]?.argv).toContain("--approval-mode");
     expect(omp.runtimeLaunches()[1]?.argv).toContain("always-ask");
+  });
+
+  test("fails the turn on OMP's first auth retry, aborts the retries and runs the next turn", async () => {
+    const authError = "401 Unauthorized: invalid x-api-key";
+    const omp = new OmpHarness();
+    await omp.start();
+    await omp.requireStartTurn("hello");
+    const runtime = omp.runtime();
+    runtime.beginTurn();
+    runtime.acceptPrompt("hello");
+    // OMP keeps streaming while it waits to retry.
+    runtime.state = { ...runtime.state, isStreaming: true };
+    runtime.finishTurn({
+      role: "assistant",
+      content: [],
+      stopReason: "error",
+      errorMessage: authError,
+    });
+    // OMP streams the aborted retry's teardown before it answers the abort.
+    runtime.onAbort = () => {
+      runtime.beginTurn();
+      runtime.finishTurn(ABORTED_TERMINAL_RESPONSE);
+    };
+    runtime.emit({
+      type: "auto_retry_start",
+      attempt: 1,
+      maxAttempts: 3,
+      delayMs: 2000,
+      errorMessage: authError,
+      errorId: 0x0100_1000, // AuthFailed | Class
+    });
+
+    expect(omp.turnFailures()).toEqual([
+      `OMP rejected the provider credentials (${authError}). Check the API key this provider uses.`,
+    ]);
+    expect(omp.wasAborted()).toBe(true);
+    expect(omp.timeline()).not.toContainEqual(
+      expect.objectContaining({ callId: expect.stringMatching(/^omp-auto-retry:/) }),
+    );
+    await waitForImmediate();
+    expect(omp.eventTypes().filter(isTurnLifecycle)).toEqual(["turn_started", "turn_failed"]);
+
+    runtime.state = { ...runtime.state, isStreaming: false };
+    await omp.requireStartTurn("again");
+    // The aborted run's teardown reaches Zentic after the next turn started.
+    runtime.finishTurn(ABORTED_TERMINAL_RESPONSE);
+    await waitForImmediate();
+    expect(omp.eventTypes().filter(isTurnLifecycle)).toEqual(["turn_started", "turn_failed"]);
+
+    runtime.beginTurn();
+    runtime.streamAssistantText("fresh response");
+    runtime.finishTurn();
+
+    await vi.waitFor(() =>
+      expect(omp.eventTypes().filter(isTurnLifecycle)).toEqual([
+        "turn_started",
+        "turn_failed",
+        "turn_started",
+        "turn_completed",
+      ]),
+    );
+    expect(omp.turnFailures()).toHaveLength(1);
+  });
+
+  test("keeps retrying an OMP retry that is not an auth failure", async () => {
+    const omp = new OmpHarness();
+    await omp.start();
+    await omp.requireStartTurn("hello");
+    omp.runtime().beginTurn();
+    omp.runtime().emit({
+      type: "auto_retry_start",
+      attempt: 1,
+      maxAttempts: 3,
+      delayMs: 2000,
+      errorMessage: "503 Service Unavailable",
+      errorId: 135168, // Transient | Class
+    });
+
+    expect(omp.turnFailures()).toEqual([]);
+    expect(omp.wasAborted()).toBe(false);
+    expect(omp.timeline()).toContainEqual(expect.objectContaining({ callId: "omp-auto-retry:1" }));
+  });
+
+  test("resumes a missing OMP session file in a new session and warns once", async () => {
+    const directory = await mkdtemp(path.join(tmpdir(), "zentic-omp-missing-session-"));
+    const missingFile = path.join(directory, "gone.jsonl");
+    const omp = new OmpHarness();
+    await omp.resumeHandle({
+      provider: "omp",
+      sessionId: "omp-old",
+      nativeHandle: missingFile,
+      metadata: { cwd: directory },
+    });
+
+    expect(omp.launchConfiguration().session).toBeUndefined();
+    expect(omp.launchConfiguration().argv).not.toContain("--session");
+    // The new session's file is what Zentic persists from now on.
+    expect(omp.persistence()?.nativeHandle).toBe(omp.runtime().state.sessionFile);
+    expect(omp.persistence()?.nativeHandle).not.toBe(missingFile);
+
+    await omp.runPrompt("hello", "hi");
+    await omp.runPrompt("again", "still here");
+
+    expect(omp.timeline().filter((item) => item.type === "notification")).toEqual([
+      {
+        type: "notification",
+        level: "warning",
+        message: `OMP couldn't find the previous session file ${missingFile}. Its config directory probably changed. This conversation continues in a new session without the earlier context.`,
+      },
+    ]);
   });
 
   test("restarts the same conversation after an idle process exit", async () => {

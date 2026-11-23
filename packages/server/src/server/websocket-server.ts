@@ -2098,6 +2098,8 @@ export class VoiceAssistantWebSocketServer {
         // COMPAT(pluginThemes): added in v0.5.0, remove gate after 2027-08-20.
         pluginThemes: true,
         pluginSettings: true,
+        // COMPAT(providerRuntimeSettings): added in v0.16.0, remove gate after 2027-05-22.
+        providerRuntimeSettings: true,
         pluginTimelineItems: true,
         // COMPAT(pluginSubscriptions): added in v0.15.0, remove gate after 2027-05-02.
         pluginSubscriptions: true,
