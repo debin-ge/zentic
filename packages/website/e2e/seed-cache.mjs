@@ -8,7 +8,6 @@ if (!state) throw new Error("WEBSITE_E2E_PERSIST_PATH is required");
 // Keep these local test records fresh for a full test run, even after the normal cache TTL.
 const fixtureTimestamp = Date.now() + 24 * 60 * 60 * 1000;
 const entries = [
-  { key: "github-stars:v1", value: "12.3k" },
   {
     key: "github-release:v2",
     value: {

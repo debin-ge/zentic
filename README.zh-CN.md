@@ -12,20 +12,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/debin-ge/zentic/stargazers">
-    <img src="https://img.shields.io/github/stars/debin-ge/zentic?style=flat&logo=github" alt="GitHub stars">
-  </a>
   <a href="https://github.com/debin-ge/zentic/releases">
     <img src="https://img.shields.io/github/v/release/debin-ge/zentic?style=flat&logo=github" alt="GitHub release">
-  </a>
-  <a href="https://x.com/moboudra">
-    <img src="https://img.shields.io/badge/%40moboudra-555?logo=x" alt="X">
-  </a>
-  <a href="https://discord.gg/jz8T2uahpH">
-    <img src="https://img.shields.io/badge/Discord-555?logo=discord" alt="Discord">
-  </a>
-  <a href="https://www.reddit.com/r/ZenticAI/">
-    <img src="https://img.shields.io/badge/Reddit-555?logo=reddit" alt="Reddit">
   </a>
 </p>
 
@@ -39,10 +27,6 @@
   <img src="https://zentic.sh/mobile-mockup.png" alt="Zentic mobile app" width="100%">
 </p>
 
-> [!NOTE]
-> 我是独立维护者，不一定每天都能及时处理 GitHub Issues。
-> 如果问题很紧急或阻塞了你，[Discord](https://discord.gg/jz8T2uahpH) 是最快联系到我的地方。
-
 ---
 
 在你自己的机器上并行运行 agents。无论在手机上还是桌前，都能推进交付。
@@ -52,17 +36,6 @@
 - **语音控制：** 在语音模式下口述任务或讨论问题。需要免手操作时很方便。
 - **跨设备：** 支持 iOS、Android、桌面端、Web 和 CLI。在桌前开始工作，用手机查看进度，也可以从终端脚本化操作。
 - **隐私优先：** Zentic 没有遥测、追踪，也不会强制登录。
-
-## 赞助商
-
-<!-- Sponsors: one cell per sponsor in the order of packages/website/src/data/sponsors.ts, then "become a sponsor" cells up to three. -->
-<table>
-  <tr>
-    <td align="center" width="33%"><a href="https://hoplite.sh/?utm_source=zentic&utm_medium=readme&utm_campaign=sponsor"><picture><source media="(prefers-color-scheme: dark)" srcset="packages/website/public/sponsors/hoplite-on-dark.svg"><img src="packages/website/public/sponsors/hoplite-on-light.svg" alt="Hoplite" height="40"></picture></a><br><sub>Cloud coding agents</sub></td>
-    <td align="center" width="33%"><a href="https://zentic.sh/zh-CN/sponsor">成为 Zentic 赞助商</a></td>
-    <td align="center" width="33%"><a href="https://zentic.sh/zh-CN/sponsor">成为 Zentic 赞助商</a></td>
-  </tr>
-</table>
 
 ## 快速开始
 
@@ -161,10 +134,6 @@ npm run build:server
 # 全仓库检查
 npm run typecheck
 ```
-
-## 支持 Zentic
-
-Zentic 由一个人开发，靠使用它的人来资助。你可以通过 [GitHub Sponsors](https://github.com/sponsors/boudra) 支持这项工作。公司也可以按月[赞助 Zentic](https://zentic.sh/zh-CN/sponsor#spot)，logo 会展示在本 README 顶部，以及 zentic.sh 的首页和文档中。
 
 ## 相关项目
 

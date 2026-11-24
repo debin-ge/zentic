@@ -5,12 +5,7 @@ import type { ReleaseChannels, ReleaseInfo } from "~/latest-release";
 import type { VisitorPlatform } from "~/platform";
 import { getVisitorPlatform } from "~/platform";
 import { getLatestRelease } from "~/release";
-import { getStarCount } from "~/stars";
 import { useLocale } from "~/i18n";
-
-interface StarsContext {
-  stars: string;
-}
 
 const ReleaseCtx = createContext<ReleaseChannels>({
   stable: {
@@ -21,7 +16,6 @@ const ReleaseCtx = createContext<ReleaseChannels>({
   },
   beta: null,
 });
-const StarsCtx = createContext<StarsContext>({ stars: "" });
 const PlatformCtx = createContext<VisitorPlatform>("mac");
 
 const PLAUSIBLE_INIT_SCRIPT = {
@@ -38,10 +32,6 @@ export function useBetaRelease(): ReleaseInfo | null {
   return useContext(ReleaseCtx).beta;
 }
 
-export function useStars(): StarsContext {
-  return useContext(StarsCtx);
-}
-
 /** The platform the visitor is browsing from, resolved from the request user agent during SSR. */
 export function useVisitorPlatform(): VisitorPlatform {
   return useContext(PlatformCtx);
@@ -49,12 +39,8 @@ export function useVisitorPlatform(): VisitorPlatform {
 
 export const Route = createRootRoute({
   loader: async () => {
-    const [release, stars, platform] = await Promise.all([
-      getLatestRelease(),
-      getStarCount(),
-      getVisitorPlatform(),
-    ]);
-    return { release, platform, ...stars };
+    const [release, platform] = await Promise.all([getLatestRelease(), getVisitorPlatform()]);
+    return { release, platform };
   },
   head: () => ({
     meta: [
@@ -80,13 +66,11 @@ function RootComponent() {
   const data = Route.useLoaderData();
   return (
     <ReleaseCtx value={data.release}>
-      <StarsCtx value={data}>
-        <PlatformCtx value={data.platform}>
-          <RootDocument>
-            <Outlet />
-          </RootDocument>
-        </PlatformCtx>
-      </StarsCtx>
+      <PlatformCtx value={data.platform}>
+        <RootDocument>
+          <Outlet />
+        </RootDocument>
+      </PlatformCtx>
     </ReleaseCtx>
   );
 }

@@ -14,7 +14,6 @@ import { Route as Char123LocaleChar125IndexRouteImport } from "./routes/{-$local
 import { Route as Char123LocaleChar125VtcodeRouteImport } from "./routes/{-$locale}/vtcode";
 import { Route as Char123LocaleChar125TermsRouteImport } from "./routes/{-$locale}/terms";
 import { Route as Char123LocaleChar125StakpakRouteImport } from "./routes/{-$locale}/stakpak";
-import { Route as Char123LocaleChar125SponsorRouteImport } from "./routes/{-$locale}/sponsor";
 import { Route as Char123LocaleChar125SigitRouteImport } from "./routes/{-$locale}/sigit";
 import { Route as Char123LocaleChar125QwenCodeRouteImport } from "./routes/{-$locale}/qwen-code";
 import { Route as Char123LocaleChar125QoderRouteImport } from "./routes/{-$locale}/qoder";
@@ -108,12 +107,6 @@ const Char123LocaleChar125StakpakRoute =
   Char123LocaleChar125StakpakRouteImport.update({
     id: "/stakpak",
     path: "/stakpak",
-    getParentRoute: () => Char123LocaleChar125RouteRoute,
-  } as any);
-const Char123LocaleChar125SponsorRoute =
-  Char123LocaleChar125SponsorRouteImport.update({
-    id: "/sponsor",
-    path: "/sponsor",
     getParentRoute: () => Char123LocaleChar125RouteRoute,
   } as any);
 const Char123LocaleChar125SigitRoute =
@@ -544,7 +537,6 @@ export interface FileRoutesByFullPath {
   "/{-$locale}/qoder": typeof Char123LocaleChar125QoderRoute;
   "/{-$locale}/qwen-code": typeof Char123LocaleChar125QwenCodeRoute;
   "/{-$locale}/sigit": typeof Char123LocaleChar125SigitRoute;
-  "/{-$locale}/sponsor": typeof Char123LocaleChar125SponsorRoute;
   "/{-$locale}/stakpak": typeof Char123LocaleChar125StakpakRoute;
   "/{-$locale}/terms": typeof Char123LocaleChar125TermsRoute;
   "/{-$locale}/vtcode": typeof Char123LocaleChar125VtcodeRoute;
@@ -613,7 +605,6 @@ export interface FileRoutesByTo {
   "/{-$locale}/qoder": typeof Char123LocaleChar125QoderRoute;
   "/{-$locale}/qwen-code": typeof Char123LocaleChar125QwenCodeRoute;
   "/{-$locale}/sigit": typeof Char123LocaleChar125SigitRoute;
-  "/{-$locale}/sponsor": typeof Char123LocaleChar125SponsorRoute;
   "/{-$locale}/stakpak": typeof Char123LocaleChar125StakpakRoute;
   "/{-$locale}/terms": typeof Char123LocaleChar125TermsRoute;
   "/{-$locale}/vtcode": typeof Char123LocaleChar125VtcodeRoute;
@@ -686,7 +677,6 @@ export interface FileRoutesById {
   "/{-$locale}/qoder": typeof Char123LocaleChar125QoderRoute;
   "/{-$locale}/qwen-code": typeof Char123LocaleChar125QwenCodeRoute;
   "/{-$locale}/sigit": typeof Char123LocaleChar125SigitRoute;
-  "/{-$locale}/sponsor": typeof Char123LocaleChar125SponsorRoute;
   "/{-$locale}/stakpak": typeof Char123LocaleChar125StakpakRoute;
   "/{-$locale}/terms": typeof Char123LocaleChar125TermsRoute;
   "/{-$locale}/vtcode": typeof Char123LocaleChar125VtcodeRoute;
@@ -760,7 +750,6 @@ export interface FileRouteTypes {
     | "/{-$locale}/qoder"
     | "/{-$locale}/qwen-code"
     | "/{-$locale}/sigit"
-    | "/{-$locale}/sponsor"
     | "/{-$locale}/stakpak"
     | "/{-$locale}/terms"
     | "/{-$locale}/vtcode"
@@ -829,7 +818,6 @@ export interface FileRouteTypes {
     | "/{-$locale}/qoder"
     | "/{-$locale}/qwen-code"
     | "/{-$locale}/sigit"
-    | "/{-$locale}/sponsor"
     | "/{-$locale}/stakpak"
     | "/{-$locale}/terms"
     | "/{-$locale}/vtcode"
@@ -901,7 +889,6 @@ export interface FileRouteTypes {
     | "/{-$locale}/qoder"
     | "/{-$locale}/qwen-code"
     | "/{-$locale}/sigit"
-    | "/{-$locale}/sponsor"
     | "/{-$locale}/stakpak"
     | "/{-$locale}/terms"
     | "/{-$locale}/vtcode"
@@ -965,13 +952,6 @@ declare module "@tanstack/react-router" {
       path: "/stakpak";
       fullPath: "/{-$locale}/stakpak";
       preLoaderRoute: typeof Char123LocaleChar125StakpakRouteImport;
-      parentRoute: typeof Char123LocaleChar125RouteRoute;
-    };
-    "/{-$locale}/sponsor": {
-      id: "/{-$locale}/sponsor";
-      path: "/sponsor";
-      fullPath: "/{-$locale}/sponsor";
-      preLoaderRoute: typeof Char123LocaleChar125SponsorRouteImport;
       parentRoute: typeof Char123LocaleChar125RouteRoute;
     };
     "/{-$locale}/sigit": {
@@ -1504,7 +1484,6 @@ interface Char123LocaleChar125RouteRouteChildren {
   Char123LocaleChar125QoderRoute: typeof Char123LocaleChar125QoderRoute;
   Char123LocaleChar125QwenCodeRoute: typeof Char123LocaleChar125QwenCodeRoute;
   Char123LocaleChar125SigitRoute: typeof Char123LocaleChar125SigitRoute;
-  Char123LocaleChar125SponsorRoute: typeof Char123LocaleChar125SponsorRoute;
   Char123LocaleChar125StakpakRoute: typeof Char123LocaleChar125StakpakRoute;
   Char123LocaleChar125TermsRoute: typeof Char123LocaleChar125TermsRoute;
   Char123LocaleChar125VtcodeRoute: typeof Char123LocaleChar125VtcodeRoute;
@@ -1574,7 +1553,6 @@ const Char123LocaleChar125RouteRouteChildren: Char123LocaleChar125RouteRouteChil
     Char123LocaleChar125QoderRoute: Char123LocaleChar125QoderRoute,
     Char123LocaleChar125QwenCodeRoute: Char123LocaleChar125QwenCodeRoute,
     Char123LocaleChar125SigitRoute: Char123LocaleChar125SigitRoute,
-    Char123LocaleChar125SponsorRoute: Char123LocaleChar125SponsorRoute,
     Char123LocaleChar125StakpakRoute: Char123LocaleChar125StakpakRoute,
     Char123LocaleChar125TermsRoute: Char123LocaleChar125TermsRoute,
     Char123LocaleChar125VtcodeRoute: Char123LocaleChar125VtcodeRoute,

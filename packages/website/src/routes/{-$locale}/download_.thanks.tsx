@@ -1,9 +1,8 @@
 import { useEffect } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { DiscordIcon, GitHubIcon, RedditIcon } from "~/components/brand-icons";
+import { GitHubIcon } from "~/components/brand-icons";
 import { SiteShell } from "~/components/site-shell";
-import { SponsorSection } from "~/components/sponsorship";
 import { parseReleaseAssetUrl } from "~/downloads";
 import { getTranslator, routeLocale } from "~/i18n";
 import { pageMeta } from "~/meta";
@@ -33,22 +32,10 @@ export const Route = createFileRoute("/{-$locale}/download_/thanks")({
 
 const COMMUNITY = [
   {
-    name: "Discord",
-    icon: <DiscordIcon className="h-6 w-6" />,
-    body: "discord",
-    href: "https://discord.gg/jz8T2uahpH",
-  },
-  {
     name: "GitHub",
     icon: <GitHubIcon className="h-6 w-6" />,
     body: "github",
     href: "https://github.com/debin-ge/zentic",
-  },
-  {
-    name: "Reddit",
-    icon: <RedditIcon className="h-6 w-6" />,
-    body: "reddit",
-    href: "https://www.reddit.com/r/ZenticAI/",
   },
 ] as const;
 
@@ -95,7 +82,6 @@ function DownloadThanks() {
             </a>
           ))}
         </div>
-        <SponsorSection />
       </div>
     </SiteShell>
   );

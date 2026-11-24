@@ -88,5 +88,4 @@ Offer to fix the PATH or symlink; do not change shell configuration silently.
 If the current docs and diagnostics do not resolve the problem, collect the app and daemon versions, OS, install method, connection method, exact error, minimal reproduction, and a small redacted log excerpt.
 
 - Bugs: [GitHub Issues](https://github.com/debin-ge/zentic/issues)
-- Questions and quick help: [Zentic Discord](https://discord.gg/jz8T2uahpH)
-- Product workflow discussions: [GitHub Discussions](https://github.com/debin-ge/zentic/discussions) or `#product` in Discord
+- Product workflow discussions: [GitHub Discussions](https://github.com/debin-ge/zentic/discussions)

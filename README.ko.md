@@ -12,20 +12,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/debin-ge/zentic/stargazers">
-    <img src="https://img.shields.io/github/stars/debin-ge/zentic?style=flat&logo=github" alt="GitHub stars">
-  </a>
   <a href="https://github.com/debin-ge/zentic/releases">
     <img src="https://img.shields.io/github/v/release/debin-ge/zentic?style=flat&logo=github" alt="GitHub release">
-  </a>
-  <a href="https://x.com/moboudra">
-    <img src="https://img.shields.io/badge/%40moboudra-555?logo=x" alt="X">
-  </a>
-  <a href="https://discord.gg/jz8T2uahpH">
-    <img src="https://img.shields.io/badge/Discord-555?logo=discord" alt="Discord">
-  </a>
-  <a href="https://www.reddit.com/r/ZenticAI/">
-    <img src="https://img.shields.io/badge/Reddit-555?logo=reddit" alt="Reddit">
   </a>
 </p>
 
@@ -46,17 +34,6 @@
 - **음성 제어:** 음성 모드에서 작업을 말로 지시하거나 문제를 음성으로 함께 검토할 수 있습니다. 손을 쓰지 않고 작업해야 할 때 유용합니다.
 - **여러 기기 지원:** iOS, Android, 데스크톱, 웹, CLI를 지원합니다. 데스크톱에서 시작해 휴대폰으로 확인하고 터미널에서 자동화할 수 있습니다.
 - **개인정보 보호 우선:** Zentic는 텔레메트리, 추적, 강제 로그인을 사용하지 않습니다.
-
-## 스폰서
-
-<!-- Sponsors: one cell per sponsor in the order of packages/website/src/data/sponsors.ts, then "become a sponsor" cells up to three. -->
-<table>
-  <tr>
-    <td align="center" width="33%"><a href="https://hoplite.sh/?utm_source=zentic&utm_medium=readme&utm_campaign=sponsor"><picture><source media="(prefers-color-scheme: dark)" srcset="packages/website/public/sponsors/hoplite-on-dark.svg"><img src="packages/website/public/sponsors/hoplite-on-light.svg" alt="Hoplite" height="40"></picture></a><br><sub>Cloud coding agents</sub></td>
-    <td align="center" width="33%"><a href="https://zentic.sh/sponsor">Zentic 스폰서 되기</a></td>
-    <td align="center" width="33%"><a href="https://zentic.sh/sponsor">Zentic 스폰서 되기</a></td>
-  </tr>
-</table>
 
 ## 시작하기
 
@@ -171,10 +148,6 @@ npm run build:server
 # 레포 전체 검사 실행
 npm run typecheck
 ```
-
-## Zentic 후원하기
-
-Zentic는 한 사람이 개발하며, 사용하는 분들의 후원으로 운영됩니다. [GitHub Sponsors](https://github.com/sponsors/boudra)로 후원할 수 있습니다. 회사는 매월 [Zentic를 후원](https://zentic.sh/sponsor#spot)하고 로고를 이 README 상단과 zentic.sh 홈페이지 및 문서에 게재할 수 있습니다.
 
 ## 관련 프로젝트
 

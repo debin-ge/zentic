@@ -4,7 +4,6 @@ import { useCallback, useMemo, useState } from "react";
 import { DocsBreadcrumbs } from "~/components/docs-breadcrumbs";
 import { DocsNav } from "~/components/docs-nav";
 import { DocsOutline } from "~/components/docs-outline";
-import { SponsorsSection } from "~/components/sponsorship";
 import { useTranslation } from "react-i18next";
 import { buildDocsNavTree, getDoc, getDocs } from "~/docs";
 import { splitLocalePath, useLocale, useLocalizePath } from "~/i18n";
@@ -77,7 +76,6 @@ function DocsLayout() {
           <div className="max-w-prose mx-auto">
             {doc && <DocsBreadcrumbs doc={doc} tree={tree} />}
             <Outlet />
-            <SponsorsSection placement="footer" />
           </div>
         </main>
 

@@ -26,9 +26,7 @@
     "docs": "Docs",
     "changelog": "Changelog",
     "download": "Download",
-    "sponsor": "Sponsor",
-    "hub": "Hub",
-    "githubStars": "GitHub, {{stars}} stars"
+    "hub": "Hub"
   },
   "footer": {
     "product": "Product",
@@ -40,7 +38,6 @@
     "cli": "CLI",
     "privacy": "Privacy",
     "terms": "Terms",
-    "sponsor": "Sponsor",
     "agents": "Agents",
     "allProviders": "All providers",
     "alternatives": "Alternatives",
@@ -336,11 +333,6 @@
     "intro": "Zentic supports many agents natively, it can run any <acp>ACP agent</acp> and you can implement new providers via <plugins>plugins</plugins>."
   },
   "landing": {
-    "socialProof": {
-      "title": "Loved by developers",
-      "description": "See what developers are saying about Zentic",
-      "readPost": "Read {{name}}'s original post"
-    },
     "providers": {
       "title": "Works with your tools",
       "description": "Bring your subscriptions, skills and configuration"
@@ -503,36 +495,6 @@
       }
     }
   },
-  "sponsor": {
-    "metaTitle": "Sponsor Zentic",
-    "metaDescription": "Zentic is an independent project used by tens of thousands of developers daily, maintained by one person, shaped by the community, with no investors. Sponsor the work on GitHub Sponsors, Open Collective or Buy Me a Coffee, or sponsor it as a company.",
-    "title": "Sponsor Zentic",
-    "sponsors": "Sponsors",
-    "becomeSponsor": "Become a sponsor",
-    "maintainer": "<maintainer>Mo</maintainer>, maintainer",
-    "note": {
-      "independent": "Zentic is an independent project used by tens of thousands of developers daily.",
-      "maintained": "It is maintained by one person, full time, and shaped by the community. There are no investors, no board and no company behind it. I have turned down funding offers to keep it that way.",
-      "community": "The community helps Zentic grow through feedback, testing, bug reports, code contributions and plugins. Your sponsorship helps me keep improving and maintaining it.",
-      "neutral": "A tool that sits between you and your code, your keys and your machines has to stay neutral, and that gets hard once someone else owns a return on it. Funding creates pressure to monetize, and that pressure changes what gets built.",
-      "selfFunded": "Zentic is self-funded: the work is paid for by sponsorship and by <hub>Zentic Hub</hub>, an optional hosted service. Your support is what lets me keep working on it."
-    },
-    "shortNote": {
-      "maintained": "It is maintained by one person, full time, and shaped by the community. There are no investors and no company behind it. I have turned down funding to keep it that way. A tool that sits between you and your code, your keys and your machines has to stay neutral, and funding creates pressure to monetize.",
-      "selfFunded": "Zentic is self-funded through sponsorship and <hub>Zentic Hub</hub>. Your support is what lets me keep working on it."
-    },
-    "company": {
-      "title": "Sponsor as a company",
-      "description": "Support Zentic financially and get visibility for your company",
-      "perMonth": "a month",
-      "homepage": "Your logo on the zentic.sh homepage and docs, around 70,000 visitors a month",
-      "readme": "Your logo in the GitHub README, around 30,000 visitors a month",
-      "discord": "An announcement in the Discord, around 2,000 members",
-      "x": "An announcement from me on X",
-      "emailFirst": "Or email me first",
-      "emailWhenOpen": "Email me to hear when a spot opens"
-    }
-  },
   "download": {
     "metaTitle": "Download Zentic for macOS, Windows, Linux, iOS, and Android",
     "metaDescription": "Install Zentic on every platform. Native desktop apps for macOS, Windows, and Linux. Mobile apps for iOS and Android. Self-hosted, open source, free to download.",
@@ -558,14 +520,12 @@
   },
   "thanks": {
     "metaTitle": "Thanks for downloading Zentic",
-    "metaDescription": "Your Zentic download is starting. Join the community on Discord, GitHub, and Reddit, or sponsor Zentic.",
+    "metaDescription": "Your Zentic download is starting. Join the community on GitHub.",
     "title": "Thanks for downloading Zentic",
     "intro": "Get help, share feedback, and follow along.",
     "didNotStart": "Download didn't start?",
     "tryAgain": "Try again",
-    "discord": "Get help and share feedback.",
-    "github": "Star, report issues, contribute.",
-    "reddit": "Workflows and questions."
+    "github": "Report issues and contribute."
   },
   "hub": {
     "metaTitle": "Zentic Hub - GitHub, Slack, and Discord triggers",

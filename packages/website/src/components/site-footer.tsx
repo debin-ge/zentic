@@ -2,13 +2,10 @@ import { useTranslation } from "react-i18next";
 import { PLUGINS_LINKED } from "~/plugins/launch";
 import { getAlternativePages } from "~/data/alternative-pages";
 import { appStoreUrl, playStoreUrl, webAppUrl } from "~/downloads";
-import { SponsorsSection } from "~/components/sponsorship";
 import { useLocale, useLocalizePath } from "~/i18n";
 
 interface SiteFooterProps {
   width?: "default" | "prose" | "wide";
-  /** Pages that show the sponsors in their content turn the footer band off. */
-  sponsors?: boolean;
 }
 
 const WIDTH_CLASSES: Record<NonNullable<SiteFooterProps["width"]>, string> = {
@@ -27,7 +24,7 @@ function ExternalLink({ href, children }: { href: string; children: React.ReactN
   );
 }
 
-export function SiteFooter({ width = "default", sponsors = true }: SiteFooterProps) {
+export function SiteFooter({ width = "default" }: SiteFooterProps) {
   const { t } = useTranslation();
   const locale = useLocale();
   const localize = useLocalizePath();
@@ -40,7 +37,6 @@ export function SiteFooter({ width = "default", sponsors = true }: SiteFooterPro
   );
   return (
     <footer className={`${widthClasses} mx-auto mt-12 md:mt-16`}>
-      {sponsors ? <SponsorsSection placement="footer" /> : null}
       <div className="border-t border-white/10 pt-8 pb-4 grid grid-cols-2 sm:grid-cols-5 gap-8 text-sm">
         <div className="space-y-3">
           <p className="text-extra-muted-foreground">{t("footer.product")}</p>
@@ -53,7 +49,6 @@ export function SiteFooter({ width = "default", sponsors = true }: SiteFooterPro
             {page("/docs/cli", t("footer.cli"))}
             {page("/privacy", t("footer.privacy"))}
             {page("/terms", t("footer.terms"))}
-            {page("/sponsor", t("footer.sponsor"))}
           </div>
         </div>
         <div className="space-y-3">
@@ -80,8 +75,6 @@ export function SiteFooter({ width = "default", sponsors = true }: SiteFooterPro
         <div className="space-y-3">
           <p className="text-extra-muted-foreground">{t("footer.community")}</p>
           <div className="space-y-2">
-            <ExternalLink href="https://discord.gg/jz8T2uahpH">Discord</ExternalLink>
-            <ExternalLink href="https://www.reddit.com/r/ZenticAI/">Reddit</ExternalLink>
             <ExternalLink href="https://github.com/debin-ge/zentic">GitHub</ExternalLink>
           </div>
         </div>

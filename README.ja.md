@@ -12,20 +12,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/debin-ge/zentic/stargazers">
-    <img src="https://img.shields.io/github/stars/debin-ge/zentic?style=flat&logo=github" alt="GitHub stars">
-  </a>
   <a href="https://github.com/debin-ge/zentic/releases">
     <img src="https://img.shields.io/github/v/release/debin-ge/zentic?style=flat&logo=github" alt="GitHub release">
-  </a>
-  <a href="https://x.com/moboudra">
-    <img src="https://img.shields.io/badge/%40moboudra-555?logo=x" alt="X">
-  </a>
-  <a href="https://discord.gg/jz8T2uahpH">
-    <img src="https://img.shields.io/badge/Discord-555?logo=discord" alt="Discord">
-  </a>
-  <a href="https://www.reddit.com/r/ZenticAI/">
-    <img src="https://img.shields.io/badge/Reddit-555?logo=reddit" alt="Reddit">
   </a>
 </p>
 
@@ -39,10 +27,6 @@
   <img src="https://zentic.sh/mobile-mockup.png" alt="Zentic モバイルアプリ" width="100%">
 </p>
 
-> [!NOTE]
-> 私はひとりでメンテナンスしているため、GitHub Issues を毎日確認できるとは限りません。
-> 急ぎの問題や作業がブロックされている場合は、[Discord](https://discord.gg/jz8T2uahpH) から連絡するのが一番早いです。
-
 ---
 
 自分のマシンでエージェントを並列実行。スマートフォンからでもデスクからでも、開発を進めてリリースできます。
@@ -52,17 +36,6 @@
 - **音声コントロール:** 音声モードでタスクを口述したり問題を話し合ったりできます。ハンズフリーが必要なときに便利です。
 - **クロスデバイス:** iOS、Android、デスクトップ、Web、CLI に対応。机で作業を始め、スマートフォンで確認し、ターミナルから自動化できます。
 - **プライバシー優先:** Zentic にはテレメトリー・トラッキング・強制ログインは一切ありません。
-
-## スポンサー
-
-<!-- Sponsors: one cell per sponsor in the order of packages/website/src/data/sponsors.ts, then "become a sponsor" cells up to three. -->
-<table>
-  <tr>
-    <td align="center" width="33%"><a href="https://hoplite.sh/?utm_source=zentic&utm_medium=readme&utm_campaign=sponsor"><picture><source media="(prefers-color-scheme: dark)" srcset="packages/website/public/sponsors/hoplite-on-dark.svg"><img src="packages/website/public/sponsors/hoplite-on-light.svg" alt="Hoplite" height="40"></picture></a><br><sub>Cloud coding agents</sub></td>
-    <td align="center" width="33%"><a href="https://zentic.sh/sponsor">Zentic のスポンサーになる</a></td>
-    <td align="center" width="33%"><a href="https://zentic.sh/sponsor">Zentic のスポンサーになる</a></td>
-  </tr>
-</table>
 
 ## はじめかた
 
@@ -161,10 +134,6 @@ npm run build:server
 # リポジトリ全体のチェック
 npm run typecheck
 ```
-
-## Zentic を支援する
-
-Zentic は一人で開発しており、使ってくれる人たちの支援で成り立っています。[GitHub Sponsors](https://github.com/sponsors/boudra) で支援できます。企業として毎月[スポンサー](https://zentic.sh/sponsor#spot)になっていただくと、ロゴをこの README の冒頭と、zentic.sh のトップページおよびドキュメントに掲載します。
 
 ## 関連プロジェクト
 

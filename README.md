@@ -12,20 +12,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/debin-ge/zentic/stargazers">
-    <img src="https://img.shields.io/github/stars/debin-ge/zentic?style=flat&logo=github" alt="GitHub stars">
-  </a>
   <a href="https://github.com/debin-ge/zentic/releases">
     <img src="https://img.shields.io/github/v/release/debin-ge/zentic?style=flat&logo=github" alt="GitHub release">
-  </a>
-  <a href="https://x.com/moboudra">
-    <img src="https://img.shields.io/badge/%40moboudra-555?logo=x" alt="X">
-  </a>
-  <a href="https://discord.gg/jz8T2uahpH">
-    <img src="https://img.shields.io/badge/Discord-555?logo=discord" alt="Discord">
-  </a>
-  <a href="https://www.reddit.com/r/ZenticAI/">
-    <img src="https://img.shields.io/badge/Reddit-555?logo=reddit" alt="Reddit">
   </a>
 </p>
 
@@ -51,17 +39,6 @@ Zentic is an open source agentic development environment for desktop, mobile, we
 - **Privacy-first:** Zentic doesn't have any telemetry, tracking, or forced log-ins.
 
 [Run parallel tasks in Zentic](https://zentic.sh/docs/parallel-development): start agents in separate worktrees, review their diffs, run each app, and check it in the built-in browser.
-
-## Sponsors
-
-<!-- Sponsors: one cell per sponsor in the order of packages/website/src/data/sponsors.ts, then "become a sponsor" cells up to three. -->
-<table>
-  <tr>
-    <td align="center" width="33%"><a href="https://hoplite.sh/?utm_source=zentic&utm_medium=readme&utm_campaign=sponsor"><picture><source media="(prefers-color-scheme: dark)" srcset="packages/website/public/sponsors/hoplite-on-dark.svg"><img src="packages/website/public/sponsors/hoplite-on-light.svg" alt="Hoplite" height="56"></picture></a><br><sub>Cloud coding agents</sub></td>
-    <td align="center" width="33%"><a href="https://zentic.sh/sponsor">Become a sponsor</a></td>
-    <td align="center" width="33%"><a href="https://zentic.sh/sponsor">Become a sponsor</a></td>
-  </tr>
-</table>
 
 ## Plugins
 
@@ -217,10 +194,6 @@ npm run build:server
 # repo-wide checks
 npm run typecheck
 ```
-
-## Support Zentic
-
-Zentic is an independent project used by tens of thousands of developers daily, built by one person and funded by the people who use it. Support the work on [GitHub Sponsors](https://github.com/sponsors/boudra). Companies can [sponsor Zentic](https://zentic.sh/sponsor#spot) monthly and have their logo shown at the top of this README and on the zentic.sh homepage and docs.
 
 ## Related projects
 

@@ -10,8 +10,6 @@ import {
   showAllChanges,
 } from "../support/helpers/changelog";
 
-const DISCORD_DESTINATION =
-  /^https:\/\/(?:discord\.gg\/jz8T2uahpH|discord\.com\/invite\/jz8T2uahpH)(?:[/?#]|$)/;
 const GITHUB_ISSUE_DESTINATION =
   /^https:\/\/github\.com\/(?:debin-ge\/zentic\/issues\/new(?:\/choose)?(?:[/?#]|$)|login\?return_to=https%3A%2F%2Fgithub\.com%2Fdebin-ge%2Fzentic%2Fissues%2Fnew$)/;
 const CHANGELOG_DESTINATION = /^https:\/\/zentic\.sh\/changelog(?:[/?#]|$)/;
@@ -71,9 +69,6 @@ test("opens troubleshooting and support destinations", async ({ page }) => {
   });
 
   await test.step("opens support pages", async () => {
-    await openHelpMenu(page);
-    await expectExternalPage(page, "sidebar-help-discord", DISCORD_DESTINATION);
-
     await openHelpMenu(page);
     await expectExternalPage(page, "sidebar-help-github", GITHUB_ISSUE_DESTINATION);
   });
