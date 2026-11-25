@@ -1,3 +1,4 @@
+import { BRAND_ROOT_DOMAIN, BRAND_WEBSITE_URL } from "@getzentic/protocol/brand-domains";
 import { useAddHost } from "@/hosts/add-host";
 import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
@@ -179,7 +180,7 @@ export function WelcomeScreen() {
   }, [router]);
 
   const handleOpenZenticSite = useCallback(() => {
-    void openExternalUrl("https://zentic.sh");
+    void openExternalUrl(BRAND_WEBSITE_URL);
   }, []);
 
   const handleOpenSettings = useCallback(() => {
@@ -269,7 +270,7 @@ export function WelcomeScreen() {
             <Text style={styles.subtitle}>{t("onboarding.subtitle")}</Text>
             {isNative ? (
               <Pressable style={styles.setupLink} onPress={handleOpenZenticSite}>
-                <Text style={styles.setupLinkText}>zentic.sh</Text>
+                <Text style={styles.setupLinkText}>{BRAND_ROOT_DOMAIN}</Text>
                 <ExternalLink size={14} color={theme.colors.accent} />
               </Pressable>
             ) : null}

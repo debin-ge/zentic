@@ -1,3 +1,4 @@
+import { brandDocsUrl } from "@getzentic/protocol/brand-domains";
 import { confirm, isCancel, log } from "@clack/prompts";
 import { Command } from "commander";
 import chalk from "chalk";
@@ -37,7 +38,7 @@ export interface PairingOffer {
 }
 
 const PAIRING_DAEMON_RPC_TIMEOUT_MS = 1500;
-const RELAY_DOCS_URL = "https://zentic.sh/docs/security";
+const RELAY_DOCS_URL = brandDocsUrl("security");
 
 function createProcessOutput(): PairCommandOutput {
   return {

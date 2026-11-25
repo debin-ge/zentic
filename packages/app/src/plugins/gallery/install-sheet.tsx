@@ -1,3 +1,4 @@
+import { brandDocsUrl } from "@getzentic/protocol/brand-domains";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -18,7 +19,7 @@ import { pluginDisplayName } from "@/plugins/plugin-list";
 import { listingAuthor, listingSource, listingText, listingVersion } from "./listing";
 import { dismissFailedOperation, installPlugin, usePluginOperation } from "./operations";
 
-const PLUGIN_SOURCE_DOCS_URL = "https://zentic.sh/docs/plugins/reference#plugin-sources";
+const PLUGIN_SOURCE_DOCS_URL = brandDocsUrl("plugins/reference#plugin-sources");
 const SOURCE_SUBJECT = "source";
 
 /** What the sheet installs: a directory listing, or a source the user types. */

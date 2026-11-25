@@ -1,3 +1,4 @@
+import { BRAND_PLUGINS_URL } from "./brand-domains.js";
 import { z } from "zod";
 
 export const PluginRegistryIdSchema = z
@@ -111,7 +112,7 @@ export type PublishedPlugin = z.infer<typeof PublishedPluginSchema>;
 export type PublishedPluginDetail = z.infer<typeof PublishedPluginDetailSchema>;
 export type PluginRegistryIndex = z.infer<typeof PluginRegistryIndexSchema>;
 
-export const DEFAULT_PLUGIN_REGISTRY_URL = "https://plugins.zentic.sh";
+export const DEFAULT_PLUGIN_REGISTRY_URL = BRAND_PLUGINS_URL;
 
 export function parsePluginRegistryReference(
   source: string,

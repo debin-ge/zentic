@@ -1,3 +1,4 @@
+import { BRAND_RELAY_ENDPOINT } from "./brand-domains.js";
 import type { ConnectionOfferV2 } from "./connection-offer.js";
 
 export interface HostPortParts {
@@ -75,7 +76,7 @@ export type RelayRole = "server" | "client";
 export type RelayProtocolVersion = "1" | "2";
 
 export const CURRENT_RELAY_PROTOCOL_VERSION: RelayProtocolVersion = "2";
-export const DEFAULT_RELAY_ENDPOINT = "relay.mrgedebin.xyz:443";
+export const DEFAULT_RELAY_ENDPOINT = BRAND_RELAY_ENDPOINT;
 
 export function normalizeRelayProtocolVersion(
   value: unknown,

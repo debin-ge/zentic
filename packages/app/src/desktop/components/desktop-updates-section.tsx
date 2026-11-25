@@ -1,3 +1,4 @@
+import { brandDocsUrl } from "@getzentic/protocol/brand-domains";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import React, { type ReactElement, useCallback, useMemo, useState } from "react";
 import { Alert, Text, View } from "react-native";
@@ -482,7 +483,7 @@ export function LocalDaemonSection() {
   );
 }
 
-const ADVANCED_DAEMON_SETTINGS_URL = "https://zentic.sh/docs/configuration";
+const ADVANCED_DAEMON_SETTINGS_URL = brandDocsUrl("configuration");
 
 const styles = StyleSheet.create((theme) => ({
   actionGroup: {

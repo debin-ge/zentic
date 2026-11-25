@@ -1,3 +1,4 @@
+import { BRAND_APP_URL, BRAND_RELAY_ENDPOINT } from "@getzentic/protocol/brand-domains";
 import { execFile } from "node:child_process";
 import { execFileSync } from "node:child_process";
 import { EventEmitter } from "node:events";
@@ -1422,8 +1423,8 @@ export class HubRelationshipHarness {
       },
       agentStoragePath: path.join(this.zenticHome, "agents"),
       relayEnabled: false,
-      relayEndpoint: "relay.mrgedebin.xyz:443",
-      appBaseUrl: "https://app.zentic.sh",
+      relayEndpoint: BRAND_RELAY_ENDPOINT,
+      appBaseUrl: BRAND_APP_URL,
     };
   }
 

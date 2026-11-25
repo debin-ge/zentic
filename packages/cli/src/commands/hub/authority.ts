@@ -1,3 +1,4 @@
+import { BRAND_HUB_URL } from "@getzentic/protocol/brand-domains";
 import type { HubCredentialStore } from "./credentials.js";
 import { HubCommandError } from "./error.js";
 import { normalizeHubOrigin } from "./origin.js";
@@ -13,7 +14,7 @@ interface ResolveHubInput {
   credentials: HubCredentialStore;
 }
 
-export const DEFAULT_HUB_ORIGIN = "https://hub.zentic.sh";
+export const DEFAULT_HUB_ORIGIN = BRAND_HUB_URL;
 
 export function resolveHubOrigin(input: ResolveHubInput): string {
   const configuredOrigin = input.options.origin ?? input.env.ZENTIC_HUB_URL;

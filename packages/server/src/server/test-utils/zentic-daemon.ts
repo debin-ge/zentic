@@ -1,3 +1,4 @@
+import { BRAND_APP_URL, BRAND_RELAY_ENDPOINT } from "@getzentic/protocol/brand-domains";
 import { BuiltinPluginLoader } from "../plugins/builtin/index.js";
 import os from "node:os";
 import path from "node:path";
@@ -203,11 +204,11 @@ async function prepareTestDaemonConfig(
     providerOverrides: options.providerOverrides,
     agentStoragePath: path.join(zenticHome, "agents"),
     relayEnabled: options.relayEnabled ?? false,
-    relayEndpoint: options.relayEndpoint ?? "relay.mrgedebin.xyz:443",
+    relayEndpoint: options.relayEndpoint ?? BRAND_RELAY_ENDPOINT,
     relayUseTls: options.relayUseTls,
     relayPublicUseTls: options.relayPublicUseTls,
     relayRequireProtectedSecurity: options.relayRequireProtectedSecurity,
-    appBaseUrl: "https://app.zentic.sh",
+    appBaseUrl: BRAND_APP_URL,
     auth: options.auth,
     pushNotificationSender: options.pushNotificationSender,
     serviceProxy: options.serviceProxy,

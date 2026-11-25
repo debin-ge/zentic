@@ -1,3 +1,4 @@
+import { brandDocsUrl } from "@getzentic/protocol/brand-domains";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import Animated, {
@@ -30,7 +31,7 @@ interface StartupSplashScreenProps {
 }
 
 const GITHUB_ISSUE_URL = "https://github.com/debin-ge/zentic/issues/new";
-const DOCS_URL = "https://zentic.sh/docs";
+const DOCS_URL = brandDocsUrl();
 
 const LOGO_SIZE = 96;
 const SHIMMER_PEAK_WIDTH = 120;

@@ -1,3 +1,4 @@
+import { BRAND_RELAY_ENDPOINT } from "@getzentic/protocol/brand-domains";
 import { afterEach, describe, expect, test } from "vitest";
 import pino from "pino";
 
@@ -11,7 +12,7 @@ import {
   type ConnectionOffer,
 } from "@getzentic/protocol/connection-offer";
 
-const relayEndpoint = process.env.ZENTIC_LIVE_RELAY_ENDPOINT ?? "zentic-relay-next.fly.dev:443";
+const relayEndpoint = process.env.ZENTIC_LIVE_RELAY_ENDPOINT ?? BRAND_RELAY_ENDPOINT;
 const liveTest = process.env.RUN_LIVE_RELAY_E2E === "1" ? test : test.skip;
 
 function requireOffer(url: string): ConnectionOffer {

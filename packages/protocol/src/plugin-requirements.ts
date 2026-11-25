@@ -1,3 +1,4 @@
+import { brandDocsUrl } from "./brand-domains.js";
 import type { PluginRequirements } from "./messages.js";
 import parse from "semver/functions/parse.js";
 import validRange from "semver/ranges/valid.js";
@@ -33,7 +34,7 @@ export function assertPluginCompatibility(input: PluginCompatibilityInput): void
   if (satisfies(version, range) || satisfies(stableCore, range)) return;
   const action =
     input.requirements?.zentic === undefined
-      ? "This plugin has no requirements.zentic and targets Zentic before 0.8. Ask its author to migrate it: https://zentic.sh/docs/plugins/migration"
+      ? `This plugin has no requirements.zentic and targets Zentic before 0.8. Ask its author to migrate it: ${brandDocsUrl("plugins/migration")}`
       : `Use a compatible plugin version or update the ${input.runtime}.`;
   throw new Error(
     `Plugin "${input.id}" requires Zentic ${range}. Your ${input.runtime} is ${input.version}. ${action}`,

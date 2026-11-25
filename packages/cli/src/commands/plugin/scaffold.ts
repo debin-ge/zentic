@@ -1,3 +1,4 @@
+import { BRAND_ROOT_DOMAIN, BRAND_WEBSITE_URL } from "@getzentic/protocol/brand-domains";
 import { mkdir, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { PluginIdSchema } from "@getzentic/protocol/messages";
@@ -139,9 +140,9 @@ export function GreetingScreen({ theme, layout }: PluginScreenProps) {
         accessibilityRole="link"
         accessibilityLabel="Open the Zentic website"
         style={styles.button}
-        onPress={() => openExternal("https://zentic.sh")}
+        onPress={() => openExternal("${BRAND_WEBSITE_URL}")}
       >
-        <Text style={styles.buttonText}>Open zentic.sh</Text>
+        <Text style={styles.buttonText}>Open ${BRAND_ROOT_DOMAIN}</Text>
       </Pressable>
     </View>
   );

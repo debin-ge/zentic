@@ -1,3 +1,4 @@
+import { BRAND_APP_URL, BRAND_RELAY_ENDPOINT } from "@getzentic/protocol/brand-domains";
 import { unarchiveWorkspaceAgents } from "./workspace-archive-service.js";
 import { createRestartRecovery } from "./agent/restart-recovery/index.js";
 import { sendPromptToAgent, unarchiveAgentState } from "./agent/agent-prompt.js";
@@ -588,7 +589,7 @@ function createInitialMutableDaemonConfig(config: ResolvedDaemonSettings): Mutab
     cors: { allowedOrigins: config.corsAllowedOrigins },
     trustedProxies: config.trustedProxies ?? ["loopback"],
     git: config.git ?? resolveGitProcessPolicy({ env: process.env }),
-    app: { baseUrl: config.appBaseUrl ?? "https://app.zentic.sh" },
+    app: { baseUrl: config.appBaseUrl ?? BRAND_APP_URL },
     ...(config.providerCatalogRefreshTimeoutMs !== undefined
       ? { catalogRefreshTimeoutMs: config.providerCatalogRefreshTimeoutMs }
       : {}),
@@ -739,12 +740,12 @@ export async function createZenticDaemon(
   const scriptRuntimeStore = new WorkspaceScriptRuntimeStore();
   const workspaceSetupRuntime = new WorkspaceSetupRuntime();
   let configuredHostnames = config.hostnames ?? config.allowedHosts;
-  let appBaseUrl = config.appBaseUrl ?? "https://app.zentic.sh";
+  let appBaseUrl = config.appBaseUrl ?? BRAND_APP_URL;
   daemonConfigStore.onFieldChange("hostnames", (value) => {
     configuredHostnames = value as HostnamesConfig | undefined;
   });
   daemonConfigStore.onFieldChange("app.baseUrl", (value) => {
-    appBaseUrl = typeof value === "string" ? value : "https://app.zentic.sh";
+    appBaseUrl = typeof value === "string" ? value : BRAND_APP_URL;
   });
   let wsServer: VoiceAssistantWebSocketServer | null = null;
   let serviceProxyListenTarget: ListenTarget | null = null;
@@ -1800,9 +1801,9 @@ export async function createZenticDaemon(
               agentManager.setAppendSystemPrompt(typeof value === "string" ? value : "");
             });
             const relayEnabled = config.relayEnabled ?? true;
-            const relayEndpoint = config.relayEndpoint ?? "relay.mrgedebin.xyz:443";
+            const relayEndpoint = config.relayEndpoint ?? BRAND_RELAY_ENDPOINT;
             const relayPublicEndpoint = config.relayPublicEndpoint ?? relayEndpoint;
-            const relayUseTls = config.relayUseTls ?? relayEndpoint === "relay.mrgedebin.xyz:443";
+            const relayUseTls = config.relayUseTls ?? relayEndpoint === BRAND_RELAY_ENDPOINT;
             const relayPublicUseTls = config.relayPublicUseTls ?? relayUseTls;
             if (boundListenTarget.type === "tcp") {
               logger.info(

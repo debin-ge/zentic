@@ -1,3 +1,4 @@
+import { brandDocsUrl } from "@getzentic/protocol/brand-domains";
 import { stat } from "node:fs/promises";
 import { readPluginManifest } from "./manifest.js";
 import { assertPluginCompatibility } from "@getzentic/protocol/plugin-requirements";
@@ -427,7 +428,7 @@ async function resolveEntryPaths(directory: string): Promise<{
   const legacyEntry = await findEntry(directory, ["index.ts", "index.tsx"]);
   if (legacyEntry) {
     throw new Error(
-      "This plugin was made for an older version of Zentic and cannot run on Zentic v0.8. Ask its author to update it. Plugin authors can follow the migration guide: https://zentic.sh/docs/plugins/migration",
+      `This plugin was made for an older version of Zentic and cannot run on Zentic v0.8. Ask its author to update it. Plugin authors can follow the migration guide: ${brandDocsUrl("plugins/migration")}`,
     );
   }
   throw new Error(

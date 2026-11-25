@@ -1,3 +1,4 @@
+import { brandDocsUrl } from "@getzentic/protocol/brand-domains";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
@@ -23,7 +24,7 @@ const OP_KIND_ORDER: Record<AgentSkillOperation["kind"], number> = {
   delete: 2,
 };
 const ThemedSettings = withUnistyles(Settings2);
-const SKILLS_DOCS_URL = "https://zentic.sh/docs/skills";
+const SKILLS_DOCS_URL = brandDocsUrl("skills");
 const mutedMapping = (theme: Theme) => ({ color: theme.colors.foregroundMuted });
 
 function formatUpdateMessage(ops: readonly AgentSkillOperation[], t: TFunction): string {

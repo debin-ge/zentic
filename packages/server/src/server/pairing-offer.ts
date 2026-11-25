@@ -1,3 +1,4 @@
+import { BRAND_APP_URL, BRAND_RELAY_ENDPOINT } from "@getzentic/protocol/brand-domains";
 import type { Logger } from "pino";
 
 import { createConnectionOfferV2, encodeOfferToFragmentUrl } from "./connection-offer.js";
@@ -33,11 +34,11 @@ export async function generateLocalPairingOffer(args: {
     };
   }
 
-  const relayEndpoint = args.relayEndpoint ?? "relay.mrgedebin.xyz:443";
+  const relayEndpoint = args.relayEndpoint ?? BRAND_RELAY_ENDPOINT;
   const relayPublicEndpoint = args.relayPublicEndpoint ?? relayEndpoint;
-  const relayUseTls = args.relayUseTls ?? relayEndpoint === "relay.mrgedebin.xyz:443";
+  const relayUseTls = args.relayUseTls ?? relayEndpoint === BRAND_RELAY_ENDPOINT;
   const relayPublicUseTls = args.relayPublicUseTls ?? relayUseTls;
-  const appBaseUrl = args.appBaseUrl ?? "https://app.zentic.sh";
+  const appBaseUrl = args.appBaseUrl ?? BRAND_APP_URL;
   const serverId = getOrCreateServerId(args.zenticHome, { logger: args.logger });
   const daemonKeyPair = await loadOrCreateDaemonKeyPair(args.zenticHome, args.logger);
   const offer = await createConnectionOfferV2({

@@ -1,3 +1,4 @@
+import { brandDocsUrl } from "@getzentic/protocol/brand-domains";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Text, View } from "react-native";
 import * as Clipboard from "expo-clipboard";
@@ -21,8 +22,8 @@ import {
   type EditingTextInputHandle,
 } from "@/components/ui/text-input";
 
-const RELAY_DOCS_URL = "https://zentic.sh/docs/security";
-export const CONNECTIVITY_DOCS_URL = "https://zentic.sh/docs/connectivity";
+const RELAY_DOCS_URL = brandDocsUrl("security");
+export const CONNECTIVITY_DOCS_URL = brandDocsUrl("connectivity");
 export const TAILSCALE_DOCS_URL = `${CONNECTIVITY_DOCS_URL}#tailscale`;
 const FLEX_ONE_STYLE = { flex: 1 } as const;
 const ThemedLoadingSpinner = withUnistyles(LoadingSpinner);

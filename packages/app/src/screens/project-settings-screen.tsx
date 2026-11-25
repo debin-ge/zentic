@@ -1,3 +1,4 @@
+import { brandDocsUrl } from "@getzentic/protocol/brand-domains";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
@@ -86,7 +87,7 @@ const METADATA_PROMPT_FIELDS: Record<MetadataPromptKey, MetadataPromptField> = {
   },
 };
 
-const WORKTREE_DOCS_URL = "https://zentic.sh/docs/worktrees";
+const WORKTREE_DOCS_URL = brandDocsUrl("worktrees");
 
 type ReadProjectConfigData = Awaited<ReturnType<DaemonClient["readProjectConfig"]>>;
 

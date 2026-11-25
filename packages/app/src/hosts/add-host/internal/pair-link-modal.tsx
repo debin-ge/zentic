@@ -1,3 +1,4 @@
+import { BRAND_APP_URL } from "@getzentic/protocol/brand-domains";
 import { useCallback, useMemo, useReducer, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Text, View } from "react-native";
@@ -219,7 +220,7 @@ function PairLinkModalContent({
           nativeID="pair-link-input"
           accessibilityLabel={t("pairing.link.label")}
           onChangeText={handleChangeOfferUrl}
-          placeholder="https://app.zentic.sh/#offer=..."
+          placeholder={`${BRAND_APP_URL}/#offer=...`}
           style={styles.input}
           autoFocus
           autoCapitalize="none"

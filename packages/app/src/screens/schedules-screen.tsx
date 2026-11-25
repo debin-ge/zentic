@@ -1,3 +1,4 @@
+import { brandDocsUrl } from "@getzentic/protocol/brand-domains";
 import {
   useCallback,
   useEffect,
@@ -314,7 +315,7 @@ function SchedulesEmptyState({
       <View style={styles.emptyTextStack}>
         <Text style={styles.emptyTitle}>No active schedules</Text>
         <Text style={styles.emptyDescription}>Schedules run agents on a cadence.</Text>
-        <ExternalLink href="https://zentic.sh/docs/schedules" label="See docs" />
+        <ExternalLink href={brandDocsUrl("schedules")} label="See docs" />
       </View>
       <Button variant="outline" leftIcon={Plus} onPress={onCreate} testID="schedules-empty-new">
         New schedule

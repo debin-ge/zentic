@@ -1,3 +1,4 @@
+import { BRAND_APP_URL, brandDocsUrl } from "@getzentic/protocol/brand-domains";
 import { addLocalDaemonOptions } from "../utils/command-options.js";
 import { cancel, confirm, intro, isCancel, log, note, outro } from "@clack/prompts";
 import { Command, Option } from "commander";
@@ -117,9 +118,9 @@ function printNextSteps(pairingUrl: string | null, zenticHome: string, richUi: b
     pairingUrl
       ? "1. Open Zentic and scan the QR code above, or paste the pairing link."
       : "1. Open Zentic and connect to your daemon.",
-    "2. Web app: https://app.zentic.sh",
+    `2. Web app: ${BRAND_APP_URL}`,
     "3. Desktop app: https://github.com/debin-ge/zentic/releases/latest",
-    "4. Docs: https://zentic.sh/docs",
+    `4. Docs: ${brandDocsUrl()}`,
     `5. Example: zentic run --home ${JSON.stringify(zenticHome)} --output-schema schema.json "extract fields"`,
   ];
   const quickReferenceLines = [

@@ -1,3 +1,4 @@
+import { BRAND_APP_URL } from "@getzentic/protocol/brand-domains";
 import { readFile } from "node:fs/promises";
 import { PluginRegistriesSchema } from "@getzentic/protocol/plugin-registry";
 import { existsSync, readFileSync } from "node:fs";
@@ -384,14 +385,14 @@ const DEFAULT_PERSISTED_CONFIG = PersistedConfigSchema.parse({
   daemon: {
     listen: "127.0.0.1:6767",
     cors: {
-      allowedOrigins: ["https://app.zentic.sh"],
+      allowedOrigins: [BRAND_APP_URL],
     },
     relay: {
       enabled: false,
     },
   },
   app: {
-    baseUrl: "https://app.zentic.sh",
+    baseUrl: BRAND_APP_URL,
   },
 }) as PersistedConfig;
 

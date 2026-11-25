@@ -1,3 +1,4 @@
+import { brandDocsUrl } from "@getzentic/protocol/brand-domains";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useFocusEffect } from "expo-router/react-navigation";
@@ -5,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { useCliInstall } from "@/desktop/hooks/use-install-status";
 import { SettingsCard, SettingsRow, SettingsSection } from "@/components/settings";
 
-const CLI_DOCS_URL = "https://zentic.sh/docs/cli";
+const CLI_DOCS_URL = brandDocsUrl("cli");
 
 export function IntegrationsSection() {
   const { t } = useTranslation();

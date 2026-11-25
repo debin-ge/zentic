@@ -1,3 +1,4 @@
+import { brandWebsiteUrl } from "@getzentic/protocol/brand-domains";
 import { memo, useCallback, useMemo, useState } from "react";
 import { Text, View } from "react-native";
 import { ExternalLink, Gift } from "lucide-react-native";
@@ -25,7 +26,7 @@ import {
   type ChangelogSection,
 } from "./parse-changelog";
 
-const WEBSITE_CHANGELOG_URL = "https://zentic.sh/changelog";
+const WEBSITE_CHANGELOG_URL = brandWebsiteUrl("/changelog");
 
 const ThemedGift = withUnistyles(Gift);
 const ThemedLoadingSpinner = withUnistyles(LoadingSpinner);

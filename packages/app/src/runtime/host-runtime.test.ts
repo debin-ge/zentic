@@ -438,9 +438,9 @@ const relayPrimary: HostConnection = {
 };
 
 const relayAlternate: HostConnection = {
-  id: "relay:relay-next.zentic.sh:443",
+  id: "relay:relay.example.com:443",
   type: "relay",
-  relayEndpoint: "relay-next.zentic.sh:443",
+  relayEndpoint: "relay.example.com:443",
   daemonPublicKeyB64: "pk_test",
 };
 
@@ -1214,9 +1214,9 @@ describe("HostRuntimeController", () => {
         daemonPublicKeyB64: "pk_test",
       };
       const alternative: HostConnection = {
-        id: "relay:relay-next.zentic.sh:443",
+        id: "relay:relay.example.com:443",
         type: "relay",
-        relayEndpoint: "relay-next.zentic.sh:443",
+        relayEndpoint: "relay.example.com:443",
         daemonPublicKeyB64: "pk_test",
       };
       const host = makeHost({
@@ -1299,9 +1299,9 @@ describe("HostRuntimeController", () => {
       daemonPublicKeyB64: "pk_test",
     };
     const alternative: HostConnection = {
-      id: "relay:relay-next.zentic.sh:443",
+      id: "relay:relay.example.com:443",
       type: "relay",
-      relayEndpoint: "relay-next.zentic.sh:443",
+      relayEndpoint: "relay.example.com:443",
       daemonPublicKeyB64: "pk_test",
     };
     const host = makeHost({

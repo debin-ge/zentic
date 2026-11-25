@@ -244,7 +244,7 @@ async function ensureLogin(
     initialValue:
       activeOrigin === undefined || activeOrigin === DEFAULT_HUB_ORIGIN ? "hosted" : "custom",
     options: [
-      { value: "hosted", label: "hub.zentic.sh" },
+      { value: "hosted", label: new URL(DEFAULT_HUB_ORIGIN).host },
       { value: "custom", label: "Custom endpoint…" },
     ],
   });

@@ -1,3 +1,4 @@
+import { BRAND_APP_URL, BRAND_RELAY_ENDPOINT } from "@getzentic/protocol/brand-domains";
 import { configurationEnvironment } from "./config-environment.js";
 import { existsSync } from "node:fs";
 import path from "node:path";
@@ -36,8 +37,8 @@ export {
 } from "./persisted-config.js";
 
 const DEFAULT_PORT = 6767;
-const DEFAULT_RELAY_ENDPOINT = "relay.mrgedebin.xyz:443";
-const DEFAULT_APP_BASE_URL = "https://app.zentic.sh";
+const DEFAULT_RELAY_ENDPOINT = BRAND_RELAY_ENDPOINT;
+const DEFAULT_APP_BASE_URL = BRAND_APP_URL;
 const DEFAULT_TRUSTED_PROXIES = ["loopback"];
 
 interface ResolveBundledWebUiDistDirInput {
