@@ -283,3 +283,107 @@ eas build:view [BUILD_ID]  # 查看详细日志
 3. 构建完成后会通过 webhook 通知
 
 详见 EAS 文档：https://docs.expo.dev/build/building-on-ci/
+
+## 八、免费开发者模式（无需 Apple Developer 账号）
+
+如果暂时没有 Apple Developer 账号（$99/年），可以用以下方式在自己的 iPhone 上测试：
+
+### 8.1 本地构建（需要 Mac）
+
+**优点**：完全免费，真机测试
+**缺点**：需要 Mac，每 7 天需要重新签名
+
+#### 步骤
+
+1. **安装 Xcode**（从 Mac App Store）
+
+2. **添加 Apple ID**：
+   - 打开 Xcode → Settings → Accounts
+   - 点击"+"添加你的个人 Apple ID
+   - 选择你的账号 → 管理证书 → 点击"+"创建 Apple Development 证书
+
+3. **连接 iPhone**：
+   - 用 USB 连接 iPhone 到 Mac
+   - iPhone 上信任这台电脑
+   - 在 Xcode 中（Window → Devices and Simulators）确认设备已识别
+
+4. **首次构建**：
+
+   ```bash
+   cd packages/app
+   npm --prefix ../.. run build:client  # 先构建依赖
+   npx expo run:ios --device
+   ```
+
+5. **信任开发者**：
+   - 首次安装后，iPhone 上打开应用会提示"未受信任的开发者"
+   - 进入 设置 → 通用 → VPN 与设备管理
+   - 点击你的 Apple ID → 信任
+
+6. **后续构建**：
+   ```bash
+   npx expo run:ios --device  # 代码改动后重新运行
+   ```
+
+#### 注意事项
+
+- **签名有效期**：免费证书只有 7 天，过期后需要重新构建安装
+- **Bundle ID**：Xcode 会自动在 `sh.zentic` 后面加你的 Team ID，不会和上游冲突
+- **设备数量**：最多 3 台设备
+- **推送通知**：免费账号支持，但配置更复杂
+
+### 8.2 模拟器构建（需要 Mac）
+
+如果只想在 iOS 模拟器（非真机）测试：
+
+```bash
+npx expo run:ios  # 不加 --device 就是模拟器
+```
+
+这种方式：
+
+- ✅ 完全免费，无时间限制
+- ✅ 不需要 Apple ID
+- ❌ 无法测试推送通知、相机等真机功能
+- ❌ 性能表现和真机不同
+
+### 8.3 EAS Build 模拟器构建（需要 Mac）
+
+如果想用 EAS 云端构建模拟器版本：
+
+在 `eas.json` 添加：
+
+```json
+{
+  "build": {
+    "simulator": {
+      "ios": {
+        "simulator": true,
+        "image": "macos-tahoe-26.6-xcode-27.1"
+      },
+      "env": {
+        "APP_VARIANT": "development"
+      }
+    }
+  }
+}
+```
+
+然后：
+
+```bash
+eas build --platform ios --profile simulator
+```
+
+下载 `.tar.gz` 文件，解压后拖到模拟器安装。
+
+### 8.4 升级到付费账号后
+
+当你购买了 Apple Developer 账号（$99/年），就可以：
+
+1. **使用 TestFlight**：按照第二节的步骤
+2. **延长签名时间**：从 7 天变为 1 年
+3. **分发给其他人**：通过 TestFlight 或 Ad Hoc
+4. **启用高级功能**：App Groups、Apple Pay 等
+
+在 eas.json 中恢复 `submit` 配置，更新 `ascAppId`，就可以用 `eas submit` 自动上传。

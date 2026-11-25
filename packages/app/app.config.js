@@ -201,6 +201,6 @@ export default {
         projectId: "5af4cfb0-402a-4366-aa78-458f8ede1cca",
       },
     },
-    owner: "getzentic", // TODO: replace with your Expo username
+    owner: "mr_ge",
   },
 };
