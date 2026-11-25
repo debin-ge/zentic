@@ -203,7 +203,7 @@ async function prepareTestDaemonConfig(
     providerOverrides: options.providerOverrides,
     agentStoragePath: path.join(zenticHome, "agents"),
     relayEnabled: options.relayEnabled ?? false,
-    relayEndpoint: options.relayEndpoint ?? "relay.zentic.sh:443",
+    relayEndpoint: options.relayEndpoint ?? "relay.mrgedebin.xyz:443",
     relayUseTls: options.relayUseTls,
     relayPublicUseTls: options.relayPublicUseTls,
     relayRequireProtectedSecurity: options.relayRequireProtectedSecurity,

@@ -1800,9 +1800,9 @@ export async function createZenticDaemon(
               agentManager.setAppendSystemPrompt(typeof value === "string" ? value : "");
             });
             const relayEnabled = config.relayEnabled ?? true;
-            const relayEndpoint = config.relayEndpoint ?? "relay.zentic.sh:443";
+            const relayEndpoint = config.relayEndpoint ?? "relay.mrgedebin.xyz:443";
             const relayPublicEndpoint = config.relayPublicEndpoint ?? relayEndpoint;
-            const relayUseTls = config.relayUseTls ?? relayEndpoint === "relay.zentic.sh:443";
+            const relayUseTls = config.relayUseTls ?? relayEndpoint === "relay.mrgedebin.xyz:443";
             const relayPublicUseTls = config.relayPublicUseTls ?? relayUseTls;
             if (boundListenTarget.type === "tcp") {
               logger.info(

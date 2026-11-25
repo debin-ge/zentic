@@ -1422,7 +1422,7 @@ export class HubRelationshipHarness {
       },
       agentStoragePath: path.join(this.zenticHome, "agents"),
       relayEnabled: false,
-      relayEndpoint: "relay.zentic.sh:443",
+      relayEndpoint: "relay.mrgedebin.xyz:443",
       appBaseUrl: "https://app.zentic.sh",
     };
   }

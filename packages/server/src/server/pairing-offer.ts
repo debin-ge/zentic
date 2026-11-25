@@ -33,9 +33,9 @@ export async function generateLocalPairingOffer(args: {
     };
   }
 
-  const relayEndpoint = args.relayEndpoint ?? "relay.zentic.sh:443";
+  const relayEndpoint = args.relayEndpoint ?? "relay.mrgedebin.xyz:443";
   const relayPublicEndpoint = args.relayPublicEndpoint ?? relayEndpoint;
-  const relayUseTls = args.relayUseTls ?? relayEndpoint === "relay.zentic.sh:443";
+  const relayUseTls = args.relayUseTls ?? relayEndpoint === "relay.mrgedebin.xyz:443";
   const relayPublicUseTls = args.relayPublicUseTls ?? relayUseTls;
   const appBaseUrl = args.appBaseUrl ?? "https://app.zentic.sh";
   const serverId = getOrCreateServerId(args.zenticHome, { logger: args.logger });
