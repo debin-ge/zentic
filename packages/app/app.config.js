@@ -198,9 +198,9 @@ export default {
       diagnosticBuildTime: process.env.ZENTIC_DIAGNOSTIC_BUILD_TIME,
       router: {},
       eas: {
-        projectId: "0e7f65ce-0367-46c8-a238-2b65963d235a",
+        projectId: "5af4cfb0-402a-4366-aa78-458f8ede1cca",
       },
     },
-    owner: "getzentic",
+    owner: "getzentic", // TODO: replace with your Expo username
   },
 };
