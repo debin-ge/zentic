@@ -517,6 +517,22 @@ test.describe("registry fixture layout", () => {
   }) => {
     const plugin = registry.plugins.find((entry) => entry.id === "alhassanaraouf/base2tone")!;
     const source = plugin.media[0];
+
+    // Mock thumbnail requests to work around Cloudflare Image Resizing limitations in local Wrangler.
+    // Create a 1x1 test image to satisfy image loading checks.
+    const testImage = Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+      "base64",
+    );
+
+    await page.route(/\/plugins\/thumb\//, (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: "image/png",
+        body: testImage,
+      });
+    });
+
     await openPlugins(page);
     await expectThumbnailCard(
       page.getByRole("region", { name: "What’s new" }).getByRole("link", { name: /Base2Tone/ }),
