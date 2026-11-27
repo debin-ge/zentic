@@ -187,7 +187,7 @@ Test suites in this repo are heavy. Running them in bulk freezes the machine, es
 - Never run `npm run test` for a whole workspace unless asked.
 - For a broad sweep, redirect to a file and read it after: `npx vitest run <path> --bail=1 > /tmp/test-output.txt 2>&1`
 - Never re-run a suite another agent already reported green.
-- For a broader check, start the CI workflow from the Actions tab for your branch. Pushes and pull requests do not start it, and it runs only format, lint, typecheck and the protocol, client, server and CLI unit suites.
+- For a broader check, start the CI workflow from the Actions tab for your branch. It also runs on every push to `main`; pushes to other branches and pull requests do not start it. It runs only format, lint, typecheck and the protocol, client, server and CLI unit suites.
 - Never run the full Playwright E2E suite locally. CI does not run it either. Targeted Playwright specs are allowed when you changed or need to prove that specific flow.
 - App Playwright shares one warmed Metro server per run and gives every Playwright worker its own isolated daemon and `ZENTIC_HOME`. Spec files run concurrently without exposing one file's projects, agents, terminals, history, or provider configuration to another worker; tests within a file remain together so file-level setup is not repeated.
 - Playwright specs that exercise only the daemon import `daemonTest` from the shared fixtures so they do not create a browser context or page.
@@ -200,7 +200,7 @@ Test suites in this repo are heavy. Running them in bulk freezes the machine, es
 
 ## CI
 
-CI is one job that starts only from the Actions tab. It runs format, lint, typecheck, and the protocol, client, server and CLI unit suites. Playwright, desktop, CLI E2E and server integration suites are not in CI: run the targeted files your change touches.
+CI is one job that runs on every push to `main` and from the Actions tab for any other ref. It runs format, lint, typecheck, and the protocol, client, server and CLI unit suites. Playwright, desktop, CLI E2E and server integration suites are not in CI: run the targeted files your change touches.
 
 ## Agent authentication in tests
 
